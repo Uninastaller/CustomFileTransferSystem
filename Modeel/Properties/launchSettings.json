@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Modeel": {
+      "commandName": "Project",
+      "commandLineArgs": "haga"
+    }
+  }
+}
