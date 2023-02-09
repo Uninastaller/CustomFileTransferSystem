@@ -1,0 +1,15 @@
+﻿Create certificate:
+makecert -r -pe -n "CN=MyTestCertificate" -b 01/01/2010 -e 01/01/2030 -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 MyTestCertificate.cer -sv MyTestCertificate.pvk
+
+Create trusted certificate for server:
+makecert -r -pe -n "CN=MyTestCertificateServer" -b 01/01/2010 -e 01/01/2030 -eku 1.3.6.1.5.5.7.3.1 -ss root -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 MyTestCertificateServer.cer -sv MyTestCertificateServer.pvk
+
+Create trusted certificate for client:
+makecert -r -pe -n "CN=MyTestCertificateClient" -b 01/01/2010 -e 01/01/2030 -eku 1.3.6.1.5.5.7.3.2 -ss root -sr localMachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 MyTestCertificateClient.cer -sv MyTestCertificateClient.pvk
+
+
+Convert to PFX
+pvk2pfx -pvk MyTestCertificate.pvk -spc MyTestCertificate.cer -pfx MyTestCertificate.pfx
+Documentation:
+https://learn.microsoft.com/en-us/windows/win32/seccrypto/makecert
+https://blog.jayway.com/2014/09/03/creating-self-signed-certificates-with-makecert-exe-for-development/
