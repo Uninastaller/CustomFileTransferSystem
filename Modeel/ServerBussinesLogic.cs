@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Modeel.SSL;
+using System;
 using System.IO;
 using System.Net;
-using System.Security;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Modeel
@@ -26,10 +27,17 @@ namespace Modeel
          //}
          //password.MakeReadOnly();
 
-         _certificate = new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), "", X509KeyStorageFlags.MachineKeySet);
-         _tcpServerSSL = new TcpServerSSL(_ipAddress, _serverPort, _certificate);
-         _tcpServerSSL.Start();
+         //_certificate = new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), "", X509KeyStorageFlags.MachineKeySet);
+         //_tcpServerSSL = new TcpServerSSL(_ipAddress, _serverPort, _certificate);
+         //_tcpServerSSL.Start();
          //_server = new Server(_ipAddress, _serverPort);
+
+         SslContext context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
+
+         // Create a new SSL chat server
+         ChatServer server = new ChatServer(context, _ipAddress, _serverPort);
+
+         server.Start();
       }
    }
 }
