@@ -9,7 +9,8 @@ makecert -r -pe -n "CN=MyTestCertificateClient" -b 01/01/2010 -e 01/01/2030 -eku
 
 
 Convert to PFX
-pvk2pfx -pvk MyTestCertificate.pvk -spc MyTestCertificate.cer -pfx MyTestCertificate.pfx
+pvk2pfx -pvk MyTestCertificateServer.pvk -spc MyTestCertificateServer.cer -pfx MyTestCertificateServer.pfx
+pvk2pfx -pvk MyTestCertificateClient.pvk -spc MyTestCertificateClient.cer -pfx MyTestCertificateClient.pfx
 Documentation:
 https://learn.microsoft.com/en-us/windows/win32/seccrypto/makecert
 https://blog.jayway.com/2014/09/03/creating-self-signed-certificates-with-makecert-exe-for-development/
