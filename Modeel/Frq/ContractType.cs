@@ -41,7 +41,7 @@ namespace Modeel.Frq
 
       public ContractType()
       {
-         Add(MsgIds.TestMessage, typeof(TestMessage));
+         //Add(MsgIds.TestMessage, typeof(NewClientConnectedMessage));
       }
 
       public void Add(int msgId, Type t)

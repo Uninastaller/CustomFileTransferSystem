@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Modeel
 {
-    internal class TcpServerSSL
+    internal class TcpServerSSL_NON
     {
         private TcpListener _listener;
         private X509Certificate2 _certificate;
@@ -24,7 +24,7 @@ namespace Modeel
         public delegate void MessageReceivedEventHandler(TcpClient client, string message);
         public event MessageReceivedEventHandler MessageReceived;
 
-        public TcpServerSSL(IPAddress address, int port, X509Certificate2 certificate)
+        public TcpServerSSL_NON(IPAddress address, int port, X509Certificate2 certificate)
         {
             _listener = new TcpListener(address, port);
             _certificate = certificate;

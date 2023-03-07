@@ -2,37 +2,67 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading;
 
 namespace Modeel
 {
-   public class ClientBussinesLogic
-   {
-      TcpClientSSL _tcpClientSSL;
-      private readonly int _serverPort = 8080;
-      private readonly string _serverIp = "127.0.0.1";
-      private readonly IPAddress _ipAddress = IPAddress.Loopback;
-      private readonly string _certificateName = "MyTestCertificateClient.pfx";
-      private readonly X509Certificate2 _certificate;
+    public class ClientBussinesLogic : SslClient
+    {
 
-      public ClientBussinesLogic()
-      {
-         //_certificate = new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), "", X509KeyStorageFlags.MachineKeySet);
+        public ClientBussinesLogic(SslContext context, IPAddress address, int port) : base(context, address, port)
+        {
+            Connect();
+            Send("haha");
+        }
 
-         //_tcpClientSSL = new TcpClientSSL(_ipAddress, _serverPort, _certificate);
-         //_tcpClientSSL.SendMessage("haha");
+        public void DisconnectAndStop()
+        {
+            _stop = true;
+            DisconnectAsync();
+            while (IsConnected)
+                Thread.Yield();
+        }
 
+        protected override void OnConnected()
+        {
+            Console.WriteLine($"Chat SSL client connected a new session with Id {Id}");
+        }
 
-         SslContext context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+        protected override void OnHandshaked()
+        {
+            Console.WriteLine($"Chat SSL client handshaked a new session with Id {Id}");
+        }
 
-         // Create a new SSL chat client
-         ChatClient client = new ChatClient(context, _serverIp, _serverPort);
+        protected override void OnDisconnected()
+        {
+            //System.Diagnostics.Debug.WriteLine("Disconnected!");
+            Logger.WriteLog("Disconnected from server!", LoggerInfo.tcpInfo);
+            Console.WriteLine($"Chat SSL client disconnected a session with Id {Id}");
 
-         client.Connect();
+            // Wait for a while...
+            Thread.Sleep(1000);
 
-         client.Send("haha");
+            // Try to connect again
+            if (!_stop)
+                ConnectAsync();
+        }
 
-      }
-   }
+        protected override void OnReceived(byte[] buffer, long offset, long size)
+        {
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            Console.WriteLine(message);
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            Console.WriteLine($"Chat SSL client caught an error with code {error}");
+        }
+
+        private bool _stop;
+    }
 }
+

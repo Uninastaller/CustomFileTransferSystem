@@ -21,14 +21,11 @@ namespace Modeel
 
             Logger.WriteLog("START OF PROGRAM", LoggerInfo.methodEntry);
             InitializeComponent();
-
-            new ServerBussinesLogic();
-            new ClientBussinesLogic();
         }
 
         private void MyButton_Click(object sender, RoutedEventArgs e)
         {
-            Logger.WriteLog("MyButton_Click", LoggerInfo.methodEntry);
+            Logger.WriteLog("MyButton_server_Click", LoggerInfo.methodEntry);
             OpenTestWindow();
         }
 
@@ -40,26 +37,27 @@ namespace Modeel
             }
             else
             {
-                _testWindow.BaseMsgEnque(new TestMessage() { TestString = "Test" });
+                _testWindow.BaseMsgEnque(new WindowStateSetMessage());
             }
         }
 
         private void MyButton2_Click(object sender, RoutedEventArgs e)
         {
-            Logger.WriteLog("MyButton2_Click", LoggerInfo.methodEntry);
+            Logger.WriteLog("MyButton2_client_Click", LoggerInfo.methodEntry);
             OpenTestWindow2();
         }
 
         private void OpenTestWindow2()
         {
-            if (_testWindow2 == null || !_testWindow2.IsOpen())
-            {
-                _testWindow2 = BaseWindowForWPF.CreateWindow<TestWindow2>();
-            }
-            else
-            {
-                _testWindow2.BaseMsgEnque(new TestMessage() { TestString = "Test2" });
-            }
+            //if (_testWindow2 == null || !_testWindow2.IsOpen())
+            //{
+            //    _testWindow2 = BaseWindowForWPF.CreateWindow<TestWindow2>();
+            //}
+            //else
+            //{
+            //    _testWindow2.BaseMsgEnque(new WindowStateSetMessage());
+            //}
+            BaseWindowForWPF.CreateWindow<TestWindow2>();
         }
     }
 }

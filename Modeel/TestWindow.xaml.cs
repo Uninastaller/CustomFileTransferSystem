@@ -1,34 +1,81 @@
-﻿using Modeel.Frq;
+﻿using Modeel.SSL;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace Modeel
 {
-   /// <summary>
-   /// Interaction logic for TestWindow.xaml
-   /// </summary>
-   public partial class TestWindow : BaseWindowForWPF
-   {
-      public TestWindow()
-      {
-         InitializeComponent();
-         contract.Add(MsgIds.TestMessage, typeof(TestMessage));
+    /// <summary>
+    /// Interaction logic for TestWindow.xaml
+    /// </summary>
+    public partial class TestWindow : BaseWindowForWPF
+    {
+        private ServerBussinesLogic _serverBussinesLogic;
 
-         Init();
-      }
+        private readonly int _serverPort = 8080;
+        private readonly IPAddress _ipAddress = IPAddress.Loopback;
+        private readonly string _certificateName = "MyTestCertificateServer.pfx";
+        private readonly Dictionary<Guid, string> _clients = new Dictionary<Guid, string>();
 
-      internal void Init()
-      {
-         msgSwitch
-          .Case(contract.GetContractId(typeof(TestMessage)), (TestMessage x) => TestMessageHandler(x));
-      }
+        public TestWindow()
+        {
+            InitializeComponent();
+            contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
+            contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientStateChangeMessage));
 
-      private void TestMessageHandler(TestMessage message)
-      {
-         if (WindowState == System.Windows.WindowState.Minimized)
-         {
-            WindowState = System.Windows.WindowState.Normal;
-         }
-         Activate();
-      }
-   }
+            Init();
+
+            Closed += Window_closedEvent;
+
+            SslContext sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
+            _serverBussinesLogic = new ServerBussinesLogic(sslContext, _ipAddress, _serverPort, this);
+        }
+
+        internal void Init()
+        {
+            msgSwitch
+             .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientStateChangeMessage)), (ClientStateChangeMessage x) => ClientStateChangeMessageHandler(x));
+        }
+
+        private void WindowStateSetMessageHandler(WindowStateSetMessage message)
+        {
+            if (WindowState == System.Windows.WindowState.Minimized)
+            {
+                WindowState = System.Windows.WindowState.Normal;
+            }
+            Activate();
+        }
+
+        private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
+        {
+            if (message.State == ClientState.CONNECTED && !_clients.ContainsKey(message.SessionId))
+            {
+                _clients.Add(message.SessionId, message.Client);
+            }
+            else if (message.State == ClientState.DISCONNECTED && _clients.ContainsKey(message.SessionId))
+            {
+                _clients.Remove(message.SessionId);
+            }
+            RefreshClientsView();
+        }
+
+        private void RefreshClientsView()
+        {
+            lvConnectedClients.ItemsSource = _clients.Values.ToList();
+        }
+
+
+        private void Window_closedEvent(object? sender, EventArgs e)
+        {
+            Closed -= Window_closedEvent;
+            _serverBussinesLogic.Stop();
+            _serverBussinesLogic.Dispose();
+        }
+    }
 }

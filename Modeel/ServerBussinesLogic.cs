@@ -1,43 +1,66 @@
-﻿using Modeel.SSL;
+﻿using Modeel.Frq;
+using Modeel.SSL;
 using System;
-using System.IO;
 using System.Net;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
+using System.Net.Sockets;
 
 namespace Modeel
 {
 
-   public class ServerBussinesLogic
-   {
-      //private Server _server;
-      private TcpServerSSL _tcpServerSSL;
-      private readonly int _serverPort = 8080;
-      //private readonly string _serverIp = "127.0.0.1";
-      private readonly IPAddress _ipAddress = IPAddress.Loopback;
-      private readonly string _certificateName = "MyTestCertificateServer.pfx";
-      private readonly X509Certificate2 _certificate;
+    public class ServerBussinesLogic : SslServer
+    {
+        private IWindowEnqueuer _gui;
+        public ServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui) : base(context, address, port)
+        {
+            _gui = gui;
+            Start();
+        }
 
-      public ServerBussinesLogic()
-      {
-         //SecureString password = new SecureString();
-         //foreach (char c in "7E59A722F2B6AC8399AC4283C06D6BDD")
-         //{
-         //   password.AppendChar(c);
-         //}
-         //password.MakeReadOnly();
+        protected override SslSession CreateSession() { return new ServerSession(this); }
 
-         //_certificate = new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), "", X509KeyStorageFlags.MachineKeySet);
-         //_tcpServerSSL = new TcpServerSSL(_ipAddress, _serverPort, _certificate);
-         //_tcpServerSSL.Start();
-         //_server = new Server(_ipAddress, _serverPort);
+        protected override void OnError(SocketError error)
+        {
+            Console.WriteLine($"Chat SSL server caught an error with code {error}");
+        }
 
-         SslContext context = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
+        private void OnClientDisconnected(SslSession session)
+        {
 
-         // Create a new SSL chat server
-         ChatServer server = new ChatServer(context, _ipAddress, _serverPort);
+            if (session is ServerSession serverSession)
+            {
+                serverSession.ReceiveMessage -= OnReceiveMessage;
+                serverSession.ClientDisconnected -= OnClientDisconnected;
+            }
 
-         server.Start();
-      }
-   }
+            ClientStateChangeMessage message = new ClientStateChangeMessage()
+            {
+                State = ClientState.DISCONNECTED,
+                SessionId = session.Id
+            };
+            _gui.BaseMsgEnque(message);
+        }
+
+        protected override void OnConnected(SslSession session)
+        {
+            if (session is ServerSession serverSession)
+            {
+                serverSession.ReceiveMessage += OnReceiveMessage;
+                serverSession.ClientDisconnected += OnClientDisconnected;
+            }
+
+            ClientStateChangeMessage message = new ClientStateChangeMessage()
+            {
+                Client = session.Socket?.RemoteEndPoint?.ToString(),
+                State = ClientState.CONNECTED,
+                SessionId = session.Id
+            };
+            _gui.BaseMsgEnque(message);
+
+        }
+
+        private void OnReceiveMessage(SslSession sesion, string message)
+        {
+
+        }
+    }
 }

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Modeel
+﻿namespace Modeel
 {
-   public static class MsgIds
-   {
-      public static readonly int TestMessage = 1;
-   }
+    public static class MsgIds
+    {
+        public static readonly int ClientStateChangeMessage = 1;
+        public static readonly int WindowStateSetMessage = 2;
+    }
 }
