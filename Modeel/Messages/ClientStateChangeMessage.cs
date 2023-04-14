@@ -1,15 +1,16 @@
 ﻿using Modeel.Frq;
 using System;
+using System.Collections.Generic;
 
-namespace Modeel
+namespace Modeel.Messages
 {
     internal class ClientStateChangeMessage : MsgBase<ClientStateChangeMessage>
     {
         public ClientStateChangeMessage() : base(typeof(ClientStateChangeMessage))
         {
         }
-        public string Client { get; set; } = string.Empty;
-        public Guid SessionId { get; set; }
-        public ClientState State { get; set; }
+
+        public Dictionary<Guid, string> Clients { get; set; } = new Dictionary<Guid, string>();
+
     }
 }

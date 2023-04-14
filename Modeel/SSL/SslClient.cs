@@ -1,5 +1,6 @@
 ﻿using Modeel.SSL;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -364,12 +365,12 @@ namespace Modeel.SSL
             try
             {
                // Shutdown the SSL stream
-               _sslStream.ShutdownAsync().Wait();
+               _sslStream?.ShutdownAsync().Wait();
             }
             catch (Exception) { }
 
             // Dispose the SSL stream & buffer
-            _sslStream.Dispose();
+            _sslStream?.Dispose();
             _sslStreamId = null;
 
             try
@@ -1165,19 +1166,28 @@ namespace Modeel.SSL
 
       protected virtual void Dispose(bool disposingManagedResources)
       {
-         // The idea here is that Dispose(Boolean) knows whether it is
-         // being called to do explicit cleanup (the Boolean is true)
-         // versus being called due to a garbage collection (the Boolean
-         // is false). This distinction is useful because, when being
-         // disposed explicitly, the Dispose(Boolean) method can safely
-         // execute code using reference type fields that refer to other
-         // objects knowing for sure that these other objects have not been
-         // finalized or disposed of yet. When the Boolean is false,
-         // the Dispose(Boolean) method should not execute code that
-         // refer to reference type fields because those objects may
-         // have already been finalized."
+            // The idea here is that Dispose(Boolean) knows whether it is
+            // being called to do explicit cleanup (the Boolean is true)
+            // versus being called due to a garbage collection (the Boolean
+            // is false). This distinction is useful because, when being
+            // disposed explicitly, the Dispose(Boolean) method can safely
+            // execute code using reference type fields that refer to other
+            // objects knowing for sure that these other objects have not been
+            // finalized or disposed of yet. When the Boolean is false,
+            // the Dispose(Boolean) method should not execute code that
+            // refer to reference type fields because those objects may
+            // have already been finalized."
 
-         if (!IsDisposed)
+            Socket?.Close();
+            Socket = null;
+            _sslStream?.Close();
+            _sslStream = null;
+            (_sslStream as IDisposable)?.Dispose(); // added line
+            
+
+
+
+            if (!IsDisposed)
          {
             if (disposingManagedResources)
             {

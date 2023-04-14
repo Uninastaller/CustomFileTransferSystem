@@ -1,4 +1,5 @@
-﻿using Modeel.SSL;
+﻿using Modeel.Messages;
+using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,18 +12,18 @@ using System.Threading;
 namespace Modeel
 {
     /// <summary>
-    /// Interaction logic for TestWindow.xaml
+    /// Interaction logic for ServerWindow.xaml
     /// </summary>
-    public partial class TestWindow : BaseWindowForWPF
+    public partial class ServerWindow : BaseWindowForWPF
     {
         private ServerBussinesLogic _serverBussinesLogic;
 
         private readonly int _serverPort = 8080;
         private readonly IPAddress _ipAddress = IPAddress.Loopback;
         private readonly string _certificateName = "MyTestCertificateServer.pfx";
-        private readonly Dictionary<Guid, string> _clients = new Dictionary<Guid, string>();
+        private Dictionary<Guid, string> _clients = new Dictionary<Guid, string>();
 
-        public TestWindow()
+        public ServerWindow()
         {
             InitializeComponent();
             contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
@@ -54,14 +55,7 @@ namespace Modeel
 
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
         {
-            if (message.State == ClientState.CONNECTED && !_clients.ContainsKey(message.SessionId))
-            {
-                _clients.Add(message.SessionId, message.Client);
-            }
-            else if (message.State == ClientState.DISCONNECTED && _clients.ContainsKey(message.SessionId))
-            {
-                _clients.Remove(message.SessionId);
-            }
+            _clients = message.Clients;
             RefreshClientsView();
         }
 

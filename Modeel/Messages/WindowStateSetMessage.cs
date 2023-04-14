@@ -1,6 +1,6 @@
 ﻿using Modeel.Frq;
 
-namespace Modeel
+namespace Modeel.Messages
 {
     internal class WindowStateSetMessage : MsgBase<WindowStateSetMessage>
     {

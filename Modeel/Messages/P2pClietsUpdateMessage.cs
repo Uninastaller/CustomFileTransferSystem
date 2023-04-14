@@ -1,0 +1,16 @@
+﻿using Modeel.Frq;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+namespace Modeel.Messages
+{
+    internal class P2pClietsUpdateMessage : MsgBase<P2pClietsUpdateMessage>
+    {
+        public P2pClietsUpdateMessage() : base(typeof(P2pClietsUpdateMessage))
+        {
+        }
+
+        public List<ClientBussinesLogic> Clients { get; set; } = new List<ClientBussinesLogic>();
+    }
+}

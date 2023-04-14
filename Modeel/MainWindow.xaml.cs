@@ -1,4 +1,6 @@
 ﻿using Modeel.Frq;
+using Modeel.Messages;
+using System;
 using System.Threading;
 using System.Windows;
 
@@ -10,10 +12,9 @@ namespace Modeel
     public partial class MainWindow : BaseWindowForWPF
     {
 
-        private IWindowEnqueuer? _testWindow;
-        private IWindowEnqueuer? _testWindow2;
-        private readonly int _serverPort = 8080;
-        private readonly string _serverIp = "127.0.0.1";
+        private IWindowEnqueuer? _serverWindow;
+        private IWindowEnqueuer? _clientWindow;
+        private MemoryLeakTestFormDefault? _form;
 
         public MainWindow()
         {
@@ -23,41 +24,49 @@ namespace Modeel
             InitializeComponent();
         }
 
-        private void MyButton_Click(object sender, RoutedEventArgs e)
+        private void btServerWindow_Click(object sender, RoutedEventArgs e)
         {
+            _form = null;
+            _clientWindow = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
             Logger.WriteLog("MyButton_server_Click", LoggerInfo.methodEntry);
-            OpenTestWindow();
+            OpenServerWindow();
         }
 
-        private void OpenTestWindow()
+        private void OpenServerWindow()
         {
-            if (_testWindow == null || !_testWindow.IsOpen())
+            if (_serverWindow == null || !_serverWindow.IsOpen())
             {
-                _testWindow = BaseWindowForWPF.CreateWindow<TestWindow>();
+                _serverWindow = BaseWindowForWPF.CreateWindow<ServerWindow>();
             }
             else
             {
-                _testWindow.BaseMsgEnque(new WindowStateSetMessage());
+                _serverWindow.BaseMsgEnque(new WindowStateSetMessage());
             }
         }
 
-        private void MyButton2_Click(object sender, RoutedEventArgs e)
+        private void btClientWindow_Click(object sender, RoutedEventArgs e)
         {
             Logger.WriteLog("MyButton2_client_Click", LoggerInfo.methodEntry);
-            OpenTestWindow2();
+            OpenClientWindow();
         }
 
-        private void OpenTestWindow2()
+        private void OpenClientWindow()
         {
-            //if (_testWindow2 == null || !_testWindow2.IsOpen())
+            //if (_clientWindow == null || !_clientWindow.IsOpen())
             //{
-            //    _testWindow2 = BaseWindowForWPF.CreateWindow<TestWindow2>();
+            //    _clientWindow = BaseWindowForWPF.CreateWindow<ClientWindow>();
             //}
             //else
             //{
-            //    _testWindow2.BaseMsgEnque(new WindowStateSetMessage());
+            //    _clientWindow.BaseMsgEnque(new WindowStateSetMessage());
             //}
-            BaseWindowForWPF.CreateWindow<TestWindow2>();
+            _clientWindow = BaseWindowForWPF.CreateWindow<ClientWindow>();
+            _form = new MemoryLeakTestFormDefault();
+            _form.Show();
         }
     }
 }

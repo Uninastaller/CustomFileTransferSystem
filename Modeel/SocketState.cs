@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Modeel
 {
-    public enum ClientState
+    public enum SocketState
     {
         CONNECTED = 0,
         DISCONNECTED = 1,
