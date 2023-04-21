@@ -16,44 +16,43 @@ namespace Modeel
         protected NumberSwitch msgSwitch { get; set; }
 
         protected Thread _windowWorkerThread;
-        protected bool _loopFlag = true;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public BaseWindowForWPF()
         {
             contract = ContractType.GetInstance();
             msgSwitch = new NumberSwitch();
-            _windowWorkerThread = new Thread(HandleMessage);
+            _windowWorkerThread = new Thread(() => HandleMessage(_cancellationTokenSource.Token));
             _windowWorkerThread.Start();
             Closed += Window_closedEvent;
         }
 
-        private void HandleMessage()
+        private void HandleMessage(CancellationToken cancellationToken)
         {
             Thread.CurrentThread.Name = $"{this.GetType().Name}_WorkerThread";
             Logger.WriteLog("WorkerThread starting", LoggerInfo.methodEntry);
 
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                bool isSignaled = _autoResetEvent.WaitOne(1000);
-                // TimeOut
-                // Check if Cancel has been pressed
-                if (!_loopFlag)
+                int loopFlag = WaitHandle.WaitAny(new[] { _autoResetEvent, cancellationToken.WaitHandle }, 1000, false);                // TimeOut
+                // Check if Cancel has been signalized
+                if (loopFlag == 1)
                 {
                     while (!_concurrentQueue.IsEmpty)
                     {
-                        _concurrentQueue.TryDequeue(out BaseMsg? baseMsgFromQuee);
+                        _concurrentQueue.TryDequeue(out BaseMsg? _);
                     }
                     break;
                 }
-                if (isSignaled)
+                else if (loopFlag == WaitHandle.WaitTimeout)
+                {
+                    // Timeout occurred, continue looping.
+                    continue;
+                }
+                else
                 {
                     Action handlingMessageInGuiThread = HandlingMessageInGuiThread;
-                    this.Dispatcher.Invoke(handlingMessageInGuiThread);
-                }
-                // Check if Cancel has been pressed
-                else if (!_loopFlag)
-                {
-                    break;
+                    this.Dispatcher.BeginInvoke(handlingMessageInGuiThread);
                 }
             }
             Logger.WriteLog("WorkerThread closing", LoggerInfo.methodExit);
@@ -109,8 +108,9 @@ namespace Modeel
         private void Window_closedEvent(object? sender, EventArgs e)
         {
             Closed -= Window_closedEvent;
-            _loopFlag = false;
+            _cancellationTokenSource.Cancel();
             Logger.WriteLog("Window and his threads closing", LoggerInfo.windowClosed, sender?.GetType().Name);
+            _windowWorkerThread.Join();
             System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
         }
 
@@ -123,11 +123,7 @@ namespace Modeel
 
         public bool IsOpen()
         {
-            if (!_loopFlag)
-            {
-                return _loopFlag;
-            }
-            return _loopFlag;
+            return !_cancellationTokenSource.IsCancellationRequested;
         }
     }
 }

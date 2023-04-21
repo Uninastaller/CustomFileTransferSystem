@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Modeel
 {
-    public class ClientBussinesLogic : SslClient
+    public class ClientBussinesLogic : SslClient, IUniversalClientSocket
     {
         private IWindowEnqueuer _gui;
         private bool _sessionWithCentralServer;
@@ -46,6 +46,7 @@ namespace Modeel
         protected override void OnHandshaked()
         {
             Logger.WriteLog($"Tcp client handshaked a new session with Id {Id}", LoggerInfo.tcpClient);
+            Send("Hello from SSL client!");
         }
 
         protected override void OnDisconnected()
@@ -66,7 +67,7 @@ namespace Modeel
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            Console.WriteLine(message);
+            Logger.WriteLog($"Tcp client obtained a message: HAHA, from: {Endpoint}", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)

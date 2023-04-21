@@ -14,7 +14,7 @@ namespace Modeel
 
         private IWindowEnqueuer? _serverWindow;
         private IWindowEnqueuer? _clientWindow;
-        private MemoryLeakTestFormDefault? _form;
+        //private MemoryLeakTestFormDefault? _form;
 
         public MainWindow()
         {
@@ -26,8 +26,8 @@ namespace Modeel
 
         private void btServerWindow_Click(object sender, RoutedEventArgs e)
         {
-            _form = null;
-            _clientWindow = null;
+            //_form = null;
+            //_clientWindow = null;
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
@@ -64,9 +64,9 @@ namespace Modeel
             //{
             //    _clientWindow.BaseMsgEnque(new WindowStateSetMessage());
             //}
-            _clientWindow = BaseWindowForWPF.CreateWindow<ClientWindow>();
-            _form = new MemoryLeakTestFormDefault();
-            _form.Show();
+            _ = BaseWindowForWPF.CreateWindow<ClientWindow>();
+            //_form = new MemoryLeakTestFormDefault();
+            //_form.Show();
         }
     }
 }

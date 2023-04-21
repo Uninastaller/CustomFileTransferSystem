@@ -93,8 +93,8 @@
                 <DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
-                <DataGridCheckBoxColumn Header="IsDisposed" Binding="{Binding IsDisposed, Mode=OneWay}"/>
-                <DataGridCheckBoxColumn Header="IsSocketDisposed" Binding="{Binding IsSocketDisposed, Mode=OneWay}"/>
+                <!--<DataGridCheckBoxColumn Header="IsDisposed" Binding="{Binding IsDisposed, Mode=OneWay}"/>
+                <DataGridCheckBoxColumn Header="IsSocketDisposed" Binding="{Binding IsSocketDisposed, Mode=OneWay}"/>-->
                 <DataGridTextColumn Header="AcceptorBacklog" Binding="{Binding OptionAcceptorBacklog}"/>
                 <DataGridTextColumn Header="ReceiveBufferSize" Binding="{Binding OptionReceiveBufferSize}"/>
                 <DataGridTextColumn Header="SendBufferSize" Binding="{Binding OptionSendBufferSize}"/>

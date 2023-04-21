@@ -18,6 +18,7 @@ namespace Modeel
 
         public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
         {
+            return;
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);

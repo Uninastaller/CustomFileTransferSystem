@@ -87,6 +87,7 @@ namespace Modeel
 
         #endregion Properties
 
+        #region Ctor
         public ClientWindow()
         {
             InitializeComponent();
@@ -116,7 +117,11 @@ namespace Modeel
             // there is a need to transfer calling to ui thread, so we are sending message to ourself
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += Timer_elapsed;
+            _timer.Start();
         }
+
+        #endregion Ctor
+
         internal void Init()
         {
             msgSwitch
@@ -127,6 +132,9 @@ namespace Modeel
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
              ;
         }
+
+        #region PrivateMethods
+
 
         private void RefreshTablesMessageHandler()
         {
@@ -190,9 +198,14 @@ namespace Modeel
             return isFree;
         }
 
+        #endregion PrivateMethods
+
+        #region EventHandlers
+
         private void Window_closedEvent(object? sender, EventArgs e)
         {
             Closed -= Window_closedEvent;
+            _timer.Stop();
             _timer.Elapsed -= Timer_elapsed;
             _clientBussinesLogic.DisconnectAndStop();
             _clientBussinesLogic.Dispose();
@@ -215,11 +228,11 @@ namespace Modeel
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2PSSL);
 
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this));
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog:1));
 
                 return;
             }
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this));
+            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog:1));
         }
 
         private void btnP2pConnect_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -229,7 +242,6 @@ namespace Modeel
 
         private void btnTesting_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-
         }
 
         private void btnStopServer_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -285,5 +297,7 @@ namespace Modeel
                 client.ConnectAsync();
             }
         }
+
+        #endregion EventHandlers
     }
 }
