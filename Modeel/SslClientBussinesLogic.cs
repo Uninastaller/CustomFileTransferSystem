@@ -9,28 +9,88 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using System.Timers;
+using System.Windows.Navigation;
+using Timer = System.Timers.Timer;
+
 
 namespace Modeel
 {
-    public class ClientBussinesLogic : SslClient, IUniversalClientSocket
+    public class SslClientBussinesLogic : SslClient, IUniversalClientSocket
     {
         private IWindowEnqueuer _gui;
         private bool _sessionWithCentralServer;
 
-        public ClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
+        public TypeOfSocket Type { get; }
+        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
+
+        private Timer? _timer;
+        private UInt64 _timerCounter;
+
+        private const int kilobyte = 1024;
+        private const int megabyte = kilobyte * 1024;
+        private double transferRate;
+        private string unit = string.Empty;
+        private long SecondOldBytesSent;
+
+        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
         {
+            this.Type = TypeOfSocket.TCP_SSL;
+
+
             _sessionWithCentralServer = sessionWithCentralServer;
 
             //Connect();
             ConnectAsync();
 
             _gui = gui;
+
+            _timer = new Timer(1000); // Set the interval to 1 second
+            _timer.Elapsed += OneSecondHandler;
+            _timer.Start();
+        }
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+            FormatDataTransferRate(BytesSent + BytesReceived - SecondOldBytesSent);
+            SecondOldBytesSent = BytesSent + BytesReceived;
+        }
+
+        public void FormatDataTransferRate(long bytesSent)
+        {
+            if (bytesSent < kilobyte)
+            {
+                transferRate = bytesSent;
+                unit = "B/s";
+            }
+            else if (bytesSent < megabyte)
+            {
+                transferRate = (double)bytesSent / kilobyte;
+                unit = "KB/s";
+            }
+            else
+            {
+                transferRate = (double)bytesSent / megabyte;
+                unit = "MB/s";
+            }
+
+            TransferRateFormatedAsText = $"{transferRate:F2} {unit}";
         }
 
         public void DisconnectAndStop()
         {   
             _stop = true;
             DisconnectAsync();
+
+            if (_timer != null)
+            {
+                _timer.Elapsed -= OneSecondHandler;
+                _timer.Stop();
+                _timer.Dispose();
+                _timer = null;
+            }            
+
             while (IsConnected)
                 Thread.Yield();
         }
@@ -76,6 +136,7 @@ namespace Modeel
         }
 
         private bool _stop;
+
     }
 }
 

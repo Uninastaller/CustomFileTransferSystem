@@ -51,7 +51,8 @@
             <DataGrid.HeadersVisibility>Column</DataGrid.HeadersVisibility>
 
             <DataGrid.Columns>
-                
+
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
                 <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
                 <DataGridTextColumn Header="Port" Binding="{Binding Port}"/>
                 <DataGridCheckBoxColumn Header="IsConnecting" Binding="{Binding IsConnecting, Mode=OneWay}" IsReadOnly="True"/>
@@ -60,13 +61,14 @@
                 <DataGridTextColumn Header="BytesSending" Binding="{Binding BytesSending}"/>
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
+                <DataGridTextColumn Header="TransferRate" Binding="{Binding TransferRateFormatedAsText}"/>
 
                 <DataGridTemplateColumn Header="Socket">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Button x:Name="btnDisconnectFromServer" Content="Disconnect" Tag="{Binding}" Click="btnDisconnectFromServer_Click"/>
-                                <Button x:Name="btnDisconnectFAndStop" Content="DisconnectAndStop" Tag="{Binding}" Click="btnDisconnectFAndStop_Click"/>
+                                <Button x:Name="btnDisconnectFAndStop" Content="DisconnectAndStop" Tag="{Binding}" Click="btnDisconnectAndStop_Click"/>
                                 <Button x:Name="btnConnectAsyncToServer" Content="ConnectAsync" Tag="{Binding}" Click="btnConnectAsyncToServer_Click"/>
                             </StackPanel>
                         </DataTemplate>

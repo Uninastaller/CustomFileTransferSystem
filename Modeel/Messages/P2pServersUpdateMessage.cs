@@ -11,6 +11,6 @@ namespace Modeel.Messages
         {
         }
 
-        public List<ServerBussinesLogic> Servers { get; set; } = new List<ServerBussinesLogic>();
+        public List<SslServerBussinesLogic> Servers { get; set; } = new List<SslServerBussinesLogic>();
     }
 }

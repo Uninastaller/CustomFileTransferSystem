@@ -1,4 +1,5 @@
-﻿using Modeel.Messages;
+﻿using Modeel.FastTcp;
+using Modeel.Messages;
 using Modeel.P2P;
 using Modeel.SSL;
 using System;
@@ -21,7 +22,7 @@ namespace Modeel
     /// </summary>
     public partial class ClientWindow : BaseWindowForWPF
     {
-        private readonly ClientBussinesLogic _clientBussinesLogic;
+        private readonly SslClientBussinesLogic _clientBussinesLogic;
         private readonly IP2pMasterClass _p2PMasterClass;
 
         private readonly int _serverPort = 8080;
@@ -33,10 +34,10 @@ namespace Modeel
         private SslContext _contextForP2pAsClient;
         private SslContext _contextForP2pAsServer;
 
-        private List<ClientBussinesLogic> _p2pClients = new List<ClientBussinesLogic>();
-        private List<ServerBussinesLogic> _p2pServers = new List<ServerBussinesLogic>();
+        private List<IUniversalClientSocket> _p2pClients = new List<IUniversalClientSocket>();
+        private List<SslServerBussinesLogic> _p2pServers = new List<SslServerBussinesLogic>();
 
-        private readonly Timer _timer;
+        private Timer? _timer;
 
 
         #region Properties
@@ -102,7 +103,7 @@ namespace Modeel
             Closed += Window_closedEvent;
 
             _contextForForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _clientBussinesLogic = new ClientBussinesLogic(_contextForForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
+            _clientBussinesLogic = new SslClientBussinesLogic(_contextForForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
 
             _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -205,8 +206,15 @@ namespace Modeel
         private void Window_closedEvent(object? sender, EventArgs e)
         {
             Closed -= Window_closedEvent;
-            _timer.Stop();
-            _timer.Elapsed -= Timer_elapsed;
+
+            if (_timer != null)
+            {
+                _timer.Elapsed -= Timer_elapsed;
+                _timer.Stop();
+                _timer.Dispose();
+                _timer = null;
+            }
+
             _clientBussinesLogic.DisconnectAndStop();
             _clientBussinesLogic.Dispose();
             _p2PMasterClass.CloseAllConnections();
@@ -228,26 +236,27 @@ namespace Modeel
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2PSSL);
 
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog:1));
+                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog:1));
 
                 return;
             }
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog:1));
+            _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog:1));
         }
 
         private void btnP2pConnect_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
+            _p2PMasterClass.CreateNewClient(new SslClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
         }
 
         private void btnTesting_Click(object sender, System.Windows.RoutedEventArgs e)
         {
+            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(P2pIpAddress, P2pPort, this));
         }
 
         private void btnStopServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ServerBussinesLogic server)
+            if (b?.Tag is SslServerBussinesLogic server)
             {
                 server.Stop();
             }
@@ -256,7 +265,7 @@ namespace Modeel
         private void btnStartServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ServerBussinesLogic server)
+            if (b?.Tag is SslServerBussinesLogic server)
             {
                 server.Start();
             }
@@ -265,7 +274,7 @@ namespace Modeel
         private void btnRestartServer_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ServerBussinesLogic server)
+            if (b?.Tag is SslServerBussinesLogic server)
             {
                 server.Restart();
             }
@@ -274,16 +283,16 @@ namespace Modeel
         private void btnDisconnectFromServer_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ClientBussinesLogic client)
+            if (b?.Tag is IUniversalClientSocket client)
             {
                 client.Disconnect();
             }
         }
 
-        private void btnDisconnectFAndStop_Click(object sender, RoutedEventArgs e)
+        private void btnDisconnectAndStop_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ClientBussinesLogic client)
+            if (b?.Tag is IUniversalClientSocket client)
             {
                 client.DisconnectAndStop();
             }
@@ -292,7 +301,7 @@ namespace Modeel
         private void btnConnectAsyncToServer_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is ClientBussinesLogic client)
+            if (b?.Tag is IUniversalClientSocket client)
             {
                 client.ConnectAsync();
             }

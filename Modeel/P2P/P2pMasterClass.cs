@@ -11,15 +11,15 @@ public class P2pMasterClass : IP2pMasterClass
 {
     private IWindowEnqueuer _gui;
 
-    private readonly Dictionary<Guid, ClientBussinesLogic> _clients = new Dictionary<Guid, ClientBussinesLogic>();
-    private readonly Dictionary<Guid, ServerBussinesLogic> _servers = new Dictionary<Guid, ServerBussinesLogic>();
+    private readonly Dictionary<Guid, IUniversalClientSocket> _clients = new Dictionary<Guid, IUniversalClientSocket>();
+    private readonly Dictionary<Guid, SslServerBussinesLogic> _servers = new Dictionary<Guid, SslServerBussinesLogic>();
 
     public P2pMasterClass(IWindowEnqueuer gui)
     {
         _gui = gui;
     }
 
-    public void CreateNewServer(ServerBussinesLogic serverBussinesLogic)
+    public void CreateNewServer(SslServerBussinesLogic serverBussinesLogic)
     {
         if (!_servers.ContainsKey(serverBussinesLogic.Id))
         {
@@ -28,25 +28,25 @@ public class P2pMasterClass : IP2pMasterClass
         }
     }
 
-    public void CreateNewClient(ClientBussinesLogic clientBussinesLogic)
+    public void CreateNewClient(IUniversalClientSocket socketClient)
     {
-        if (!_clients.ContainsKey(clientBussinesLogic.Id))
+        if (!_clients.ContainsKey(socketClient.Id))
         {
-            _clients.Add(clientBussinesLogic.Id, clientBussinesLogic);
+            _clients.Add(socketClient.Id, socketClient);
             _gui.BaseMsgEnque(new P2pClietsUpdateMessage() { Clients = _clients.Values.ToList() });
         }
     }
 
     public void CloseAllConnections()
     {
-        foreach (ClientBussinesLogic client in _clients.Values)
+        foreach (IUniversalClientSocket client in _clients.Values)
         {
             client.DisconnectAndStop();
             client.Dispose();
         }
         _clients.Clear();
 
-        foreach (ServerBussinesLogic server in _servers.Values)
+        foreach (SslServerBussinesLogic server in _servers.Values)
         {
             server.Stop();
             server.Dispose();

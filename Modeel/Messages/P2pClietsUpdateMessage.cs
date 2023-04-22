@@ -11,6 +11,6 @@ namespace Modeel.Messages
         {
         }
 
-        public List<ClientBussinesLogic> Clients { get; set; } = new List<ClientBussinesLogic>();
+        public List<IUniversalClientSocket> Clients { get; set; } = new List<IUniversalClientSocket>();
     }
 }

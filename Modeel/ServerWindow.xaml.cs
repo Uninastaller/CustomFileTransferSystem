@@ -16,7 +16,7 @@ namespace Modeel
     /// </summary>
     public partial class ServerWindow : BaseWindowForWPF
     {
-        private ServerBussinesLogic _serverBussinesLogic;
+        private SslServerBussinesLogic _serverBussinesLogic;
 
         private readonly int _serverPort = 8080;
         private readonly IPAddress _ipAddress = IPAddress.Loopback;
@@ -34,7 +34,7 @@ namespace Modeel
             Closed += Window_closedEvent;
 
             SslContext sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
-            _serverBussinesLogic = new ServerBussinesLogic(sslContext, _ipAddress, _serverPort, this);
+            _serverBussinesLogic = new SslServerBussinesLogic(sslContext, _ipAddress, _serverPort, this);
         }
 
         internal void Init()
