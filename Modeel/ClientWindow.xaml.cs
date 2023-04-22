@@ -35,7 +35,7 @@ namespace Modeel
         private SslContext _contextForP2pAsServer;
 
         private List<IUniversalClientSocket> _p2pClients = new List<IUniversalClientSocket>();
-        private List<SslServerBussinesLogic> _p2pServers = new List<SslServerBussinesLogic>();
+        private List<IUniversalServerSocket> _p2pServers = new List<IUniversalServerSocket>();
 
         private Timer? _timer;
 
@@ -248,15 +248,10 @@ namespace Modeel
             _p2PMasterClass.CreateNewClient(new SslClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
         }
 
-        private void btnTesting_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(P2pIpAddress, P2pPort, this));
-        }
-
         private void btnStopServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is SslServerBussinesLogic server)
+            if (b?.Tag is IUniversalServerSocket server)
             {
                 server.Stop();
             }
@@ -265,7 +260,7 @@ namespace Modeel
         private void btnStartServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is SslServerBussinesLogic server)
+            if (b?.Tag is IUniversalServerSocket server)
             {
                 server.Start();
             }
@@ -274,7 +269,7 @@ namespace Modeel
         private void btnRestartServer_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is SslServerBussinesLogic server)
+            if (b?.Tag is IUniversalServerSocket server)
             {
                 server.Restart();
             }
@@ -307,6 +302,17 @@ namespace Modeel
             }
         }
 
+        private void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)
+        {
+            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(P2pIpAddress, P2pPort, this));
+        }
+
         #endregion EventHandlers
+
     }
 }

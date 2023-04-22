@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Modeel"
         mc:Ignorable="d"
-        Height="450" Width="800">
+        Height="450" Width="1000">
     <Grid>
 
         <Grid.ColumnDefinitions>
@@ -15,6 +15,8 @@
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="20"></ColumnDefinition>
         </Grid.ColumnDefinitions>
@@ -42,11 +44,12 @@
         <Button x:Name="btnP2pConnect" Grid.Row="3" Grid.Column="2" Height="20" Content="P2PConnect" Click="btnP2pConnect_Click"/>
         <TextBox x:Name="tbP2pIpAddress" Grid.Row="3" Grid.Column="3" Text="127.0.0.1" HorizontalAlignment="Center" Margin="2,0"/>
         <TextBox x:Name="tbP2pIpPort" Grid.Row="3" Grid.Column="4" Text="34259" HorizontalAlignment="Center" Margin="2,0"/>
-        <Button x:Name="btnTesting" Grid.Row="3" Grid.Column="5" Height="20" Content="TestingButton" Click="btnTesting_Click"/>
+        <Button x:Name="btnP2pListenFast" Grid.Row="3" Grid.Column="5" Height="20" Content="P2pListenFast" Click="btnP2pListenFast_Click"/>
+        <Button x:Name="btnP2pConnectFast" Grid.Row="3" Grid.Column="6" Height="20" Content="P2pConnectFast" Click="btnP2pConnectFast_Click"/>
 
 
         <Label Content="Cliets:" Grid.Row="4" Grid.Column="1"/>
-        <DataGrid x:Name="dgP2pCliets" IsReadOnly="True" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="6" CanUserAddRows="false" AutoGenerateColumns="False">
+        <DataGrid x:Name="dgP2pCliets" IsReadOnly="True" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="7" CanUserAddRows="false" AutoGenerateColumns="False">
             <!--disable row header-->
             <DataGrid.HeadersVisibility>Column</DataGrid.HeadersVisibility>
 
@@ -57,7 +60,7 @@
                 <DataGridTextColumn Header="Port" Binding="{Binding Port}"/>
                 <DataGridCheckBoxColumn Header="IsConnecting" Binding="{Binding IsConnecting, Mode=OneWay}" IsReadOnly="True"/>
                 <DataGridCheckBoxColumn Header="IsConnected" Binding="{Binding IsConnected, Mode=OneWay}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>
+                <!--<DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>-->
                 <DataGridTextColumn Header="BytesSending" Binding="{Binding BytesSending}"/>
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
@@ -81,20 +84,22 @@
         </DataGrid>
 
             <Label Content="Servers:" Grid.Row="7" Grid.Column="1"/>
-        <DataGrid x:Name="dgP2pServers" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="6" CanUserAddRows="false" AutoGenerateColumns="False">
+        <DataGrid x:Name="dgP2pServers" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="7" CanUserAddRows="false" AutoGenerateColumns="False">
             <!--disable row header-->
             <DataGrid.HeadersVisibility>Column</DataGrid.HeadersVisibility>
 
             <DataGrid.Columns>
-                
+
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
                 <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
                 <DataGridTextColumn Header="Port" Binding="{Binding Port}"/>
                 <DataGridCheckBoxColumn Header="IsStarted" Binding="{Binding IsStarted, Mode=OneWay}"/>
                 <DataGridCheckBoxColumn Header="IsAccepting" Binding="{Binding IsAccepting, Mode=OneWay}"/>
                 <DataGridTextColumn Header="ConnectedSessions" Binding="{Binding ConnectedSessions}"/>
-                <DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>
+                <!--<DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>-->
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
+                <DataGridTextColumn Header="TransferRate" Binding="{Binding TransferRateFormatedAsText}"/>
                 <!--<DataGridCheckBoxColumn Header="IsDisposed" Binding="{Binding IsDisposed, Mode=OneWay}"/>
                 <DataGridCheckBoxColumn Header="IsSocketDisposed" Binding="{Binding IsSocketDisposed, Mode=OneWay}"/>-->
                 <DataGridTextColumn Header="AcceptorBacklog" Binding="{Binding OptionAcceptorBacklog}"/>

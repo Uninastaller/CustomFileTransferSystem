@@ -552,6 +552,11 @@ namespace Modeel.SSL
         protected virtual void OnDisconnected(SslSession session) { }
 
         /// <summary>
+        /// Handle session cleaning notification
+        /// </summary>
+        protected virtual void OnDispose() { }
+
+        /// <summary>
         /// Handle error notification
         /// </summary>
         /// <param name="error">Socket error code</param>
@@ -602,6 +607,7 @@ namespace Modeel.SSL
         // Implement IDisposable.
         public void Dispose()
         {
+            OnDispose();
             Dispose(true);
             GC.SuppressFinalize(this);
         }

@@ -5,24 +5,86 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using System.Timers;
+using Timer = System.Timers.Timer;
+
 
 namespace Modeel
 {
 
-    public class SslServerBussinesLogic : SslServer
+    public class SslServerBussinesLogic : SslServer, IUniversalServerSocket
     {
-        private readonly IWindowEnqueuer _gui;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
-        private readonly Dictionary<Guid, string> _clients = new Dictionary<Guid, string>();
+        private IWindowEnqueuer? _gui;
+        private Stopwatch? _stopwatch = new Stopwatch();
+        private Dictionary<Guid, string>? _clients = new Dictionary<Guid, string>();
+        public TypeOfSocket Type { get; }
+        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
+
+
+        private Timer? _timer;
+        private UInt64 _timerCounter;
+
+        private const int kilobyte = 1024;
+        private const int megabyte = kilobyte * 1024;
+        private double transferRate;
+        private string unit = string.Empty;
+        private long SecondOldBytesSent;
 
         public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(context, address, port, optionAcceptorBacklog)
         {
+            this.Type = TypeOfSocket.TCP_SSL;
+
             _gui = gui;
             Start();
+
+            _timer = new Timer(1000); // Set the interval to 1 second
+            _timer.Elapsed += OneSecondHandler;
+            _timer.Start();
+        }
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+            FormatDataTransferRate(BytesSent + BytesReceived - SecondOldBytesSent);
+            SecondOldBytesSent = BytesSent + BytesReceived;
+        }
+
+        protected override void OnDispose()
+        {
+            if (_timer != null)
+            {
+                _timer.Elapsed -= OneSecondHandler;
+                _timer.Stop();
+                _timer.Dispose();
+                _timer = null;
+            }
+            _clients = null;
+            _stopwatch = null;
+            _timer = null;
+            _gui = null;
+        }            
+
+        public void FormatDataTransferRate(long bytesSent)
+        {
+            if (bytesSent < kilobyte)
+            {
+                transferRate = bytesSent;
+                unit = "B/s";
+            }
+            else if (bytesSent < megabyte)
+            {
+                transferRate = (double)bytesSent / kilobyte;
+                unit = "KB/s";
+            }
+            else
+            {
+                transferRate = (double)bytesSent / megabyte;
+                unit = "MB/s";
+            }
+
+            TransferRateFormatedAsText = $"{transferRate:F2} {unit}";
         }
 
         protected override SslSession CreateSession() { return new ServerSession(this); }
@@ -41,7 +103,8 @@ namespace Modeel
             }
 
             ClientStateChange(SocketState.DISCONNECTED, null, session.Id);
-            _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients }); 
+            if(_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
         }
 
         protected override void OnConnected(SslSession session)
@@ -53,22 +116,25 @@ namespace Modeel
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);
-            _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+            if (_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
         }
 
         private void OnReceiveMessage(SslSession sesion, string message)
         {
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
-            
-            _stopwatch.Start();
+
+            _stopwatch?.Start();
             SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", sesion);
-            _stopwatch.Stop();
-            TimeSpan elapsedTime = _stopwatch.Elapsed;
+            _stopwatch?.Stop();
+            TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
             Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.P2PSSL); ;
         }
 
         private void ClientStateChange(SocketState socketState, string? client, Guid sessionId)
         {
+            if (_clients == null)return;
+            
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
                 _clients.Add(sessionId, client);
@@ -82,7 +148,7 @@ namespace Modeel
         }
 
         private void SendFile(string filePath, SslSession session)
-        {            
+        {
             // Open the file for reading
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {

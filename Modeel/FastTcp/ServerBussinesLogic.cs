@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Modeel.FastTcp
 {
-    internal class ServerBussinesLogic
+    public class ServerBussinesLogic
     {
     }
 }
