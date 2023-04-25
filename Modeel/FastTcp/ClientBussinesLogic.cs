@@ -1,5 +1,6 @@
 ﻿using Modeel.Frq;
 using Modeel.Messages;
+using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,10 +8,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using static Modeel.SSL.ServerSession;
 using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
@@ -22,11 +25,27 @@ namespace Modeel.FastTcp
         public int Port => _port;
         public Guid Id { get; }
         public bool IsConnecting { get; private set; } = false;
-        public bool IsConnected { get; private set; } = false;
+        private bool _isConnected = false;
+        public bool IsConnected {
+            get
+            {
+                return _isConnected;
+            } 
+            private set
+            {
+                if(value != _isConnected)
+                {
+                    _isConnected = value;
+                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED });
+                }
+            }
+        }
         public bool IsDisposed { get; private set; } = false;
         public bool AutoConnect { get; set; } = true;
 
         public TcpClient? Socket { get; private set; }
+
+        private byte[] _readBuffer = new byte[1024];
 
 
         private readonly IWindowEnqueuer _gui;
@@ -37,6 +56,8 @@ namespace Modeel.FastTcp
 
         private readonly Timer _timer;
         private UInt64 _timerCounter;
+
+        object objectLock = new object();
 
         public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui)
         {
@@ -50,6 +71,13 @@ namespace Modeel.FastTcp
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
+        }
+
+        public long Send(byte[] buffer)
+        {
+            long sent = buffer.Length;
+            _stream?.Write(buffer);
+            return sent;
         }
 
         private void OneSecondHandler(object? sender, ElapsedEventArgs e)
@@ -74,7 +102,7 @@ namespace Modeel.FastTcp
 
             try
             {
-                AutoConnect = false;
+                //AutoConnect = false;
 
                 // Set IsConnecting to true to indicate that the client is attempting to connect
                 IsConnecting = true;
@@ -93,21 +121,25 @@ namespace Modeel.FastTcp
                     Socket.EndConnect(result);
                     _stream = Socket.GetStream();
 
+                    // Start an asynchronous read operation to receive data from the server
+                    _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
+
                     // Set IsConnecting to false to indicate that the client is connected
                     IsConnecting = false;
                     IsConnected = true;
+
                     return true;
                 }
                 else
                 {
-                    Console.WriteLine("Connection attempt timed out.");
+                    Logger.WriteLog("Connection attempt timed out.");
                     AutoConnect = true;
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to connect to server: {ex.Message}");
+                Logger.WriteLog($"Failed to connect to server: {ex.Message}");
 
                 // Set IsConnecting to false to indicate that the client is not connecting
                 IsConnecting = false;
@@ -116,6 +148,42 @@ namespace Modeel.FastTcp
                 return false;
             }
         }
+
+        private void HandleReceivedData(IAsyncResult ar)
+        {
+            try
+            {
+                // End the read operation and get the number of bytes read
+                if (_stream == null) return;
+
+                int bytesRead = _stream.EndRead(ar);
+
+                if (bytesRead > 0)
+                {
+                    // Get the data from the buffer
+                    byte[] buffer = new byte[bytesRead];
+                    Array.Copy(_readBuffer, buffer, bytesRead);
+
+                    // Process the received data here...
+                    _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = buffer });
+                    Logger.WriteLog($"Received {bytesRead} bytes of data.");
+
+                    // Start another asynchronous read operation to receive more data
+                    _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
+                }
+                else
+                {
+                    // The server has closed the connection
+                    Disconnect();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog($"Failed to receive data from server: {ex.Message}");
+                Disconnect();
+            }
+        }
+
 
         public virtual bool DisconnectAsync() => Disconnect();
 
@@ -146,7 +214,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to disconnect from server: {ex.Message}");
+                Logger.WriteLog($"Failed to disconnect from server: {ex.Message}");
                 return false;
             }
         }

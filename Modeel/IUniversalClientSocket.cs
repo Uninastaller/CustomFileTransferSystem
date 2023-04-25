@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Modeel.SSL;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,6 @@ namespace Modeel
         public void DisconnectAndStop();
         public bool ConnectAsync();
         public void Dispose();
+        public long Send(byte[] buffer);
     }
 }

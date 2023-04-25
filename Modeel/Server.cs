@@ -54,6 +54,7 @@ namespace Modeel
                 Console.WriteLine("Socket created");
             }
         }
+
         private void Bind()
         {
             if (_serverSocket != null && _localEndPoint != null)

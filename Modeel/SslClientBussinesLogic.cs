@@ -24,6 +24,8 @@ namespace Modeel
         public TypeOfSocket Type { get; }
         public string TransferRateFormatedAsText { get; private set; } = string.Empty;
 
+        private bool _stop;
+
         private Timer? _timer;
         private UInt64 _timerCounter;
 
@@ -81,7 +83,10 @@ namespace Modeel
         public void DisconnectAndStop()
         {   
             _stop = true;
+
             DisconnectAsync();
+
+            Socket.Shutdown(SocketShutdown.Both);
 
             if (_timer != null)
             {
@@ -134,9 +139,6 @@ namespace Modeel
         {
             Logger.WriteLog($"Tcp client caught an error with code {error}", LoggerInfo.tcpClient);
         }
-
-        private bool _stop;
-
     }
 }
 

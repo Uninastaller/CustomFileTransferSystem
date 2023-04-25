@@ -22,12 +22,14 @@ namespace Modeel
 
             Logger.WriteLog("START OF PROGRAM", LoggerInfo.methodEntry);
             InitializeComponent();
+
+            _ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
         }
 
         private void btServerWindow_Click(object sender, RoutedEventArgs e)
         {
             //_form = null;
-            //_clientWindow = null;
+            _clientWindow = null;
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
