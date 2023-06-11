@@ -8,6 +8,7 @@ namespace Modeel.Messages
         {
         }
 
+        public bool SessionWithCentralServer { get; set; }
         public SocketState SocketState { get; set; }
     }
 }

@@ -30,7 +30,7 @@ namespace Modeel
         private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
         private readonly string _certificateNameForP2pAsClient = "MyTestCertificateClient.pfx";
         private readonly string _certificateNameForP2pAsServer = "MyTestCertificateServer.pfx";
-        private SslContext _contextForForCentralServerConnect;
+        private SslContext _contextForCentralServerConnect;
         private SslContext _contextForP2pAsClient;
         private SslContext _contextForP2pAsServer;
 
@@ -38,7 +38,6 @@ namespace Modeel
         private List<IUniversalServerSocket> _p2pServers = new List<IUniversalServerSocket>();
 
         private Timer? _timer;
-
 
         #region Properties
 
@@ -102,8 +101,8 @@ namespace Modeel
 
             Closed += Window_closedEvent;
 
-            _contextForForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _clientBussinesLogic = new SslClientBussinesLogic(_contextForForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
+            _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+            _clientBussinesLogic = new SslClientBussinesLogic(_contextForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
 
             _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -162,13 +161,16 @@ namespace Modeel
 
         private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
         {
-            if (message.SocketState == SocketState.CONNECTED)
+            if (message.SessionWithCentralServer)
             {
-                rtgServerStatus.Fill = new SolidColorBrush(Colors.Green);
-            }
-            else if (message.SocketState == SocketState.DISCONNECTED)
-            {
-                rtgServerStatus.Fill = new SolidColorBrush(Colors.Red);
+                if (message.SocketState == SocketState.CONNECTED)
+                {
+                    rtgServerStatus.Fill = new SolidColorBrush(Colors.Green);
+                }
+                else if (message.SocketState == SocketState.DISCONNECTED)
+                {
+                    rtgServerStatus.Fill = new SolidColorBrush(Colors.Red);
+                }
             }
         }
 
@@ -304,7 +306,14 @@ namespace Modeel
 
         private void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
         {
-
+            if (!IsPortFree(P2pPort))
+            {
+                Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2P);
+                // just for testing create on another free port
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                return;
+            }
+            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)

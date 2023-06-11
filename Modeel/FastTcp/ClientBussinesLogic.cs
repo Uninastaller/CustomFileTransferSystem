@@ -36,7 +36,7 @@ namespace Modeel.FastTcp
                 if(value != _isConnected)
                 {
                     _isConnected = value;
-                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED });
+                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
                 }
             }
         }
@@ -47,6 +47,7 @@ namespace Modeel.FastTcp
 
         private byte[] _readBuffer = new byte[1024];
 
+        private bool _sessionWithCentralServer;
 
         private readonly IWindowEnqueuer _gui;
         private readonly IPAddress _address;
@@ -59,10 +60,12 @@ namespace Modeel.FastTcp
 
         object objectLock = new object();
 
-        public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui)
+        public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false)
         {
             Id = Guid.NewGuid();
             this.Type = TypeOfSocket.TCP;
+
+            _sessionWithCentralServer = sessionWithCentralServer;
 
             _gui = gui;
             _address = address;

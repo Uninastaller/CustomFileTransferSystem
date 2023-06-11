@@ -1,6 +1,7 @@
 ﻿using Modeel.FastTcp;
 using Modeel.Messages;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -63,6 +64,7 @@ namespace Modeel
         {
             string stringMessage = Encoding.ASCII.GetString(message);
             tbkTextForControlSocket.Text += "[SERVER]: " + stringMessage;
+            tbkTextForControlSocket.ScrollToEnd();
         }
 
         private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
@@ -71,7 +73,11 @@ namespace Modeel
             {
                 rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
                 SendStringToControlSocket("AUTHENTICATE ");
-                SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
+                SendStringToControlSocket("SETEVENTS CIRC");
+
+                //SendStringToControlSocket("SETEVENTS CIRC INFO WARN ERR");
+                //SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
+
             }
             else if (message.SocketState == SocketState.DISCONNECTED)
             {
@@ -99,12 +105,22 @@ namespace Modeel
                 message += "\r\n";
                 _controlSocket.Send(Encoding.ASCII.GetBytes(message));
                 tbkTextForControlSocket.Text += "[CLIENT]: " + message;
+                tbkTextForControlSocket.ScrollToEnd();  
             }
         }
 
         private void btSendToControlSocket_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             SendStringToControlSocket(tbTextForControlSocket.Text);
+        }
+
+        private void btStartTor_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Process[] runningProcessByName = Process.GetProcessesByName("tor");
+            if (runningProcessByName.Length == 0)
+            {
+                Process.Start("tor.exe");
+            }
         }
     }
 }

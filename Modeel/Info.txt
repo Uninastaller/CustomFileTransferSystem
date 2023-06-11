@@ -16,3 +16,12 @@ https://learn.microsoft.com/en-us/windows/win32/seccrypto/makecert
 https://blog.jayway.com/2014/09/03/creating-self-signed-certificates-with-makecert-exe-for-development/
 https://github.com/chronoxor/NetCoreServer
 https://www.youtube.com/watch?v=j9QmMEWmcfo
+
+
+
+TOR CONTROL COMMANDS
+https://gitweb.torproject.org/torspec.git/tree/control-spec.txt
+GETCONF SocksPort
+SETEVENTS CIRC
+SIGNAL HEARTBEAT
+GETINFO circuit-status

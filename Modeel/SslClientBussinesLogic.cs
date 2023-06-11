@@ -104,8 +104,7 @@ namespace Modeel
         {
             Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-            if(_sessionWithCentralServer)
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED });
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer});
         }
 
         protected override void OnHandshaked()
@@ -125,8 +124,7 @@ namespace Modeel
             if (!_stop)
                 ConnectAsync();
 
-            if(_sessionWithCentralServer)
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED });
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)

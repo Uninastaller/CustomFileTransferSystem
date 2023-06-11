@@ -13,6 +13,7 @@
         public static readonly string tcpServer = "TCP-SERVER: ";
         public static readonly string tcpClient = "TCP-CLIENT: ";
         public static readonly string P2PSSL = "P2PSSL: ";
+        public static readonly string P2P = "P2P: ";
         public static readonly string socketMessage = "SOCKET MESSAGE";
     }
 }

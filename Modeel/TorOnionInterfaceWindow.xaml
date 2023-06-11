@@ -11,6 +11,9 @@
             <ColumnDefinition Width="20"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
+            <ColumnDefinition Width="auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
             <ColumnDefinition Width="20"></ColumnDefinition>
         </Grid.ColumnDefinitions>
@@ -31,10 +34,11 @@
 
         <Label Content="Connection to control socket:" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
         <Rectangle x:Name="rtgControlSocketState" Grid.Row="1" Grid.Column="3" Height="50" Stroke="Black" Width="50" Fill="Red"/>
-        
-        <TextBox x:Name="tbTextForControlSocket" Grid.Row="2" Grid.Column="1" Margin="1" Grid.ColumnSpan="3"></TextBox>
-        <Button x:Name="btSendToControlSocket" Content="SendToControlSocket" Click="btSendToControlSocket_Click" Grid.Row="3" Grid.Column="1" Margin="2"></Button>
-        <TextBlock x:Name="tbkTextForControlSocket" Grid.Row="4" Grid.Column="1" Margin="1" Grid.ColumnSpan="3" Grid.RowSpan="7"></TextBlock>
+        <Button x:Name="btStartTor" Content="StartTor" Click="btStartTor_Click" Grid.Row="1" Grid.Column="4" Margin="2"></Button>
 
+
+        <TextBox x:Name="tbTextForControlSocket" Grid.Row="2" Grid.Column="1" Margin="1" Grid.ColumnSpan="6"></TextBox>
+        <Button x:Name="btSendToControlSocket" Content="SendToControlSocket" Click="btSendToControlSocket_Click" Grid.Row="3" Grid.Column="1" Margin="2"></Button>
+        <TextBox x:Name="tbkTextForControlSocket" Grid.Row="4" Grid.Column="1" Margin="1" Grid.ColumnSpan="6" Grid.RowSpan="7"></TextBox>
     </Grid>
 </local:BaseWindowForWPF>

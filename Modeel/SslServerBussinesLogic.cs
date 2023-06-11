@@ -26,11 +26,11 @@ namespace Modeel
         private Timer? _timer;
         private UInt64 _timerCounter;
 
-        private const int kilobyte = 1024;
-        private const int megabyte = kilobyte * 1024;
-        private double transferRate;
-        private string unit = string.Empty;
-        private long SecondOldBytesSent;
+        private const int _kilobyte = 1024;
+        private const int _megabyte = _kilobyte * 1024;
+        private double _transferRate;
+        private string _unit = string.Empty;
+        private long _secondOldBytesSent;
 
         public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(context, address, port, optionAcceptorBacklog)
         {
@@ -47,8 +47,8 @@ namespace Modeel
         private void OneSecondHandler(object? sender, ElapsedEventArgs e)
         {
             _timerCounter++;
-            FormatDataTransferRate(BytesSent + BytesReceived - SecondOldBytesSent);
-            SecondOldBytesSent = BytesSent + BytesReceived;
+            FormatDataTransferRate(BytesSent + BytesReceived - _secondOldBytesSent);
+            _secondOldBytesSent = BytesSent + BytesReceived;
         }
 
         protected override void OnDispose()
@@ -68,23 +68,23 @@ namespace Modeel
 
         public void FormatDataTransferRate(long bytesSent)
         {
-            if (bytesSent < kilobyte)
+            if (bytesSent < _kilobyte)
             {
-                transferRate = bytesSent;
-                unit = "B/s";
+                _transferRate = bytesSent;
+                _unit = "B/s";
             }
-            else if (bytesSent < megabyte)
+            else if (bytesSent < _megabyte)
             {
-                transferRate = (double)bytesSent / kilobyte;
-                unit = "KB/s";
+                _transferRate = (double)bytesSent / _kilobyte;
+                _unit = "KB/s";
             }
             else
             {
-                transferRate = (double)bytesSent / megabyte;
-                unit = "MB/s";
+                _transferRate = (double)bytesSent / _megabyte;
+                _unit = "MB/s";
             }
 
-            TransferRateFormatedAsText = $"{transferRate:F2} {unit}";
+            TransferRateFormatedAsText = $"{_transferRate:F2} {_unit}";
         }
 
         protected override SslSession CreateSession() { return new ServerSession(this); }
