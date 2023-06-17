@@ -18,7 +18,7 @@ namespace Modeel.Log
 
         public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
         {
-            //if (loggerInfo.Equals(LoggerInfo.socketMessage)) return;
+            if (loggerInfo.Equals(LoggerInfo.socketMessage)) return;
 
             if (!Directory.Exists(logDirectory))
             {

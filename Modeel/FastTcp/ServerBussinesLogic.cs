@@ -155,6 +155,13 @@ namespace Modeel.FastTcp
             }
         }
 
+        private void ClientConnected(TcpClient client)
+        {
+            OnConnected(client);
+
+            SendMessage(client, "Hello from Tcp server!");
+        }
+
         private void ReceiveMessage(TcpClient client, byte[] receivedData)
         {
             OnReceiveMessage(client, receivedData);
@@ -163,7 +170,7 @@ namespace Modeel.FastTcp
 
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}", LoggerInfo.socketMessage);
 
-            return;
+            //return;
 
 
             _stopwatch?.Start();
@@ -230,7 +237,7 @@ namespace Modeel.FastTcp
             TcpClient client = _listener.EndAcceptTcpClient(ar);
             Guid clientId = Guid.NewGuid();
             _clients.Add(clientId, client);
-            OnConnected(client);
+            ClientConnected(client);
 
             byte[] buffer = new byte[OptionReceiveBufferSize];
             NetworkStream stream = client.GetStream();

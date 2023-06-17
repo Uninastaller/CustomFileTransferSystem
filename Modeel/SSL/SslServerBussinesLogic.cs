@@ -35,6 +35,9 @@ namespace Modeel.SSL
 
         private IWindowEnqueuer? _gui;
         private Stopwatch? _stopwatch = new Stopwatch();
+        /// <summary>
+        /// value: IpAddress
+        /// </summary>
         private Dictionary<Guid, string>? _clients = new Dictionary<Guid, string>();
 
         private Timer? _timer;
@@ -68,6 +71,11 @@ namespace Modeel.SSL
         #endregion PublicMethods
 
         #region PrivateMethods
+
+        private void TestMessage()
+        {
+            Multicast("Hellou from SSlServerBussinesLoggic[1s]");  //async
+        }
 
         private void ClientStateChange(SocketState socketState, string? client, Guid sessionId)
         {
@@ -123,11 +131,14 @@ namespace Modeel.SSL
             TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
+
+            TestMessage();
         }
 
         private void OnReceiveMessage(SslSession sesion, string message)
         {
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
+            return;
 
             _stopwatch?.Start();
             SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", sesion);

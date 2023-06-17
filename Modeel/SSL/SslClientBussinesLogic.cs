@@ -91,6 +91,15 @@ namespace Modeel.SSL
 
         #endregion PublicMethods
 
+        #region PrivateMethods
+
+        private void TestMessage()
+        {
+            SendAsync("Hellou from SSlClientBussinesLoggic[1s]");
+        }
+
+        #endregion PrivateMethods
+
         #region EventHandler
 
         private void OneSecondHandler(object? sender, ElapsedEventArgs e)
@@ -101,6 +110,8 @@ namespace Modeel.SSL
             TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
+
+            TestMessage();
         }
 
         #endregion EventHandler
@@ -137,7 +148,7 @@ namespace Modeel.SSL
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            Logger.WriteLog($"Tcp client obtained a message: HAHA, from: {Endpoint}", LoggerInfo.socketMessage);
+            Logger.WriteLog($"SSlTcp client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)

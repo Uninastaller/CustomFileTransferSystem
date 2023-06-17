@@ -31,10 +31,9 @@ namespace Modeel.FastTcp
         public long BytesReceived { get; private set; }
         public int Port
         {
-
             get
             {
-                if (Socket != null && Socket.Client != null && Socket.Client.LocalEndPoint != null)
+                if (IsConnected && Socket != null && Socket.Client != null && Socket.Client.LocalEndPoint != null)
                 {
                     return ((IPEndPoint)Socket.Client.LocalEndPoint).Port;
                 }
@@ -66,7 +65,7 @@ namespace Modeel.FastTcp
 
         #region PrivateFields
 
-        private byte[] _readBuffer = new byte[1024];
+        private byte[] _readBuffer = new byte[8192];
 
         private bool _sessionWithCentralServer;
         private bool _isConnected = false;
@@ -284,10 +283,8 @@ namespace Modeel.FastTcp
 
         private void OnMessageReceived(byte[] buffer)
         {
-            Logger.WriteLog($"Received {buffer.Length} bytes of data.");
-
             string message = Encoding.UTF8.GetString(buffer);
-            Logger.WriteLog($"Tcp client obtained a message: {message}", LoggerInfo.socketMessage);
+            Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
         }
 
         #endregion PrivateMethods

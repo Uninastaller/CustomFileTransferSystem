@@ -48,14 +48,10 @@ namespace Modeel.SSL
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            Console.WriteLine("Incoming: " + "HAHA");
 
             //// Multicast message to all connected sessions
             //Server.Multicast(message);
 
-            //// If the buffer starts with '!' the disconnect the current session
-            //if (message == "!")
-            //    Disconnect();
             OnReceiveMessage(message);
         }
 
