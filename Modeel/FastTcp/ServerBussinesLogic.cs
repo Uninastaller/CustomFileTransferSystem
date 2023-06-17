@@ -16,25 +16,11 @@ namespace Modeel.FastTcp
 {
     public class ServerBussinesLogic : IUniversalServerSocket
     {
-        private TcpListener? _listener;
-        private bool _isAccepting;
-        private bool _isStarted;
-        private IPAddress _address;
-        private IWindowEnqueuer? _gui;
-        private Stopwatch? _stopwatch = new Stopwatch();
 
-        private Dictionary<Guid, TcpClient> _clients = new Dictionary<Guid, TcpClient>();
+        #region Properties
 
-        private Timer? _timer;
-        private UInt64 _timerCounter;
-
-        private const int _kilobyte = 1024;
-        private const int _megabyte = _kilobyte * 1024;
-        private double _transferRate;
-        private string _unit = string.Empty;
-        private long _secondOldBytesSent;
-
-        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
 
         public Guid Id { get; }
         public long ConnectedSessions => _clients.Count;
@@ -48,6 +34,35 @@ namespace Modeel.FastTcp
         public int OptionReceiveBufferSize { get; set; } = 8192;
         public int OptionSendBufferSize { get; set; } = 8192;
         public TypeOfSocket Type { get; }
+
+        #endregion Properties
+
+        #region PublicFields
+
+
+
+        #endregion PublicFields
+
+        #region PrivateFields
+
+        private TcpListener? _listener;
+        private bool _isAccepting;
+        private bool _isStarted;
+        private IPAddress _address;
+        private IWindowEnqueuer? _gui;
+        private Stopwatch? _stopwatch = new Stopwatch();
+
+        private Dictionary<Guid, TcpClient> _clients = new Dictionary<Guid, TcpClient>();
+
+        private Timer? _timer;
+        private UInt64 _timerCounter;
+
+        private long _secondOldBytesSent;
+        private long _secondOldBytesReceived;
+
+        #endregion PrivateFields
+
+        #region Ctor
 
         public ServerBussinesLogic(string address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog) : this(IPAddress.Parse(address), port, gui, optionAcceptorBacklog: optionAcceptorBacklog) { }
 
@@ -66,43 +81,9 @@ namespace Modeel.FastTcp
             _timer.Start();
         }
 
-        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-        {
-            _timerCounter++;
-            FormatDataTransferRate(BytesSent + BytesReceived - _secondOldBytesSent);
-            _secondOldBytesSent = BytesSent + BytesReceived;
+        #endregion Ctor
 
-            TestMessage();
-        }
-
-        private void TestMessage()
-        {
-            foreach (KeyValuePair<Guid, TcpClient> client in _clients)
-            {
-                SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
-            }
-        }
-
-        private void FormatDataTransferRate(long bytesSent)
-        {
-            if (bytesSent < _kilobyte)
-            {
-                _transferRate = bytesSent;
-                _unit = "B/s";
-            }
-            else if (bytesSent < _megabyte)
-            {
-                _transferRate = (double)bytesSent / _kilobyte;
-                _unit = "KB/s";
-            }
-            else
-            {
-                _transferRate = (double)bytesSent / _megabyte;
-                _unit = "MB/s";
-            }
-
-            TransferRateFormatedAsText = $"{_transferRate:F2} {_unit}";
-        }
+        #region PublicMethods
 
         public bool Stop()
         {
@@ -139,63 +120,39 @@ namespace Modeel.FastTcp
             return true;
         }
 
+        public void SendMessage(TcpClient client, string message)
+        {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            SendMessage(client, data, 0, data.Length);
+        }
+
+        public void SendMessage(TcpClient client, byte[] data, int index, int lenght)
+        {
+            if (!client.Connected) return;
+
+            NetworkStream stream = client.GetStream();
+            stream.BeginWrite(data, index, lenght, SendMessageCallback, client);
+            BytesSent += lenght;
+        }
+
+        #endregion PublicMethods
+
+        #region PrivateMethods
+
+        private void TestMessage()
+        {
+            foreach (KeyValuePair<Guid, TcpClient> client in _clients)
+            {
+                SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
+            }
+        }
+
         private void DisconnectAll()
         {
             foreach (KeyValuePair<Guid, TcpClient> keyValuePair in _clients)
             {
                 keyValuePair.Value.Close();
             }
-        }
-
-        private void AcceptClientCallback(IAsyncResult ar)
-        {
-            if (!_isAccepting || _listener == null) return;
-
-            TcpClient client = _listener.EndAcceptTcpClient(ar);
-            Guid clientId = Guid.NewGuid();
-            _clients.Add(clientId, client);
-            OnConnected(client);
-
-            byte[] buffer = new byte[OptionReceiveBufferSize];
-            NetworkStream stream = client.GetStream();
-            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<TcpClient, NetworkStream, Guid, byte[]>(client, stream, clientId, buffer));
-
-            _listener.BeginAcceptTcpClient(AcceptClientCallback, null);
-        }
-
-        private void ReceiveMessageCallback(IAsyncResult ar)
-        {
-            if (ar.AsyncState == null) return;
-            Tuple<TcpClient, NetworkStream, Guid, byte[]> state = (Tuple<TcpClient, NetworkStream, Guid, byte[]>)ar.AsyncState;
-            TcpClient client = state.Item1;
-            NetworkStream stream = state.Item2;
-            Guid clientId = state.Item3;
-            byte[] buffer = state.Item4;
-
-            if (!stream.CanRead)
-            {
-                RemoveClientFromDict(clientId);
-                OnClientDisconnected(client);
-                client.Close();
-                return;
-            }
-
-            //byte[] buffer = new byte[OptionReceiveBufferSize]; // Add this line to declare the buffer
-
-            int bytesRead = stream.EndRead(ar);
-            if (bytesRead <= 0)
-            {
-                RemoveClientFromDict(clientId);
-                OnClientDisconnected(client);
-                client.Close();
-                return;
-            }
-
-            byte[] receivedData = new byte[bytesRead];
-            Array.Copy(buffer, receivedData, bytesRead);
-            BytesReceived += bytesRead;
-            ReceiveMessage(client, receivedData);
-            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, state);
         }
 
         private void ReceiveMessage(TcpClient client, byte[] receivedData)
@@ -244,24 +201,19 @@ namespace Modeel.FastTcp
             }
         }
 
+        #endregion PrivateMethods
+
+        #region ProtectedMethods
+
+
+
+        #endregion ProtectedMethods
+
+        #region EventHandler
+
         public event Action<TcpClient> OnClientDisconnected = delegate { };
         public event Action<TcpClient> OnConnected = delegate { };
         public event Action<TcpClient, byte[]> OnReceiveMessage = delegate { };
-
-        public void SendMessage(TcpClient client, string message)
-        {
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            SendMessage(client, data, 0, data.Length);
-        }
-
-        public void SendMessage(TcpClient client, byte[] data, int index, int lenght)
-        {
-            if (!client.Connected) return;
-
-            NetworkStream stream = client.GetStream();
-            stream.BeginWrite(data, index, lenght, SendMessageCallback, client);
-            BytesSent += lenght;
-        }
 
         private void SendMessageCallback(IAsyncResult ar)
         {
@@ -270,6 +222,75 @@ namespace Modeel.FastTcp
             NetworkStream stream = client.GetStream();
             stream.EndWrite(ar);
         }
-    }
 
+        private void AcceptClientCallback(IAsyncResult ar)
+        {
+            if (!_isAccepting || _listener == null) return;
+
+            TcpClient client = _listener.EndAcceptTcpClient(ar);
+            Guid clientId = Guid.NewGuid();
+            _clients.Add(clientId, client);
+            OnConnected(client);
+
+            byte[] buffer = new byte[OptionReceiveBufferSize];
+            NetworkStream stream = client.GetStream();
+            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<TcpClient, NetworkStream, Guid, byte[]>(client, stream, clientId, buffer));
+
+            _listener.BeginAcceptTcpClient(AcceptClientCallback, null);
+        }
+
+        private void ReceiveMessageCallback(IAsyncResult ar)
+        {
+            if (ar.AsyncState == null) return;
+            Tuple<TcpClient, NetworkStream, Guid, byte[]> state = (Tuple<TcpClient, NetworkStream, Guid, byte[]>)ar.AsyncState;
+            TcpClient client = state.Item1;
+            NetworkStream stream = state.Item2;
+            Guid clientId = state.Item3;
+            byte[] buffer = state.Item4;
+
+            if (!stream.CanRead)
+            {
+                RemoveClientFromDict(clientId);
+                OnClientDisconnected(client);
+                client.Close();
+                return;
+            }
+
+            int bytesRead = stream.EndRead(ar);
+            if (bytesRead <= 0)
+            {
+                RemoveClientFromDict(clientId);
+                OnClientDisconnected(client);
+                client.Close();
+                return;
+            }
+
+            byte[] receivedData = new byte[bytesRead];
+            Array.Copy(buffer, receivedData, bytesRead);
+            BytesReceived += bytesRead;
+            ReceiveMessage(client, receivedData);
+            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, state);
+        }
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+
+            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
+            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            _secondOldBytesSent = BytesSent;
+            _secondOldBytesReceived = BytesReceived;
+
+            TestMessage();
+        }
+
+        #endregion EventHandler
+
+        #region OverridedMethods
+
+
+
+        #endregion OverridedMethods
+
+    }
 }

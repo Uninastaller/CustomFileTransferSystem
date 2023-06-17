@@ -20,8 +20,8 @@ namespace Modeel.Model
         int OptionAcceptorBacklog { get; set; } // = 1024;
         int OptionReceiveBufferSize { get; set; } // = 8192;
         int OptionSendBufferSize { get; set; } // = 8192;
-        string TransferRateFormatedAsText { get; }
-
+        string TransferSendRateFormatedAsText { get; }
+        string TransferReceiveRateFormatedAsText { get; }
         public bool Stop();
         public void Dispose();
         public bool Restart();

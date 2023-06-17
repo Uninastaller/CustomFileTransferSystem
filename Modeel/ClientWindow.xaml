@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Modeel"
         mc:Ignorable="d"
-        Height="450" Width="1100">
+        Height="450" Width="1200">
     <Grid>
 
         <Grid.ColumnDefinitions>
@@ -100,7 +100,8 @@
                 <!--<DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>-->
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
-                <DataGridTextColumn Header="TransferRate" Binding="{Binding TransferRateFormatedAsText}"/>
+                <DataGridTextColumn Header="TransferSendRate" Binding="{Binding TransferSendRateFormatedAsText}"/>
+                <DataGridTextColumn Header="TransferReceiveRate" Binding="{Binding TransferReceiveRateFormatedAsText}"/>
                 <!--<DataGridCheckBoxColumn Header="IsDisposed" Binding="{Binding IsDisposed, Mode=OneWay}"/>
                 <DataGridCheckBoxColumn Header="IsSocketDisposed" Binding="{Binding IsSocketDisposed, Mode=OneWay}"/>-->
                 <DataGridTextColumn Header="AcceptorBacklog" Binding="{Binding OptionAcceptorBacklog}"/>
