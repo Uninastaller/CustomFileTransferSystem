@@ -86,7 +86,10 @@ namespace Modeel
 
             DisconnectAsync();
 
-            Socket.Shutdown(SocketShutdown.Both);
+            if (this.Socket.Connected)
+            {
+                this.Socket.Shutdown(SocketShutdown.Both);
+            }
 
             if (_timer != null)
             {

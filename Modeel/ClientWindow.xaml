@@ -61,7 +61,7 @@
                 <DataGridCheckBoxColumn Header="IsConnecting" Binding="{Binding IsConnecting, Mode=OneWay}" IsReadOnly="True"/>
                 <DataGridCheckBoxColumn Header="IsConnected" Binding="{Binding IsConnected, Mode=OneWay}" IsReadOnly="True"/>
                 <!--<DataGridTextColumn Header="BytesPending" Binding="{Binding BytesPending}"/>-->
-                <DataGridTextColumn Header="BytesSending" Binding="{Binding BytesSending}"/>
+                <!--<DataGridTextColumn Header="BytesSending" Binding="{Binding BytesSending}"/>-->
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
                 <DataGridTextColumn Header="TransferRate" Binding="{Binding TransferRateFormatedAsText}"/>

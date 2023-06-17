@@ -1,5 +1,9 @@
 ﻿using Modeel.Frq;
+using Modeel.SSL;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,6 +19,9 @@ namespace Modeel.FastTcp
         private bool _isStarted;
         private IPAddress _address;
         private IWindowEnqueuer? _gui;
+        private Stopwatch? _stopwatch = new Stopwatch();
+
+        private Dictionary<Guid, TcpClient> _clients = new Dictionary<Guid, TcpClient>();
 
         private Timer? _timer;
         private UInt64 _timerCounter;
@@ -28,7 +35,7 @@ namespace Modeel.FastTcp
         public string TransferRateFormatedAsText { get; private set; } = string.Empty;
 
         public Guid Id { get; }
-        public long ConnectedSessions { get; private set; }
+        public long ConnectedSessions => _clients.Count;
         public bool IsAccepting => _isAccepting;
         public bool IsStarted => _isStarted;
         public int Port { get; }
@@ -62,9 +69,19 @@ namespace Modeel.FastTcp
             _timerCounter++;
             FormatDataTransferRate(BytesSent + BytesReceived - _secondOldBytesSent);
             _secondOldBytesSent = BytesSent + BytesReceived;
+
+            TestMessage();
         }
 
-        public void FormatDataTransferRate(long bytesSent)
+        private void TestMessage()
+        {
+            foreach (KeyValuePair<Guid, TcpClient> client in _clients)
+            {
+                SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
+            }
+        }
+
+        private void FormatDataTransferRate(long bytesSent)
         {
             if (bytesSent < _kilobyte)
             {
@@ -92,6 +109,7 @@ namespace Modeel.FastTcp
             _listener?.Stop();
             _isStarted = false;
             _isAccepting = false;
+            DisconnectAll();
             return true;
         }
 
@@ -119,17 +137,26 @@ namespace Modeel.FastTcp
             return true;
         }
 
+        private void DisconnectAll()
+        {
+            foreach (KeyValuePair<Guid, TcpClient> keyValuePair in _clients)
+            {
+                keyValuePair.Value.Close();
+            }
+        }
+
         private void AcceptClientCallback(IAsyncResult ar)
         {
             if (!_isAccepting || _listener == null) return;
 
             TcpClient client = _listener.EndAcceptTcpClient(ar);
-            ConnectedSessions++;
+            Guid clientId = Guid.NewGuid();
+            _clients.Add(clientId, client);
             OnConnected(client);
 
             byte[] buffer = new byte[OptionReceiveBufferSize];
             NetworkStream stream = client.GetStream();
-            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<TcpClient, NetworkStream>(client, stream));
+            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<TcpClient, NetworkStream, Guid, byte[]>(client, stream, clientId, buffer));
 
             _listener.BeginAcceptTcpClient(AcceptClientCallback, null);
         }
@@ -137,17 +164,27 @@ namespace Modeel.FastTcp
         private void ReceiveMessageCallback(IAsyncResult ar)
         {
             if (ar.AsyncState == null) return;
-            Tuple<TcpClient, NetworkStream> state = (Tuple<TcpClient, NetworkStream>)ar.AsyncState;
+            Tuple<TcpClient, NetworkStream, Guid, byte[]> state = (Tuple<TcpClient, NetworkStream, Guid, byte[]>)ar.AsyncState;
             TcpClient client = state.Item1;
             NetworkStream stream = state.Item2;
+            Guid clientId = state.Item3;
+            byte[] buffer = state.Item4;
 
-            byte[] buffer = new byte[OptionReceiveBufferSize]; // Add this line to declare the buffer
+            if (!stream.CanRead)
+            {
+                RemoveClientFromDict(clientId);
+                OnClientDisconnected(client);
+                client.Close();
+                return;
+            }
+
+            //byte[] buffer = new byte[OptionReceiveBufferSize]; // Add this line to declare the buffer
 
             int bytesRead = stream.EndRead(ar);
             if (bytesRead <= 0)
             {
+                RemoveClientFromDict(clientId);
                 OnClientDisconnected(client);
-                ConnectedSessions--;
                 client.Close();
                 return;
             }
@@ -155,8 +192,54 @@ namespace Modeel.FastTcp
             byte[] receivedData = new byte[bytesRead];
             Array.Copy(buffer, receivedData, bytesRead);
             BytesReceived += bytesRead;
-            OnReceiveMessage(client, receivedData);
+            ReceiveMessage(client, receivedData);
             stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, state);
+        }
+
+        private void ReceiveMessage(TcpClient client, byte[] receivedData)
+        {
+            OnReceiveMessage(client, receivedData);
+
+            string message = Encoding.UTF8.GetString(receivedData);
+
+            Logger.WriteLog($"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}", LoggerInfo.socketMessage);
+
+            return;
+
+
+            _stopwatch?.Start();
+            SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", client);
+            _stopwatch?.Stop();
+            TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
+            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.P2PSSL);
+        }
+
+        private void SendFile(string filePath, TcpClient client)
+        {
+            // Open the file for reading
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                // Choose an appropriate buffer size based on the file size and system resources
+                int bufferSize = ResourceInformer.CalculateBufferSize(fileStream.Length);
+                Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.P2P);
+
+                byte[] buffer = new byte[bufferSize];
+                int bytesRead;
+                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    // Send the bytes read from the file over the network stream
+                    //SslSession session = FindSession(_clients.ElementAt(0).Key);
+                    SendMessage(client, buffer, 0, bytesRead);
+                }
+            }
+        }
+
+        private void RemoveClientFromDict(Guid clientId)
+        {
+            if (_clients.ContainsKey(clientId))
+            {
+                _clients.Remove(clientId);
+            }
         }
 
         public event Action<TcpClient> OnClientDisconnected = delegate { };
@@ -166,16 +249,16 @@ namespace Modeel.FastTcp
         public void SendMessage(TcpClient client, string message)
         {
             byte[] data = Encoding.UTF8.GetBytes(message);
-            SendMessage(client, data);
+            SendMessage(client, data, 0, data.Length);
         }
 
-        public void SendMessage(TcpClient client, byte[] data)
+        public void SendMessage(TcpClient client, byte[] data, int index, int lenght)
         {
             if (!client.Connected) return;
 
             NetworkStream stream = client.GetStream();
-            stream.BeginWrite(data, 0, data.Length, SendMessageCallback, client);
-            BytesSent += data.Length;
+            stream.BeginWrite(data, index, lenght, SendMessageCallback, client);
+            BytesSent += lenght;
         }
 
         private void SendMessageCallback(IAsyncResult ar)

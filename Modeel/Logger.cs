@@ -9,7 +9,7 @@ namespace Modeel
 {
     public static class Logger
     {
-        private static readonly int sizeLimit = 1048576; // 1 MB
+        private static readonly int sizeLimit = 1048576*10; // 1 MB
         private static readonly string headerLine = "Time;Line;Filename;Thread;Method name;Message info;Message";
         private static readonly string logDirectory = @"C:\Logs";
         private static readonly object lockObject = new object();
@@ -18,7 +18,7 @@ namespace Modeel
 
         public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
         {
-            if (loggerInfo.Equals(LoggerInfo.socketMessage)) return;
+            //if (loggerInfo.Equals(LoggerInfo.socketMessage)) return;
 
             if (!Directory.Exists(logDirectory))
             {

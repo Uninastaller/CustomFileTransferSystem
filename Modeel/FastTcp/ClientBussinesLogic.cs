@@ -22,7 +22,21 @@ namespace Modeel.FastTcp
     {
         public TypeOfSocket Type { get; }
         public string Address => _address.ToString();
-        public int Port => _port;
+        public int Port {
+            
+            get 
+            {
+                if (Socket != null && Socket.Client != null && Socket.Client.LocalEndPoint != null)
+                {
+                    return ((IPEndPoint)Socket.Client.LocalEndPoint).Port;
+                }
+                return _port;
+            }
+            private set
+            {
+                _port = value;
+            } 
+        }
         public Guid Id { get; }
         public bool IsConnecting { get; private set; } = false;
         private bool _isConnected = false;
@@ -40,10 +54,12 @@ namespace Modeel.FastTcp
                 }
             }
         }
+        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
         public bool IsDisposed { get; private set; } = false;
         public bool AutoConnect { get; set; } = true;
-
         public TcpClient? Socket { get; private set; }
+        public long BytesSent { get; private set; }
+        public long BytesReceived { get; private set; }
 
         private byte[] _readBuffer = new byte[1024];
 
@@ -51,9 +67,15 @@ namespace Modeel.FastTcp
 
         private readonly IWindowEnqueuer _gui;
         private readonly IPAddress _address;
-        private readonly int _port;
+        private int _port;
         private NetworkStream? _stream;
         private IAsyncResult? result;
+
+        private const int _kilobyte = 1024;
+        private const int _megabyte = _kilobyte * 1024;
+        private double _transferRate;
+        private string _unit = string.Empty;
+        private long _secondOldBytesSent;
 
         private readonly Timer _timer;
         private UInt64 _timerCounter;
@@ -76,16 +98,71 @@ namespace Modeel.FastTcp
             _timer.Start();
         }
 
+        public long Send(string message)
+        {
+            return Send(Encoding.UTF8.GetBytes(message));
+        }
+
         public long Send(byte[] buffer)
         {
             long sent = buffer.Length;
             _stream?.Write(buffer);
-            return sent;
+            return BytesSent += sent;
+        }
+
+        public async Task<long> SendAsync(string message)
+        {
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
+            return await SendAsync(buffer);
+        }
+
+        public async Task<long> SendAsync(byte[] buffer)
+        {
+            long sent = buffer.Length;
+            if (_stream != null)
+            {
+                await _stream.WriteAsync(buffer, 0, buffer.Length);
+            }
+            else
+            {
+                sent = 0;
+            }
+            return BytesSent += sent;
+        }
+
+        private void FormatDataTransferRate(long bytesSent)
+        {
+            if (bytesSent < _kilobyte)
+            {
+                _transferRate = bytesSent;
+                _unit = "B/s";
+            }
+            else if (bytesSent < _megabyte)
+            {
+                _transferRate = (double)bytesSent / _kilobyte;
+                _unit = "KB/s";
+            }
+            else
+            {
+                _transferRate = (double)bytesSent / _megabyte;
+                _unit = "MB/s";
+            }
+
+            TransferRateFormatedAsText = $"{_transferRate:F2} {_unit}";
+        }
+
+        private void TestMessage()
+        {
+            _ = SendAsync("Hellou from ClientBussinesLoggic[1s]");
         }
 
         private void OneSecondHandler(object? sender, ElapsedEventArgs e)
         {
             _timerCounter++;
+
+            FormatDataTransferRate(BytesSent + BytesReceived - _secondOldBytesSent);
+            _secondOldBytesSent = BytesSent + BytesReceived;
+
             if (_timerCounter%10 == 0)
             {
                 if (AutoConnect)
@@ -93,6 +170,21 @@ namespace Modeel.FastTcp
                     ConnectAsync();
                 }
             }
+            TestMessage();
+        }
+
+        private void OnConnected()
+        {
+            IsConnecting = false;
+            IsConnected = true;
+        }
+
+        private void OnMessageReceived(byte[] buffer)
+        {
+            Logger.WriteLog($"Received {buffer.Length} bytes of data.");
+
+            string message = Encoding.UTF8.GetString(buffer);
+            Logger.WriteLog($"Tcp client obtained a message: {message}", LoggerInfo.socketMessage);
         }
 
         public bool ConnectAsync()
@@ -127,9 +219,7 @@ namespace Modeel.FastTcp
                     // Start an asynchronous read operation to receive data from the server
                     _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
 
-                    // Set IsConnecting to false to indicate that the client is connected
-                    IsConnecting = false;
-                    IsConnected = true;
+                    OnConnected();
 
                     return true;
                 }
@@ -166,11 +256,9 @@ namespace Modeel.FastTcp
                     // Get the data from the buffer
                     byte[] buffer = new byte[bytesRead];
                     Array.Copy(_readBuffer, buffer, bytesRead);
-
-                    // Process the received data here...
-                    _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = buffer });
-                    Logger.WriteLog($"Received {bytesRead} bytes of data.");
-
+                    BytesReceived += bytesRead;
+                    // Process the received data here...                   
+                    OnMessageReceived(buffer);
                     // Start another asynchronous read operation to receive more data
                     _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
                 }
