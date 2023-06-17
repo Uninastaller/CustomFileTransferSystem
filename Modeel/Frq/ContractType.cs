@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Modeel.Log;
 
 namespace Modeel.Frq
 {
-   public class ContractType : IContractType
+    public class ContractType : IContractType
    {
       private SortedDictionary<int, Type> contractIdsMap = new SortedDictionary<int, Type>();
 

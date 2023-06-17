@@ -1,6 +1,7 @@
 ﻿using Modeel.Frq;
+using Modeel.Log;
 using Modeel.Messages;
-using Modeel.SSL;
+using Modeel.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +12,7 @@ using System.Timers;
 using Timer = System.Timers.Timer;
 
 
-namespace Modeel
+namespace Modeel.SSL
 {
 
     public class SslServerBussinesLogic : SslServer, IUniversalServerSocket
@@ -24,7 +25,7 @@ namespace Modeel
 
 
         private Timer? _timer;
-        private UInt64 _timerCounter;
+        private ulong _timerCounter;
 
         private const int _kilobyte = 1024;
         private const int _megabyte = _kilobyte * 1024;
@@ -34,7 +35,7 @@ namespace Modeel
 
         public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(context, address, port, optionAcceptorBacklog)
         {
-            this.Type = TypeOfSocket.TCP_SSL;
+            Type = TypeOfSocket.TCP_SSL;
 
             _gui = gui;
             Start();
@@ -64,7 +65,7 @@ namespace Modeel
             _stopwatch = null;
             _timer = null;
             _gui = null;
-        }            
+        }
 
         public void FormatDataTransferRate(long bytesSent)
         {
@@ -103,7 +104,7 @@ namespace Modeel
             }
 
             ClientStateChange(SocketState.DISCONNECTED, null, session.Id);
-            if(_clients != null && _gui != null)
+            if (_clients != null && _gui != null)
                 _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
         }
 
@@ -133,8 +134,8 @@ namespace Modeel
 
         private void ClientStateChange(SocketState socketState, string? client, Guid sessionId)
         {
-            if (_clients == null)return;
-            
+            if (_clients == null) return;
+
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
                 _clients.Add(sessionId, client);

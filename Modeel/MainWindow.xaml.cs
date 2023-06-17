@@ -1,5 +1,7 @@
 ﻿using Modeel.Frq;
+using Modeel.Log;
 using Modeel.Messages;
+using Modeel.Model;
 using System;
 using System.Threading;
 using System.Windows;

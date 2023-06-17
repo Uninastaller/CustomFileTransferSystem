@@ -1,6 +1,7 @@
 ﻿using Modeel.Frq;
+using Modeel.Log;
 using Modeel.Messages;
-using Modeel.SSL;
+using Modeel.Model;
 using System;
 using System.IO;
 using System.Net;
@@ -14,7 +15,7 @@ using System.Windows.Navigation;
 using Timer = System.Timers.Timer;
 
 
-namespace Modeel
+namespace Modeel.SSL
 {
     public class SslClientBussinesLogic : SslClient, IUniversalClientSocket
     {
@@ -27,7 +28,7 @@ namespace Modeel
         private bool _stop;
 
         private Timer? _timer;
-        private UInt64 _timerCounter;
+        private ulong _timerCounter;
 
         private const int kilobyte = 1024;
         private const int megabyte = kilobyte * 1024;
@@ -37,7 +38,7 @@ namespace Modeel
 
         public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
         {
-            this.Type = TypeOfSocket.TCP_SSL;
+            Type = TypeOfSocket.TCP_SSL;
 
 
             _sessionWithCentralServer = sessionWithCentralServer;
@@ -81,14 +82,14 @@ namespace Modeel
         }
 
         public void DisconnectAndStop()
-        {   
+        {
             _stop = true;
 
             DisconnectAsync();
 
-            if (this.Socket.Connected)
+            if (Socket.Connected)
             {
-                this.Socket.Shutdown(SocketShutdown.Both);
+                Socket.Shutdown(SocketShutdown.Both);
             }
 
             if (_timer != null)
@@ -97,7 +98,7 @@ namespace Modeel
                 _timer.Stop();
                 _timer.Dispose();
                 _timer = null;
-            }            
+            }
 
             while (IsConnected)
                 Thread.Yield();
@@ -107,7 +108,7 @@ namespace Modeel
         {
             Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer});
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
         }
 
         protected override void OnHandshaked()

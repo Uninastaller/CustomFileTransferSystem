@@ -1,11 +1,12 @@
 ﻿using Modeel.Frq;
+using Modeel.Log;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace Modeel
+namespace Modeel.Model
 {
     public class BaseWindowForWPF : Window, IWindowEnqueuer
     {
@@ -29,7 +30,7 @@ namespace Modeel
 
         private void HandleMessage(CancellationToken cancellationToken)
         {
-            Thread.CurrentThread.Name = $"{this.GetType().Name}_WorkerThread";
+            Thread.CurrentThread.Name = $"{GetType().Name}_WorkerThread";
             Logger.WriteLog("WorkerThread starting", LoggerInfo.methodEntry);
 
             while (!cancellationToken.IsCancellationRequested)
@@ -52,7 +53,7 @@ namespace Modeel
                 else
                 {
                     Action handlingMessageInGuiThread = HandlingMessageInGuiThread;
-                    this.Dispatcher.BeginInvoke(handlingMessageInGuiThread);
+                    Dispatcher.BeginInvoke(handlingMessageInGuiThread);
                 }
             }
             Logger.WriteLog("WorkerThread closing", LoggerInfo.methodExit);
@@ -88,7 +89,7 @@ namespace Modeel
                 window.Show();
 
                 // Start the Dispatcher Processing
-                System.Windows.Threading.Dispatcher.Run();
+                Dispatcher.Run();
             }));
 
             newWindowThread.SetApartmentState(ApartmentState.STA);
@@ -111,7 +112,7 @@ namespace Modeel
             _cancellationTokenSource.Cancel();
             Logger.WriteLog("Window and his threads closing", LoggerInfo.windowClosed, sender?.GetType().Name);
             _windowWorkerThread.Join();
-            System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
+            Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
         }
 
         public void BaseMsgEnque(BaseMsg baseMsg)

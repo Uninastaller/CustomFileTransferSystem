@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modeel
+namespace Modeel.Model
 {
     public interface IUniversalClientSocket
     {

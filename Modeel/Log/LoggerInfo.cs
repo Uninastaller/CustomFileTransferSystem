@@ -1,4 +1,4 @@
-﻿namespace Modeel
+﻿namespace Modeel.Log
 {
     public static class LoggerInfo
     {

@@ -5,11 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 
-namespace Modeel
+namespace Modeel.Log
 {
     public static class Logger
     {
-        private static readonly int sizeLimit = 1048576*10; // 1 MB
+        private static readonly int sizeLimit = 1048576 * 10; // 1 MB
         private static readonly string headerLine = "Time;Line;Filename;Thread;Method name;Message info;Message";
         private static readonly string logDirectory = @"C:\Logs";
         private static readonly object lockObject = new object();
@@ -60,7 +60,7 @@ namespace Modeel
                 lock (zipLock) // Use a lock to ensure only one thread at a time can access this code block
                 {
 
-                    if (!File.Exists(fileName) ||  new FileInfo(fileName).Length < sizeLimit)return; // another thread may already created zip file
+                    if (!File.Exists(fileName) || new FileInfo(fileName).Length < sizeLimit) return; // another thread may already created zip file
 
                     string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
 

@@ -1,4 +1,6 @@
 ﻿using Modeel.Frq;
+using Modeel.Log;
+using Modeel.Model;
 using Modeel.SSL;
 using System;
 using System.Collections.Generic;

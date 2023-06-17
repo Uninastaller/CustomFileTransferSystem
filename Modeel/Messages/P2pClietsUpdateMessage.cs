@@ -1,4 +1,5 @@
 ﻿using Modeel.Frq;
+using Modeel.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

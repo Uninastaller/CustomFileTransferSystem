@@ -1,4 +1,5 @@
 ﻿using Modeel.Frq;
+using Modeel.Model;
 
 namespace Modeel.Messages
 {

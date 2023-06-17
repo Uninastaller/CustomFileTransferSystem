@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modeel
+namespace Modeel.Model
 {
-    public enum SocketState
+    public enum TypeOfSocket
     {
-        CONNECTED = 0,
-        DISCONNECTED = 1,
+        TCP_SSL = 0,
+        TCP = 1,
     }
 }

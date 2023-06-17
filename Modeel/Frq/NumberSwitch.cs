@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Interop;
+using Modeel.Log;
 
 namespace Modeel.Frq
 {
-   public class NumberSwitch
+    public class NumberSwitch
    {
       private Dictionary<int, Action<object>> numActionMapper = new Dictionary<int, Action<object>>();
 
