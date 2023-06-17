@@ -19,22 +19,31 @@ namespace Modeel.SSL
 {
     public class SslClientBussinesLogic : SslClient, IUniversalClientSocket
     {
-        private IWindowEnqueuer _gui;
-        private bool _sessionWithCentralServer;
+
+        #region Properties
 
         public TypeOfSocket Type { get; }
-        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+
+        #endregion Properties
+
+        #region PrivateFields
+
+        private IWindowEnqueuer _gui;
+        private bool _sessionWithCentralServer;
 
         private bool _stop;
 
         private Timer? _timer;
         private ulong _timerCounter;
 
-        private const int kilobyte = 1024;
-        private const int megabyte = kilobyte * 1024;
-        private double transferRate;
-        private string unit = string.Empty;
-        private long SecondOldBytesSent;
+        private long _secondOldBytesSent;
+        private long _secondOldBytesReceived;
+
+        #endregion PrivateFields
+
+        #region Ctor
 
         public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
         {
@@ -53,33 +62,9 @@ namespace Modeel.SSL
             _timer.Start();
         }
 
-        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-        {
-            _timerCounter++;
-            FormatDataTransferRate(BytesSent + BytesReceived - SecondOldBytesSent);
-            SecondOldBytesSent = BytesSent + BytesReceived;
-        }
+        #endregion Ctor
 
-        public void FormatDataTransferRate(long bytesSent)
-        {
-            if (bytesSent < kilobyte)
-            {
-                transferRate = bytesSent;
-                unit = "B/s";
-            }
-            else if (bytesSent < megabyte)
-            {
-                transferRate = (double)bytesSent / kilobyte;
-                unit = "KB/s";
-            }
-            else
-            {
-                transferRate = (double)bytesSent / megabyte;
-                unit = "MB/s";
-            }
-
-            TransferRateFormatedAsText = $"{transferRate:F2} {unit}";
-        }
+        #region PublicMethods
 
         public void DisconnectAndStop()
         {
@@ -103,6 +88,24 @@ namespace Modeel.SSL
             while (IsConnected)
                 Thread.Yield();
         }
+
+        #endregion PublicMethods
+
+        #region EventHandler
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+
+            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
+            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            _secondOldBytesSent = BytesSent;
+            _secondOldBytesReceived = BytesReceived;
+        }
+
+        #endregion EventHandler
+
+        #region OverridedMethods
 
         protected override void OnConnected()
         {
@@ -141,6 +144,9 @@ namespace Modeel.SSL
         {
             Logger.WriteLog($"Tcp client caught an error with code {error}", LoggerInfo.tcpClient);
         }
+
+        #endregion OverridedMethods             
+
     }
 }
 

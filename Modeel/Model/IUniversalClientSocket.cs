@@ -15,7 +15,8 @@ namespace Modeel.Model
         string Address { get; }
         long BytesSent { get; }
         long BytesReceived { get; }
-        string TransferRateFormatedAsText { get; }
+        string TransferSendRateFormatedAsText { get; }
+        string TransferReceiveRateFormatedAsText { get; }
         public bool Disconnect();
         public void DisconnectAndStop();
         public bool ConnectAsync();

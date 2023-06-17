@@ -2,20 +2,13 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
-using Modeel.SSL;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Security;
 using System.Net.Sockets;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using static Modeel.SSL.ServerSession;
 using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
@@ -29,13 +22,15 @@ namespace Modeel.FastTcp
         public string Address => _address.ToString();
         public Guid Id { get; }
         public bool IsConnecting { get; private set; } = false;
-        public string TransferRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
         public bool IsDisposed { get; private set; } = false;
         public bool AutoConnect { get; set; } = true;
         public TcpClient? Socket { get; private set; }
         public long BytesSent { get; private set; }
         public long BytesReceived { get; private set; }
-        public int Port {
+        public int Port
+        {
 
             get
             {
@@ -51,7 +46,8 @@ namespace Modeel.FastTcp
             }
         }
 
-        public bool IsConnected {
+        public bool IsConnected
+        {
             get
             {
                 return _isConnected;
@@ -81,11 +77,9 @@ namespace Modeel.FastTcp
         private NetworkStream? _stream;
         private IAsyncResult? result;
 
-        private const int _kilobyte = 1024;
-        private const int _megabyte = _kilobyte * 1024;
-        private double _transferRate;
-        private string _unit = string.Empty;
         private long _secondOldBytesSent;
+        private long _secondOldBytesReceived;
+
 
         private readonly Timer _timer;
         private UInt64 _timerCounter;
@@ -111,50 +105,6 @@ namespace Modeel.FastTcp
         }
 
         #endregion Ctor
-
-        #region PrivateMethods
-
-        private void TestMessage()
-        {
-            _ = SendAsync("Hellou from ClientBussinesLoggic[1s]");
-        }
-
-        private void FormatDataTransferRate(long bytesSent)
-        {
-            if (bytesSent < _kilobyte)
-            {
-                _transferRate = bytesSent;
-                _unit = "B/s";
-            }
-            else if (bytesSent < _megabyte)
-            {
-                _transferRate = (double)bytesSent / _kilobyte;
-                _unit = "KB/s";
-            }
-            else
-            {
-                _transferRate = (double)bytesSent / _megabyte;
-                _unit = "MB/s";
-            }
-
-            TransferRateFormatedAsText = $"{_transferRate:F2} {_unit}";
-        }
-
-        private void OnConnected()
-        {
-            IsConnecting = false;
-            IsConnected = true;
-        }
-
-        private void OnMessageReceived(byte[] buffer)
-        {
-            Logger.WriteLog($"Received {buffer.Length} bytes of data.");
-
-            string message = Encoding.UTF8.GetString(buffer);
-            Logger.WriteLog($"Tcp client obtained a message: {message}", LoggerInfo.socketMessage);
-        }
-
-        #endregion PrivateMethods
 
         #region PublicMethods
 
@@ -298,6 +248,50 @@ namespace Modeel.FastTcp
 
         #endregion PublicMethods
 
+        #region PrivateMethods
+
+        private void TestMessage()
+        {
+            _ = SendAsync("Hellou from ClientBussinesLoggic[1s]");
+        }
+
+        //private void FormatDataTransferRate(long bytesSent)
+        //{
+        //    if (bytesSent < _kilobyte)
+        //    {
+        //        _transferRate = bytesSent;
+        //        _unit = "B/s";
+        //    }
+        //    else if (bytesSent < _megabyte)
+        //    {
+        //        _transferRate = (double)bytesSent / _kilobyte;
+        //        _unit = "KB/s";
+        //    }
+        //    else
+        //    {
+        //        _transferRate = (double)bytesSent / _megabyte;
+        //        _unit = "MB/s";
+        //    }
+
+        //    TransferSendRateFormatedAsText = $"{_transferRate:F2} {_unit}";
+        //}
+
+        private void OnConnected()
+        {
+            IsConnecting = false;
+            IsConnected = true;
+        }
+
+        private void OnMessageReceived(byte[] buffer)
+        {
+            Logger.WriteLog($"Received {buffer.Length} bytes of data.");
+
+            string message = Encoding.UTF8.GetString(buffer);
+            Logger.WriteLog($"Tcp client obtained a message: {message}", LoggerInfo.socketMessage);
+        }
+
+        #endregion PrivateMethods
+
         #region ProtectedMethods
 
         protected virtual void Dispose(bool disposingManagedResources)
@@ -344,8 +338,10 @@ namespace Modeel.FastTcp
         {
             _timerCounter++;
 
-            FormatDataTransferRate(BytesSent + BytesReceived - _secondOldBytesSent);
-            _secondOldBytesSent = BytesSent + BytesReceived;
+            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
+            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            _secondOldBytesSent = BytesSent;
+            _secondOldBytesReceived = BytesReceived;
 
             if (_timerCounter % 10 == 0)
             {

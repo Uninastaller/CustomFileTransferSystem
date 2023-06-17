@@ -64,7 +64,8 @@
                 <!--<DataGridTextColumn Header="BytesSending" Binding="{Binding BytesSending}"/>-->
                 <DataGridTextColumn Header="BytesSent" Binding="{Binding BytesSent}"/>
                 <DataGridTextColumn Header="BytesReceived" Binding="{Binding BytesReceived}"/>
-                <DataGridTextColumn Header="TransferRate" Binding="{Binding TransferRateFormatedAsText}"/>
+                <DataGridTextColumn Header="TransferSendRate" Binding="{Binding TransferSendRateFormatedAsText}"/>
+                <DataGridTextColumn Header="TransferReceiveRate" Binding="{Binding TransferReceiveRateFormatedAsText}"/>
 
                 <DataGridTemplateColumn Header="Socket">
                     <DataGridTemplateColumn.CellTemplate>
