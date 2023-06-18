@@ -2,19 +2,22 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-
-namespace Modeel.SSL
+namespace Modeel.FastTcp
 {
-    public class SslServerBussinesLogic : SslServer, IUniversalServerSocket
+    internal class ServerBussinesLogic2 : TcpServer, IUniversalServerSocket
     {
 
         #region Properties
@@ -50,9 +53,9 @@ namespace Modeel.SSL
 
         #region Ctor
 
-        public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(context, address, port, optionAcceptorBacklog)
+        public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(address, port, optionAcceptorBacklog)
         {
-            Type = TypeOfSocket.TCP_SSL;
+            Type = TypeOfSocket.TCP;
 
             _gui = gui;
             Start();
@@ -84,16 +87,16 @@ namespace Modeel.SSL
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
                 _clients.Add(sessionId, client);
-                Logger.WriteLog($"Client: {client}, connected to server ", LoggerInfo.sslServer);
+                Logger.WriteLog($"Client: {client}, connected to server ", LoggerInfo.tcpServer);
             }
             else if (socketState == SocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
             {
-                Logger.WriteLog($"Client: {_clients[sessionId]}, disconnected from server ", LoggerInfo.sslServer);
+                Logger.WriteLog($"Client: {_clients[sessionId]}, disconnected from server ", LoggerInfo.tcpServer);
                 _clients.Remove(sessionId);
             }
         }
 
-        private void SendFile(string filePath, SslSession session)
+        private void SendFile(string filePath, TcpSession session)
         {
             // Open the file for reading
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
@@ -135,7 +138,7 @@ namespace Modeel.SSL
             TestMessage();
         }
 
-        private void OnReceiveMessage(SslSession sesion, string message)
+        private void OnReceiveMessage(TcpSession sesion, string message)
         {
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
             //return;
@@ -165,16 +168,16 @@ namespace Modeel.SSL
             _gui = null;
         }
 
-        protected override SslSession CreateSession() { return new SslServerSession(this); }
+        protected override TcpSession CreateSession() { return new TcpServerSession(this); }
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog($"Ssl server caught an error with code {error}", LoggerInfo.tcpServer);
+            Logger.WriteLog($"Tcp server caught an error with code {error}", LoggerInfo.tcpServer);
         }
 
-        private void OnClientDisconnected(SslSession session)
+        private void OnClientDisconnected(TcpSession session)
         {
-            if (session is SslServerSession serverSession)
+            if (session is TcpServerSession serverSession)
             {
                 serverSession.ReceiveMessage -= OnReceiveMessage;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
@@ -185,9 +188,9 @@ namespace Modeel.SSL
                 _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
         }
 
-        protected override void OnConnected(SslSession session)
+        protected override void OnConnected(TcpSession session)
         {
-            if (session is SslServerSession serverSession)
+            if (session is TcpServerSession serverSession)
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;

@@ -312,10 +312,10 @@ namespace Modeel
             {
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2P);
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
                 return;
             }
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)

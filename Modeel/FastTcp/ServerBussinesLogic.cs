@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Timers;
+using System.Windows;
 using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
@@ -143,7 +144,7 @@ namespace Modeel.FastTcp
         {
             foreach (KeyValuePair<Guid, TcpClient> client in _clients)
             {
-                SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
+                //SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
             }
         }
 
@@ -160,6 +161,7 @@ namespace Modeel.FastTcp
             OnConnected(client);
 
             SendMessage(client, "Hello from Tcp server!");
+            Test1BigFile(client);
         }
 
         private void ReceiveMessage(TcpClient client, byte[] receivedData)
@@ -169,15 +171,16 @@ namespace Modeel.FastTcp
             string message = Encoding.UTF8.GetString(receivedData);
 
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}", LoggerInfo.socketMessage);
+        }
 
-            //return;
-
-
+        private void Test1BigFile(TcpClient client)
+        {
             _stopwatch?.Start();
             SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", client);
             _stopwatch?.Stop();
             TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
-            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.P2PSSL);
+            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.socketMessage);
+            MessageBox.Show("File transfer completed");
         }
 
         private void SendFile(string filePath, TcpClient client)
@@ -187,7 +190,7 @@ namespace Modeel.FastTcp
             {
                 // Choose an appropriate buffer size based on the file size and system resources
                 int bufferSize = ResourceInformer.CalculateBufferSize(fileStream.Length);
-                Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.P2P);
+                Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.socketMessage);
 
                 byte[] buffer = new byte[bufferSize];
                 int bytesRead;
@@ -196,6 +199,7 @@ namespace Modeel.FastTcp
                     // Send the bytes read from the file over the network stream
                     //SslSession session = FindSession(_clients.ElementAt(0).Key);
                     SendMessage(client, buffer, 0, bytesRead);
+                    Logger.WriteLog($"Reading bytes from file and sending: {bytesRead}", LoggerInfo.socketMessage);
                 }
             }
         }
@@ -221,6 +225,18 @@ namespace Modeel.FastTcp
         public event Action<TcpClient> OnClientDisconnected = delegate { };
         public event Action<TcpClient> OnConnected = delegate { };
         public event Action<TcpClient, byte[]> OnReceiveMessage = delegate { };
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+
+            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
+            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            _secondOldBytesSent = BytesSent;
+            _secondOldBytesReceived = BytesReceived;
+
+            TestMessage();
+        }
 
         private void SendMessageCallback(IAsyncResult ar)
         {
@@ -277,18 +293,6 @@ namespace Modeel.FastTcp
             BytesReceived += bytesRead;
             ReceiveMessage(client, receivedData);
             stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, state);
-        }
-
-        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-        {
-            _timerCounter++;
-
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
-            _secondOldBytesSent = BytesSent;
-            _secondOldBytesReceived = BytesReceived;
-
-            TestMessage();
         }
 
         #endregion EventHandler

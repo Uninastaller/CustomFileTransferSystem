@@ -1,66 +1,55 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
+using System.Linq;
 using System.Net.Sockets;
+using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Modeel.SSL
+namespace Modeel.FastTcp
 {
     /// <summary>
-    /// SSL server is used to connect, disconnect and manage SSL sessions
+    /// TCP server is used to connect, disconnect and manage TCP sessions
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslServer : IDisposable
+    public class TcpServer : IDisposable
     {
         /// <summary>
-        /// Initialize SSL server with a given IP address and port number
+        /// Initialize TCP server with a given IP address and port number
         /// </summary>
-        /// <param name="context">SSL context</param>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public SslServer(SslContext context, IPAddress address, int port, int optionAcceptorBacklog) : this(context, new IPEndPoint(address, port), optionAcceptorBacklog:optionAcceptorBacklog) { }
-
+        public TcpServer(IPAddress address, int port, int optionAcceptorBacklog) : this(new IPEndPoint(address, port), optionAcceptorBacklog: optionAcceptorBacklog) { }
         /// <summary>
-        /// Initialize SSL server with a given IP address and port number
+        /// Initialize TCP server with a given IP address and port number
         /// </summary>
-        /// <param name="context">SSL context</param>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public SslServer(SslContext context, IPAddress address, int port) : this(context, new IPEndPoint(address, port)) { }
+        public TcpServer(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) { }
         /// <summary>
-        /// Initialize SSL server with a given IP address and port number
+        /// Initialize TCP server with a given DNS endpoint
         /// </summary>
-        /// <param name="context">SSL context</param>
-        /// <param name="address">IP address</param>
-        /// <param name="port">Port number</param>
-        public SslServer(SslContext context, string address, int port) : this(context, new IPEndPoint(IPAddress.Parse(address), port)) { }
-        /// <summary>
-        /// Initialize SSL server with a given DNS endpoint
-        /// </summary>
-        /// <param name="context">SSL context</param>
         /// <param name="endpoint">DNS endpoint</param>
-        public SslServer(SslContext context, DnsEndPoint endpoint) : this(context, endpoint as EndPoint, endpoint.Host, endpoint.Port) { }
+        public TcpServer(DnsEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Host, endpoint.Port) { }
         /// <summary>
-        /// Initialize SSL server with a given IP endpoint
+        /// Initialize TCP server with a given IP endpoint
         /// </summary>
-        /// <param name="context">SSL context</param>
         /// <param name="endpoint">IP endpoint</param>
-        public SslServer(SslContext context, IPEndPoint endpoint, int optionAcceptorBacklog = 1024) : this(context, endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port, optionAcceptorBacklog:optionAcceptorBacklog) { }
+        public TcpServer(IPEndPoint endpoint, int optionAcceptorBacklog = 1024) : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port, optionAcceptorBacklog: optionAcceptorBacklog) { }
         /// <summary>
-        /// Initialize SSL server with a given SSL context, endpoint, address and port
+        /// Initialize TCP server with a given endpoint, address and port
         /// </summary>
-        /// <param name="context">SSL context</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="address">Server address</param>
         /// <param name="port">Server port</param>
-        private SslServer(SslContext context, EndPoint endpoint, string address, int port, int optionAcceptorBacklog = 1024)
+        private TcpServer(EndPoint endpoint, string address, int port, int optionAcceptorBacklog = 1024)
         {
             Id = Guid.NewGuid();
             Address = address;
             Port = port;
-            Context = context;
             Endpoint = endpoint;
             OptionAcceptorBacklog = optionAcceptorBacklog;
         }
@@ -71,17 +60,13 @@ namespace Modeel.SSL
         public Guid Id { get; }
 
         /// <summary>
-        /// SSL server address
+        /// TCP server address
         /// </summary>
         public string Address { get; }
         /// <summary>
-        /// SSL server port
+        /// TCP server port
         /// </summary>
         public int Port { get; }
-        /// <summary>
-        /// SSL context
-        /// </summary>
-        public SslContext Context { get; }
         /// <summary>
         /// Endpoint
         /// </summary>
@@ -151,7 +136,7 @@ namespace Modeel.SSL
         /// Option: no delay
         /// </summary>
         /// <remarks>
-        /// This option will enable/disable Nagle's algorithm for SSL protocol
+        /// This option will enable/disable Nagle's algorithm for TCP protocol
         /// </remarks>
         public bool OptionNoDelay { get; set; }
         /// <summary>
@@ -215,7 +200,7 @@ namespace Modeel.SSL
         /// <returns>'true' if the server was successfully started, 'false' if the server failed to start</returns>
         public virtual bool Start()
         {
-            Debug.Assert(!IsStarted, "SSL server is already started!");
+            Debug.Assert(!IsStarted, "TCP server is already started!");
             if (IsStarted)
                 return false;
 
@@ -272,7 +257,7 @@ namespace Modeel.SSL
         /// <returns>'true' if the server was successfully stopped, 'false' if the server is already stopped</returns>
         public virtual bool Stop()
         {
-            Debug.Assert(IsStarted, "SSL server is not started!");
+            Debug.Assert(IsStarted, "TCP server is not started!");
             if (!IsStarted)
                 return false;
 
@@ -386,17 +371,17 @@ namespace Modeel.SSL
         #region Session factory
 
         /// <summary>
-        /// Create SSL session factory method
+        /// Create TCP session factory method
         /// </summary>
-        /// <returns>SSL session</returns>
-        protected virtual SslSession CreateSession() { return new SslSession(this); }
+        /// <returns>TCP session</returns>
+        protected virtual TcpSession CreateSession() { return new TcpSession(this); }
 
         #endregion
 
         #region Session management
 
         // Server sessions
-        protected readonly ConcurrentDictionary<Guid, SslSession> Sessions = new ConcurrentDictionary<Guid, SslSession>();
+        protected readonly ConcurrentDictionary<Guid, TcpSession> Sessions = new ConcurrentDictionary<Guid, TcpSession>();
 
         /// <summary>
         /// Disconnect all connected sessions
@@ -419,17 +404,17 @@ namespace Modeel.SSL
         /// </summary>
         /// <param name="id">Session Id</param>
         /// <returns>Session with a given Id or null if the session it not connected</returns>
-        public SslSession FindSession(Guid id)
+        public TcpSession FindSession(Guid id)
         {
             // Try to find the required session
-            return Sessions.TryGetValue(id, out SslSession result) ? result : null;
+            return Sessions.TryGetValue(id, out TcpSession result) ? result : null;
         }
 
         /// <summary>
         /// Register a new session
         /// </summary>
         /// <param name="session">Session to register</param>
-        internal void RegisterSession(SslSession session)
+        internal void RegisterSession(TcpSession session)
         {
             // Register a new session
             Sessions.TryAdd(session.Id, session);
@@ -442,7 +427,7 @@ namespace Modeel.SSL
         internal void UnregisterSession(Guid id)
         {
             // Unregister session by Id
-            Sessions.TryRemove(id, out SslSession _);
+            Sessions.TryRemove(id, out TcpSession _);
         }
 
         #endregion
@@ -524,32 +509,22 @@ namespace Modeel.SSL
         /// Handle session connecting notification
         /// </summary>
         /// <param name="session">Connecting session</param>
-        protected virtual void OnConnecting(SslSession session) { }
+        protected virtual void OnConnecting(TcpSession session) { }
         /// <summary>
         /// Handle session connected notification
         /// </summary>
         /// <param name="session">Connected session</param>
-        protected virtual void OnConnected(SslSession session) { }
-        /// <summary>
-        /// Handle session handshaking notification
-        /// </summary>
-        /// <param name="session">Handshaking session</param>
-        protected virtual void OnHandshaking(SslSession session) { }
-        /// <summary>
-        /// Handle session handshaked notification
-        /// </summary>
-        /// <param name="session">Handshaked session</param>
-        protected virtual void OnHandshaked(SslSession session) { }
+        protected virtual void OnConnected(TcpSession session) { }
         /// <summary>
         /// Handle session disconnecting notification
         /// </summary>
         /// <param name="session">Disconnecting session</param>
-        protected virtual void OnDisconnecting(SslSession session) { }
+        protected virtual void OnDisconnecting(TcpSession session) { }
         /// <summary>
         /// Handle session disconnected notification
         /// </summary>
         /// <param name="session">Disconnected session</param>
-        protected virtual void OnDisconnected(SslSession session) { }
+        protected virtual void OnDisconnected(TcpSession session) { }
 
         /// <summary>
         /// Handle session cleaning notification
@@ -562,12 +537,10 @@ namespace Modeel.SSL
         /// <param name="error">Socket error code</param>
         protected virtual void OnError(SocketError error) { }
 
-        internal void OnConnectingInternal(SslSession session) { OnConnecting(session); }
-        internal void OnConnectedInternal(SslSession session) { OnConnected(session); }
-        internal void OnHandshakingInternal(SslSession session) { OnHandshaking(session); }
-        internal void OnHandshakedInternal(SslSession session) { OnHandshaked(session); }
-        internal void OnDisconnectingInternal(SslSession session) { OnDisconnecting(session); }
-        internal void OnDisconnectedInternal(SslSession session) { OnDisconnected(session); }
+        internal void OnConnectingInternal(TcpSession session) { OnConnecting(session); }
+        internal void OnConnectedInternal(TcpSession session) { OnConnected(session); }
+        internal void OnDisconnectingInternal(TcpSession session) { OnDisconnecting(session); }
+        internal void OnDisconnectedInternal(TcpSession session) { OnDisconnected(session); }
 
         #endregion
 

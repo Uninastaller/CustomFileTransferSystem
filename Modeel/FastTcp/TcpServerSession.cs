@@ -1,23 +1,27 @@
-﻿using System;
+﻿using Modeel.SSL;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Modeel.SSL
+namespace Modeel.FastTcp
 {
-    class ServerSession : SslSession
+    public class TcpServerSession : TcpSession
     {
 
-        public delegate void ReceiveMessageEventHandler(SslSession sender, string message);
+        public delegate void ReceiveMessageEventHandler(TcpSession sender, string message);
         public event ReceiveMessageEventHandler ReceiveMessage;
 
-        public delegate void ClientDisconnectedHandler(SslSession sender);
+        public delegate void ClientDisconnectedHandler(TcpSession sender);
         public event ClientDisconnectedHandler ClientDisconnected;
 
-        public ServerSession(SslServer server) : base(server) { }
+        public TcpServerSession(TcpServer server) : base(server) { }
 
         //protected override void OnConnected()
         //{
-        //    Console.WriteLine($"Chat SSL session with Id {Id} connected!");
+        //    Console.WriteLine($Tcp session with Id {Id} connected!");
         //}
 
         protected void OnClientDisconnected()
@@ -30,35 +34,22 @@ namespace Modeel.SSL
             ReceiveMessage?.Invoke(this, message);
         }
 
-        protected override void OnHandshaked()
-        {
-            Console.WriteLine($"Chat SSL session with Id {Id} handshaked!");
-
-            // Send invite message
-            string message = "Hello from SSL server!";
-            Send(message);
-        }
-
         protected override void OnDisconnected()
         {
             OnClientDisconnected();
-            Console.WriteLine($"Chat SSL session with Id {Id} disconnected!");
+            Console.WriteLine($"Tcp session with Id {Id} disconnected!");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-            //// Multicast message to all connected sessions
-            //Server.Multicast(message);
-
             OnReceiveMessage(message);
         }
 
         protected override void OnError(SocketError error)
         {
-            Console.WriteLine($"Chat SSL session caught an error with code {error}");
+            Console.WriteLine($"SSL session caught an error with code {error}");
         }
     }
 }
-

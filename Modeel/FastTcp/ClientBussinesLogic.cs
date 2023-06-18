@@ -29,6 +29,8 @@ namespace Modeel.FastTcp
         public TcpClient? Socket { get; private set; }
         public long BytesSent { get; private set; }
         public long BytesReceived { get; private set; }
+        public int OptionReceiveBufferSize { get; set; } = 8192;
+        public int OptionSendBufferSize { get; set; } = 8192;
         public int Port
         {
             get
@@ -65,7 +67,7 @@ namespace Modeel.FastTcp
 
         #region PrivateFields
 
-        private byte[] _readBuffer = new byte[8192];
+        private byte[] _readBuffer = new byte[1048576];
 
         private bool _sessionWithCentralServer;
         private bool _isConnected = false;
@@ -171,7 +173,7 @@ namespace Modeel.FastTcp
                     _stream = Socket.GetStream();
 
                     // Start an asynchronous read operation to receive data from the server
-                    _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
+                    //_stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
 
                     OnConnected();
 
@@ -251,40 +253,40 @@ namespace Modeel.FastTcp
 
         private void TestMessage()
         {
-            _ = SendAsync("Hellou from ClientBussinesLoggic[1s]");
+            //_ = SendAsync("Hellou from ClientBussinesLoggic[1s]");
         }
 
-        //private void FormatDataTransferRate(long bytesSent)
-        //{
-        //    if (bytesSent < _kilobyte)
-        //    {
-        //        _transferRate = bytesSent;
-        //        _unit = "B/s";
-        //    }
-        //    else if (bytesSent < _megabyte)
-        //    {
-        //        _transferRate = (double)bytesSent / _kilobyte;
-        //        _unit = "KB/s";
-        //    }
-        //    else
-        //    {
-        //        _transferRate = (double)bytesSent / _megabyte;
-        //        _unit = "MB/s";
-        //    }
-
-        //    TransferSendRateFormatedAsText = $"{_transferRate:F2} {_unit}";
-        //}
+        private async void StartReceivingData()
+        {
+            try
+            {
+                while (IsConnected)
+                {
+                    //await ReceiveDataAsync();
+                    await Task.Run(() => ReceiveDataAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog($"Failed to start receiving data: {ex.Message}", LoggerInfo.exception);
+                Disconnect();
+            }
+        }
 
         private void OnConnected()
         {
             IsConnecting = false;
             IsConnected = true;
+            StartReceivingData();
+            SendAsync("Hellou from ClientBussinesLoggic[1s]");
         }
 
         private void OnMessageReceived(byte[] buffer)
         {
             string message = Encoding.UTF8.GetString(buffer);
-            Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
+            //Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
+            Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]", LoggerInfo.socketMessage);
+
         }
 
         #endregion PrivateMethods
@@ -350,38 +352,68 @@ namespace Modeel.FastTcp
             TestMessage();
         }
 
-        private void HandleReceivedData(IAsyncResult ar)
+        private async Task ReceiveDataAsync()
         {
             try
             {
-                // End the read operation and get the number of bytes read
-                if (_stream == null) return;
-
-                int bytesRead = _stream.EndRead(ar);
-
-                if (bytesRead > 0)
+                while (IsConnected)
                 {
-                    // Get the data from the buffer
-                    byte[] buffer = new byte[bytesRead];
-                    Array.Copy(_readBuffer, buffer, bytesRead);
-                    BytesReceived += bytesRead;
-                    // Process the received data here...                   
-                    OnMessageReceived(buffer);
-                    // Start another asynchronous read operation to receive more data
-                    _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
-                }
-                else
-                {
-                    // The server has closed the connection
-                    Disconnect();
+                    int bytesRead = await _stream.ReadAsync(_readBuffer, 0, _readBuffer.Length);
+
+                    if (bytesRead > 0)
+                    {
+                        byte[] buffer = new byte[bytesRead];
+                        Array.Copy(_readBuffer, buffer, bytesRead);
+                        BytesReceived += bytesRead;
+                        OnMessageReceived(buffer);
+                    }
+                    else
+                    {
+                        // The server has closed the connection
+                        Disconnect();
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Logger.WriteLog($"Failed to receive data from server: {ex.Message}");
+                Logger.WriteLog($"Failed to receive data from server: {ex.Message}", LoggerInfo.exception);
                 Disconnect();
             }
         }
+
+        //private void HandleReceivedData(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        // End the read operation and get the number of bytes read
+        //        if (_stream == null) return;
+
+        //        int bytesRead = _stream.EndRead(ar);
+
+        //        if (bytesRead > 0)
+        //        {
+        //            // Get the data from the buffer
+        //            byte[] buffer = new byte[bytesRead];
+        //            Array.Copy(_readBuffer, buffer, bytesRead);
+        //            BytesReceived += bytesRead;
+        //            // Process the received data here...                   
+        //            OnMessageReceived(buffer);
+        //            // Start another asynchronous read operation to receive more data
+        //            _stream.BeginRead(_readBuffer, 0, _readBuffer.Length, HandleReceivedData, null);
+        //        }
+        //        else
+        //        {
+        //            // The server has closed the connection
+        //            Disconnect();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.WriteLog($"Failed to receive data from server: {ex.Message}");
+        //        Disconnect();
+        //    }
+        //}
 
         #endregion EventHandlers
 
