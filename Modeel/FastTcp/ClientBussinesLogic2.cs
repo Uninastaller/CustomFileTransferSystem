@@ -2,22 +2,22 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.SSL;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
-using System.Windows.Navigation;
 using Timer = System.Timers.Timer;
 
 
-namespace Modeel.SSL
+namespace Modeel.FastTcp
 {
-    public class SslClientBussinesLogic : SslClient, IUniversalClientSocket
+    public class ClientBussinesLogic2 : TcpClient, IUniversalClientSocket, ISession
     {
 
         #region Properties
@@ -41,14 +41,24 @@ namespace Modeel.SSL
         private long _secondOldBytesSent;
         private long _secondOldBytesReceived;
 
+        private string _requestingFileName = string.Empty;
+        private long _requestingFileSize;
+        private bool _requestingFile;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, bool sessionWithCentralServer = false) : this (address, port, gui, sessionWithCentralServer:sessionWithCentralServer)
         {
-            Type = TypeOfSocket.TCP_SSL;
+            _requestingFileName = fileName;
+            _requestingFileSize = fileSize;
+            _requestingFile = true;
+        }
 
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(address, port)
+        {
+            Type = TypeOfSocket.TCP;
 
             _sessionWithCentralServer = sessionWithCentralServer;
 
@@ -119,20 +129,20 @@ namespace Modeel.SSL
 
         protected override void OnConnected()
         {
-            Logger.WriteLog($"Ssl client connected a new session with Id {Id}", LoggerInfo.sslClient);
+            Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
-        }
+            //_gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
 
-        protected override void OnHandshaked()
-        {
-            Logger.WriteLog($"Ssl client handshaked a new session with Id {Id}", LoggerInfo.sslClient);
-            SendAsync("Hello from SSL client!");
+            if (_requestingFile)
+            {
+                ResourceInformer.GenerateRequest(_requestingFileName, _requestingFileSize, this);
+            }
+            //ResourceInformer.SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", this);
         }
 
         protected override void OnDisconnected()
         {
-            Logger.WriteLog($"Ssl client disconnected from session with Id: {Id}", LoggerInfo.sslClient);
+            Logger.WriteLog($"Tcp client disconnected from session with Id: {Id}", LoggerInfo.tcpClient);
 
             // Wait for a while...
             Thread.Sleep(1000);
@@ -147,13 +157,16 @@ namespace Modeel.SSL
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            //Logger.WriteLog($"Ssl client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
-            Logger.WriteLog($"Ssl client obtained a message[{size}]", LoggerInfo.socketMessage);
+
+            _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
+
+            //Logger.WriteLog($"Tcp client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
+            Logger.WriteLog($"Tcp client obtained a message[{size}]", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog($"Ssl client caught an error with code {error}", LoggerInfo.sslClient);
+            Logger.WriteLog($"Tcp client caught an error with code {error}", LoggerInfo.tcpClient);
         }
 
         #endregion OverridedMethods             

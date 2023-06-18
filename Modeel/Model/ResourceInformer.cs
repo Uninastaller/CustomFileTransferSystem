@@ -1,8 +1,15 @@
-﻿using System;
+﻿using Modeel.Log;
+using Modeel.SSL;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace Modeel.Model
 {
@@ -56,6 +63,61 @@ namespace Modeel.Model
             }
 
             return $"{transferRate:F2} {unit}";
+        }
+
+        public static void SendFile(string filePath, ISession session)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // Open the file for reading
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                // Choose an appropriate buffer size based on the file size and system resources
+                int bufferSize = CalculateBufferSize(fileStream.Length);
+                Logger.WriteLog($"File buffer chosen for: {bufferSize}", LoggerInfo.socketMessage);
+                bufferSize = 8192;
+
+                byte[] buffer = new byte[bufferSize];
+                int bytesRead;
+                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    // Send the bytes read from the file over the network stream
+                    session.SendAsync(buffer, 0, bytesRead);
+                }
+            }
+            stopwatch.Stop();
+            TimeSpan elapsedTime = stopwatch != null ? stopwatch.Elapsed : TimeSpan.Zero;
+            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.socketMessage);
+            //MessageBox.Show("File transfer completed");
+        }
+
+        public static void SendChunk(string filePath, ISession session, long chunkNumber, int chunkSize)
+        {
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                long offset = chunkNumber * chunkSize;
+                fileStream.Seek(offset, SeekOrigin.Begin);
+
+                // Read the chunk from the file
+                byte[] buffer = new byte[chunkSize];
+                int bytesRead = fileStream.Read(buffer, 0, chunkSize);
+                session.SendAsync(buffer, 0, bytesRead);
+            }
+        }
+
+        public static void StartOfSendingFile(string filePath, ISession session, int chunkSize)
+        {
+            //Generate header
+            string fileName = Path.GetFileName(filePath);
+            long fileSize = new System.IO.FileInfo(filePath).Length;
+            long totalChunkNumbers = fileSize / chunkSize + ((fileSize % chunkSize) > 0 ? 1 : 0);
+        }
+
+        public static void GenerateRequest(string fileName, long fileSize, ISession session)
+        {
+            byte[] request = Encoding.UTF8.GetBytes($"REQUESTING: {fileName} {fileSize}");
+            session.SendAsync(request, 0, request.Length);
+            Logger.WriteLog($"RequestWasGenerated for fileName: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
         }
     }
 }

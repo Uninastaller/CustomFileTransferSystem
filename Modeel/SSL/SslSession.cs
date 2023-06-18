@@ -13,7 +13,7 @@ namespace Modeel.SSL
     /// SSL session is used to read and write data from the connected SSL client
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslSession : IDisposable
+    public class SslSession : IDisposable, ISession
     {
         /// <summary>
         /// Initialize the session with a given server

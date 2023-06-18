@@ -25,7 +25,8 @@ namespace Modeel
             Logger.WriteLog("START OF PROGRAM", LoggerInfo.methodEntry);
             InitializeComponent();
 
-            _ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
+            _ = BaseWindowForWPF.CreateWindow<CFTS>();
+            //_ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
         }
 
         private void btServerWindow_Click(object sender, RoutedEventArgs e)

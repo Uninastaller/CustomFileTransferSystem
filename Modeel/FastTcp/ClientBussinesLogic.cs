@@ -26,7 +26,7 @@ namespace Modeel.FastTcp
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
         public bool IsDisposed { get; private set; } = false;
         public bool AutoConnect { get; set; } = true;
-        public TcpClient? Socket { get; private set; }
+        public System.Net.Sockets.TcpClient? Socket { get; private set; }
         public long BytesSent { get; private set; }
         public long BytesReceived { get; private set; }
         public int OptionReceiveBufferSize { get; set; } = 8192;
@@ -67,7 +67,7 @@ namespace Modeel.FastTcp
 
         #region PrivateFields
 
-        private byte[] _readBuffer = new byte[1048576];
+        private byte[] _readBuffer = new byte[1000];
 
         private bool _sessionWithCentralServer;
         private bool _isConnected = false;
@@ -158,7 +158,7 @@ namespace Modeel.FastTcp
                 // Set IsConnecting to true to indicate that the client is attempting to connect
                 IsConnecting = true;
 
-                Socket = new TcpClient();
+                Socket = new System.Net.Sockets.TcpClient();
 
                 // Start connecting to the server asynchronously
                 result = Socket.BeginConnect(_address, _port, null, null);
@@ -278,15 +278,16 @@ namespace Modeel.FastTcp
             IsConnecting = false;
             IsConnected = true;
             StartReceivingData();
-            SendAsync("Hellou from ClientBussinesLoggic[1s]");
         }
 
         private void OnMessageReceived(byte[] buffer)
         {
             string message = Encoding.UTF8.GetString(buffer);
+
+            //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
+
             //Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
             Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]", LoggerInfo.socketMessage);
-
         }
 
         #endregion PrivateMethods

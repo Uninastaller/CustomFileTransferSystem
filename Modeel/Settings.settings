@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Modeel" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="File1Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">"C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv"</Value>
+    </Setting>
+    <Setting Name="File1Size" Type="System.Int64" Scope="User">
+      <Value Profile="(Default)">382521151</Value>
+    </Setting>
+    <Setting Name="File1IpAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="File1Port" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">34259</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

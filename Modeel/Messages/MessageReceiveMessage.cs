@@ -8,6 +8,6 @@ namespace Modeel.Messages
         {
         }
 
-        public byte[] Message { get; set; }
+        public string Message { get; set; }
     }
 }

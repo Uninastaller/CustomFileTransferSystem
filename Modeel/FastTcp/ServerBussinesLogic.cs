@@ -53,7 +53,7 @@ namespace Modeel.FastTcp
         private IWindowEnqueuer? _gui;
         private Stopwatch? _stopwatch = new Stopwatch();
 
-        private Dictionary<Guid, TcpClient> _clients = new Dictionary<Guid, TcpClient>();
+        private Dictionary<Guid, System.Net.Sockets.TcpClient> _clients = new Dictionary<Guid, System.Net.Sockets.TcpClient>();
 
         private Timer? _timer;
         private UInt64 _timerCounter;
@@ -121,13 +121,13 @@ namespace Modeel.FastTcp
             return true;
         }
 
-        public void SendMessage(TcpClient client, string message)
+        public void SendMessage(System.Net.Sockets.TcpClient client, string message)
         {
             byte[] data = Encoding.UTF8.GetBytes(message);
             SendMessage(client, data, 0, data.Length);
         }
 
-        public void SendMessage(TcpClient client, byte[] data, int index, int lenght)
+        public void SendMessage(System.Net.Sockets.TcpClient client, byte[] data, int index, int lenght)
         {
             if (!client.Connected) return;
 
@@ -142,7 +142,7 @@ namespace Modeel.FastTcp
 
         private void TestMessage()
         {
-            foreach (KeyValuePair<Guid, TcpClient> client in _clients)
+            foreach (KeyValuePair<Guid, System.Net.Sockets.TcpClient> client in _clients)
             {
                 //SendMessage(client.Value, "Hellou from ServerBussinesLoggic[1s]");
             }
@@ -150,13 +150,13 @@ namespace Modeel.FastTcp
 
         private void DisconnectAll()
         {
-            foreach (KeyValuePair<Guid, TcpClient> keyValuePair in _clients)
+            foreach (KeyValuePair<Guid, System.Net.Sockets.TcpClient> keyValuePair in _clients)
             {
                 keyValuePair.Value.Close();
             }
         }
 
-        private void ClientConnected(TcpClient client)
+        private void ClientConnected(System.Net.Sockets.TcpClient client)
         {
             OnConnected(client);
 
@@ -164,7 +164,7 @@ namespace Modeel.FastTcp
             Test1BigFile(client);
         }
 
-        private void ReceiveMessage(TcpClient client, byte[] receivedData)
+        private void ReceiveMessage(System.Net.Sockets.TcpClient client, byte[] receivedData)
         {
             OnReceiveMessage(client, receivedData);
 
@@ -173,7 +173,7 @@ namespace Modeel.FastTcp
             Logger.WriteLog($"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}", LoggerInfo.socketMessage);
         }
 
-        private void Test1BigFile(TcpClient client)
+        private void Test1BigFile(System.Net.Sockets.TcpClient client)
         {
             _stopwatch?.Start();
             SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", client);
@@ -183,7 +183,7 @@ namespace Modeel.FastTcp
             MessageBox.Show("File transfer completed");
         }
 
-        private void SendFile(string filePath, TcpClient client)
+        private void SendFile(string filePath, System.Net.Sockets.TcpClient client)
         {
             // Open the file for reading
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
@@ -222,9 +222,9 @@ namespace Modeel.FastTcp
 
         #region EventHandler
 
-        public event Action<TcpClient> OnClientDisconnected = delegate { };
-        public event Action<TcpClient> OnConnected = delegate { };
-        public event Action<TcpClient, byte[]> OnReceiveMessage = delegate { };
+        public event Action<System.Net.Sockets.TcpClient> OnClientDisconnected = delegate { };
+        public event Action<System.Net.Sockets.TcpClient> OnConnected = delegate { };
+        public event Action<System.Net.Sockets.TcpClient, byte[]> OnReceiveMessage = delegate { };
 
         private void OneSecondHandler(object? sender, ElapsedEventArgs e)
         {
@@ -241,7 +241,7 @@ namespace Modeel.FastTcp
         private void SendMessageCallback(IAsyncResult ar)
         {
             if (ar.AsyncState == null) return;
-            TcpClient client = (TcpClient)ar.AsyncState;
+            System.Net.Sockets.TcpClient client = (System.Net.Sockets.TcpClient)ar.AsyncState;
             NetworkStream stream = client.GetStream();
             stream.EndWrite(ar);
         }
@@ -250,14 +250,14 @@ namespace Modeel.FastTcp
         {
             if (!_isAccepting || _listener == null) return;
 
-            TcpClient client = _listener.EndAcceptTcpClient(ar);
+            System.Net.Sockets.TcpClient client = _listener.EndAcceptTcpClient(ar);
             Guid clientId = Guid.NewGuid();
             _clients.Add(clientId, client);
             ClientConnected(client);
 
             byte[] buffer = new byte[OptionReceiveBufferSize];
             NetworkStream stream = client.GetStream();
-            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<TcpClient, NetworkStream, Guid, byte[]>(client, stream, clientId, buffer));
+            stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, new Tuple<System.Net.Sockets.TcpClient, NetworkStream, Guid, byte[]>(client, stream, clientId, buffer));
 
             _listener.BeginAcceptTcpClient(AcceptClientCallback, null);
         }
@@ -265,8 +265,8 @@ namespace Modeel.FastTcp
         private void ReceiveMessageCallback(IAsyncResult ar)
         {
             if (ar.AsyncState == null) return;
-            Tuple<TcpClient, NetworkStream, Guid, byte[]> state = (Tuple<TcpClient, NetworkStream, Guid, byte[]>)ar.AsyncState;
-            TcpClient client = state.Item1;
+            Tuple<System.Net.Sockets.TcpClient, NetworkStream, Guid, byte[]> state = (Tuple<System.Net.Sockets.TcpClient, NetworkStream, Guid, byte[]>)ar.AsyncState;
+            System.Net.Sockets.TcpClient client = state.Item1;
             NetworkStream stream = state.Item2;
             Guid clientId = state.Item3;
             byte[] buffer = state.Item4;

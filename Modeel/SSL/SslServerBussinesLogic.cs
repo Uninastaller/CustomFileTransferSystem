@@ -1,4 +1,5 @@
-﻿using Modeel.Frq;
+﻿using Modeel.FastTcp;
+using Modeel.Frq;
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
+using System.Windows;
 using Timer = System.Timers.Timer;
 
 
@@ -34,7 +36,6 @@ namespace Modeel.SSL
         #region PrivateFields
 
         private IWindowEnqueuer? _gui;
-        private Stopwatch? _stopwatch = new Stopwatch();
         /// <summary>
         /// value: IpAddress
         /// </summary>
@@ -93,24 +94,9 @@ namespace Modeel.SSL
             }
         }
 
-        private void SendFile(string filePath, SslSession session)
+        private void Test1BigFile(SslSession session)
         {
-            // Open the file for reading
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                // Choose an appropriate buffer size based on the file size and system resources
-                int bufferSize = ResourceInformer.CalculateBufferSize(fileStream.Length);
-                Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.socketMessage);
-
-                byte[] buffer = new byte[bufferSize];
-                int bytesRead;
-                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    // Send the bytes read from the file over the network stream
-                    //SslSession session = FindSession(_clients.ElementAt(0).Key);
-                    session.Send(buffer, 0, bytesRead);
-                }
-            }
+            ResourceInformer.SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", session);
         }
 
         #endregion PrivateMethods
@@ -137,13 +123,7 @@ namespace Modeel.SSL
 
         private void OnReceiveMessage(SslSession sesion, string message)
         {
-            Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
-            //return;
-            _stopwatch?.Start();
-            SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", sesion);
-            _stopwatch?.Stop();
-            TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
-            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.P2PSSL);
+            Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);            
         }
 
         #endregion EventHandler
@@ -160,7 +140,6 @@ namespace Modeel.SSL
                 _timer = null;
             }
             _clients = null;
-            _stopwatch = null;
             _timer = null;
             _gui = null;
         }
@@ -191,6 +170,8 @@ namespace Modeel.SSL
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
+
+                Test1BigFile(session);
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

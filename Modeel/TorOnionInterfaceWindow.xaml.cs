@@ -50,7 +50,7 @@ namespace Modeel
                 FillTorrcWithDefaultContent();
             }
 
-            _controlSocket = new ClientBussinesLogic(_ipAddress, _controlPort, this);
+            _controlSocket = new ClientBussinesLogic2(_ipAddress, _controlPort, this);
         }
 
         internal void Init()
@@ -61,10 +61,9 @@ namespace Modeel
              ;
         }
 
-        private void MessageReceiveMessageHandler(byte[] message)
+        private void MessageReceiveMessageHandler(string message)
         {
-            string stringMessage = Encoding.ASCII.GetString(message);
-            tbkTextForControlSocket.Text += "[SERVER]: " + stringMessage;
+            tbkTextForControlSocket.Text += "[SERVER]: " + message;
             tbkTextForControlSocket.ScrollToEnd();
         }
 
