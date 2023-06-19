@@ -18,6 +18,7 @@ namespace Modeel.Model
     {
         private const int _kilobyte = 1024;
         private const int _megabyte = _kilobyte * 1024;
+        public const string messageConnector = "||";
 
         public static int CalculateBufferSize(long fileSize)
         {
@@ -114,16 +115,31 @@ namespace Modeel.Model
             long totalChunkNumbers = fileSize / chunkSize + ((fileSize % chunkSize) > 0 ? 1 : 0);
         }
 
-        public static void GenerateRequest(string fileName, long fileSize, ISession session)
+        public static bool GenerateRequest(string fileName, long fileSize, ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.REQUEST, new object[] { fileName, fileSize });
-            session.SendAsync(request, 0, request.Length);
-            Logger.WriteLog($"RequestWasGenerated for fileName: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Logger.WriteLog($"Request was generated for file: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
+            }
+            return succes;
         }
 
-        public static byte[] GenerateMessage(SocketMessageFlag flag, object[] content)
+        public static bool GenerateReject(ISession session)
         {
-            return Encoding.UTF8.GetBytes($"{flag.GetStringValue()} {string.Join(" ", content)}");
+            byte[] request = GenerateMessage(SocketMessageFlag.REJECT);
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Logger.WriteLog($"Reject was generated", LoggerInfo.socketMessage);
+            }
+            return succes;
+        }
+
+        public static byte[] GenerateMessage(SocketMessageFlag flag, object[]? content = null)
+        {
+            return Encoding.UTF8.GetBytes($"{flag.GetStringValue()}{(content != null ? messageConnector + string.Join(messageConnector, content) : "")}");
         }
     }
 }

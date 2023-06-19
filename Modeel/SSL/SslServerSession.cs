@@ -20,16 +20,6 @@ namespace Modeel.SSL
         //    Console.WriteLine($"SSL session with Id {Id} connected!");
         //}
 
-        protected void OnClientDisconnected()
-        {
-            ClientDisconnected?.Invoke(this);
-        }
-
-        protected void OnReceiveMessage(string message)
-        {
-            ReceiveMessage?.Invoke(this, message);
-        }
-
         protected override void OnHandshaked()
         {
             Console.WriteLine($"SSL session with Id {Id} handshaked!");
@@ -55,6 +45,16 @@ namespace Modeel.SSL
         protected override void OnError(SocketError error)
         {
             Console.WriteLine($"Chat SSL session caught an error with code {error}");
+        }
+
+        private void OnClientDisconnected()
+        {
+            ClientDisconnected?.Invoke(this);
+        }
+
+        private void OnReceiveMessage(string message)
+        {
+            ReceiveMessage?.Invoke(this, message);
         }
     }
 }

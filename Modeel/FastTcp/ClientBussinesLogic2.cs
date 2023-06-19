@@ -2,16 +2,13 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
-using Modeel.SSL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows;
 using Timer = System.Timers.Timer;
 
 
@@ -25,6 +22,52 @@ namespace Modeel.FastTcp
         public TypeOfSocket Type { get; }
         public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+
+        // Transfer flags
+        public bool RequestingFile
+        {
+            get => _requestingFile;
+
+            private set
+            {
+                _requestingFile = value;
+                if (value)
+                {
+                    _requestSended = false;
+                    _waitingForResponseToRequest = false;
+                }
+            }
+        }
+
+        public bool RequestSended 
+        {
+            get => _requestSended;
+
+            private set
+            {
+                _requestSended = value;
+                if (value)
+                {
+                    _requestingFile = false;
+                    _waitingForResponseToRequest = true;
+                }
+            }
+        }
+
+        public bool WaitingForResponseToRequest
+        {
+            get => _waitingForResponseToRequest;
+
+            private set
+            {
+                _waitingForResponseToRequest = value;
+                if (!value)
+                {
+                    _requestSended = false;
+                    _requestingFile = false;
+                }
+            }
+        }
 
         #endregion Properties
 
@@ -43,17 +86,21 @@ namespace Modeel.FastTcp
 
         private string _requestingFileName = string.Empty;
         private long _requestingFileSize;
+
+        // Transfer flags
         private bool _requestingFile;
+        private bool _requestSended;
+        private bool _waitingForResponseToRequest;
 
         #endregion PrivateFields
 
         #region Ctor
 
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, bool sessionWithCentralServer = false) : this (address, port, gui, sessionWithCentralServer:sessionWithCentralServer)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, bool sessionWithCentralServer = false) : this(address, port, gui, sessionWithCentralServer: sessionWithCentralServer)
         {
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
-            _requestingFile = true;
+            RequestingFile = true;
         }
 
         public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(address, port)
@@ -61,6 +108,9 @@ namespace Modeel.FastTcp
             Type = TypeOfSocket.TCP;
 
             _sessionWithCentralServer = sessionWithCentralServer;
+
+            _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
+            _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
 
             ConnectAsync();
 
@@ -118,6 +168,24 @@ namespace Modeel.FastTcp
             _secondOldBytesReceived = BytesReceived;
         }
 
+        private void OnRejectHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"Reject was received", LoggerInfo.socketMessage);
+
+            if (WaitingForResponseToRequest)
+            {
+                this.DisconnectAndStop();
+                Logger.WriteLog("Response was rejected, disconnecting from server!", LoggerInfo.warning);
+                MessageBox.Show("Request was rejected!");
+            }
+        }
+
+        private void OnNonRegistredMessage()
+        {
+            this.DisconnectAndStop();
+            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server!", LoggerInfo.warning);
+        }
+
         #endregion EventHandler
 
         #region OverridedMethods
@@ -128,10 +196,11 @@ namespace Modeel.FastTcp
 
             _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
 
-            if (_requestingFile)
+            if (RequestingFile)
             {
                 await Task.Delay(1000);
-                ResourceInformer.GenerateRequest(_requestingFileName, _requestingFileSize, this);
+                if (ResourceInformer.GenerateRequest(_requestingFileName, _requestingFileSize, this))
+                    RequestSended = true;
             }
         }
 
@@ -151,12 +220,13 @@ namespace Modeel.FastTcp
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            _flagSwitch.Switch(buffer, offset, size);
+            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-            _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
+            //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
 
             //Logger.WriteLog($"Tcp client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
-            Logger.WriteLog($"Tcp client obtained a message[{size}]", LoggerInfo.socketMessage);
+            //Logger.WriteLog($"Tcp client obtained a message[{size}]", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)

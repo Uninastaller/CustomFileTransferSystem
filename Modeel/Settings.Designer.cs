@@ -25,8 +25,8 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("\"C:\\\\Users\\\\tomas\\\\Downloads\\\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x26" +
-            "4-maximersk [mrsktv]\\\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv\"")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Users\\\\tomas\\\\Downloads\\\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264" +
+            "-maximersk [mrsktv]\\\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv")]
         public string File1Name {
             get {
                 return ((string)(this["File1Name"]));

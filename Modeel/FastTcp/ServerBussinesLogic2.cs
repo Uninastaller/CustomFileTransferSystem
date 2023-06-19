@@ -118,6 +118,24 @@ namespace Modeel.FastTcp
             //Logger.WriteLog($"Tcp server obtained a message, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
         }
 
+        private void OnClientFileRequest(TcpSession session, string filePath, long fileSize)
+        {
+            Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
+
+            if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length)
+            {
+                MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+
+                }
+                else if (result == MessageBoxResult.No)
+                {
+                    ResourceInformer.GenerateReject(session);
+                }
+            }
+        }
+
         #endregion EventHandler
 
         #region OverridedMethods
@@ -149,6 +167,7 @@ namespace Modeel.FastTcp
             {
                 serverSession.ReceiveMessage -= OnReceiveMessage;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
+                serverSession.ClientFileRequest -= OnClientFileRequest;
             }
 
             ClientStateChange(SocketState.DISCONNECTED, null, session.Id);
@@ -162,6 +181,7 @@ namespace Modeel.FastTcp
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
+                serverSession.ClientFileRequest += OnClientFileRequest;
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

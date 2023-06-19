@@ -41,10 +41,8 @@ namespace Modeel.FastTcp
 
         public TcpServerSession(TcpServer server) : base(server)
         {
-
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-            _flagSwitch.Register(SocketMessageFlag.REQUEST, OnRegisterHandler);
-
+            _flagSwitch.Register(SocketMessageFlag.REQUEST, OnRequestHandler);
         }
 
         #endregion Ctor
@@ -57,31 +55,24 @@ namespace Modeel.FastTcp
 
         #region PrivateMethods
 
-        private void OnNonRegistredMessage()
+        private void OnClientFileRequest(string filePath, long fileSize)
         {
-            this.Server.FindSession(this.Id).Disconnect();
-            Logger.WriteLog($"Warning: Non registered message received, disconnecting client!", LoggerInfo.warning);
+            ClientFileRequest?.Invoke(this, filePath, fileSize);
         }
 
-        private void OnRegisterHandler(byte[] buffer, long offset, long size)
+        private void OnClientDisconnected()
         {
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            OnReceiveMessage(message);
+            ClientDisconnected?.Invoke(this);
+        }
+
+        private void OnReceiveMessage(string message)
+        {
+            ReceiveMessage?.Invoke(this, message);
         }
 
         #endregion PrivateMethods
 
         #region ProtectedMethods
-
-        protected void OnClientDisconnected()
-        {
-            ClientDisconnected?.Invoke(this);
-        }
-
-        protected void OnReceiveMessage(string message)
-        {
-            ReceiveMessage?.Invoke(this, message);
-        }
 
         protected override void OnDisconnected()
         {
@@ -91,13 +82,7 @@ namespace Modeel.FastTcp
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            if (size < 3)
-            {
-                Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
-                return;
-            }
-
-            _flagSwitch.Switch(buffer.Skip((int)offset).Take(3).ToArray(), buffer, offset, size);
+            _flagSwitch.Switch(buffer, offset, size);
         }
 
         protected override void OnError(SocketError error)
@@ -115,10 +100,35 @@ namespace Modeel.FastTcp
         #region Events
 
         public delegate void ReceiveMessageEventHandler(TcpSession sender, string message);
-        public event ReceiveMessageEventHandler ReceiveMessage;
+        public event ReceiveMessageEventHandler? ReceiveMessage;
 
         public delegate void ClientDisconnectedHandler(TcpSession sender);
-        public event ClientDisconnectedHandler ClientDisconnected;
+        public event ClientDisconnectedHandler? ClientDisconnected;
+
+        public delegate void ClientFileRequestHandler(TcpSession sender, string filePath, long fileSize);
+        public event ClientFileRequestHandler? ClientFileRequest;
+
+        private void OnNonRegistredMessage()
+        {
+            this.Server.FindSession(this.Id).Disconnect();
+            Logger.WriteLog($"Warning: Non registered message received, disconnecting client!", LoggerInfo.warning);
+        }
+
+        private void OnRequestHandler(byte[] buffer, long offset, long size)
+        {
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
+
+            if (long.TryParse(messageParts[2], out long fileSize))
+            {
+                OnClientFileRequest(messageParts[1], fileSize);
+            }
+            else
+            {
+                this.Server.FindSession(this.Id).Disconnect();
+                Logger.WriteLog($"Warning: client is sending wrong formats of data, disconnecting!", LoggerInfo.warning);
+            }
+        }
 
         #endregion Events
 
@@ -127,6 +137,6 @@ namespace Modeel.FastTcp
 
 
         #endregion OverridedMethods
-        
+
     }
 }

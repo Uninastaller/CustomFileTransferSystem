@@ -25,7 +25,7 @@ namespace Modeel.Model
         #region PrivateFields
 
         private Dictionary<byte[], Action<byte[], long, long>> _binding;
-        private Action _onNonRegisteredAction;
+        private Action? _onNonRegisteredAction;
 
         #endregion PrivateFields
 
@@ -58,9 +58,14 @@ namespace Modeel.Model
             }
         }
 
-        public void Switch(byte[] flag, byte[] buffer, long offset, long size)
+        public void Switch(byte[] buffer, long offset, long size)
         {
-            if (_binding.TryGetValue(flag, out Action<byte[], long, long>? handler))
+            if (size < 3)
+            {
+                Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
+                _onNonRegisteredAction?.Invoke();
+            }
+            else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? handler))
             {
                 handler.Invoke(buffer, offset, size);
             }

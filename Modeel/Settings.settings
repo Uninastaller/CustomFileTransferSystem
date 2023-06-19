@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="File1Name" Type="System.String" Scope="User">
-      <Value Profile="(Default)">"C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv"</Value>
+      <Value Profile="(Default)">C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv</Value>
     </Setting>
     <Setting Name="File1Size" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">382521151</Value>
