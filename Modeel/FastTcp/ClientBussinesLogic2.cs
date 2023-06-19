@@ -102,10 +102,7 @@ namespace Modeel.FastTcp
 
         #region PrivateMethods
 
-        private void TestMessage()
-        {
-            //SendAsync("Hellou from SSlClientBussinesLoggic[1s]");
-        }
+
 
         #endregion PrivateMethods
 
@@ -119,25 +116,23 @@ namespace Modeel.FastTcp
             TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
-
-            TestMessage();
         }
 
         #endregion EventHandler
 
         #region OverridedMethods
 
-        protected override void OnConnected()
+        protected override async void OnConnected()
         {
             Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-            //_gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
 
             if (_requestingFile)
             {
+                await Task.Delay(1000);
                 ResourceInformer.GenerateRequest(_requestingFileName, _requestingFileSize, this);
             }
-            //ResourceInformer.SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", this);
         }
 
         protected override void OnDisconnected()

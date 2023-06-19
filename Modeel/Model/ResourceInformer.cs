@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -115,9 +116,14 @@ namespace Modeel.Model
 
         public static void GenerateRequest(string fileName, long fileSize, ISession session)
         {
-            byte[] request = Encoding.UTF8.GetBytes($"REQUESTING: {fileName} {fileSize}");
+            byte[] request = GenerateMessage(SocketMessageFlag.REQUEST, new object[] { fileName, fileSize });
             session.SendAsync(request, 0, request.Length);
             Logger.WriteLog($"RequestWasGenerated for fileName: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
+        }
+
+        public static byte[] GenerateMessage(SocketMessageFlag flag, object[] content)
+        {
+            return Encoding.UTF8.GetBytes($"{flag.GetStringValue()} {string.Join(" ", content)}");
         }
     }
 }

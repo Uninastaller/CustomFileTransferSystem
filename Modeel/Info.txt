@@ -55,6 +55,12 @@ FILES SCHEME:
         
 #endregion PrivateFields
 
+#region ProtectedFields
+
+
+
+#endregion ProtectedFields
+
 #region Ctor
 
 
@@ -79,11 +85,11 @@ FILES SCHEME:
         
 #endregion ProtectedMethods
 
-#region EventHandler
+#region Events
 
 
         
-#endregion EventHandler
+#endregion Events
 
 #region OverridedMethods
 

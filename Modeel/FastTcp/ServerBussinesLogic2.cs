@@ -38,6 +38,7 @@ namespace Modeel.FastTcp
         #region PrivateFields
 
         private IWindowEnqueuer? _gui;
+
         /// <summary>
         /// value: IpAddress
         /// </summary>
@@ -75,11 +76,6 @@ namespace Modeel.FastTcp
 
         #region PrivateMethods
 
-        private void TestMessage()
-        {
-            //Multicast("Hellou from SSlServerBussinesLoggic[1s]");  //async
-        }
-
         private void ClientStateChange(SocketState socketState, string? client, Guid sessionId)
         {
             if (_clients == null) return;
@@ -94,11 +90,6 @@ namespace Modeel.FastTcp
                 Logger.WriteLog($"Client: {_clients[sessionId]}, disconnected from server ", LoggerInfo.tcpServer);
                 _clients.Remove(sessionId);
             }
-        }
-
-        private void Test1BigFile(TcpSession session)
-        {
-            ResourceInformer.SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", session);
         }
 
         #endregion PrivateMethods
@@ -119,8 +110,6 @@ namespace Modeel.FastTcp
             TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
-
-            TestMessage();
         }
 
         private void OnReceiveMessage(TcpSession sesion, string message)
@@ -173,8 +162,6 @@ namespace Modeel.FastTcp
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
-
-                //Test1BigFile(session);
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

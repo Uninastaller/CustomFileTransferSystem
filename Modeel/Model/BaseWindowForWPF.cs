@@ -8,7 +8,7 @@ using System.Windows.Threading;
 
 namespace Modeel.Model
 {
-    public class BaseWindowForWPF : Window, IWindowEnqueuer
+    public abstract class BaseWindowForWPF : Window, IWindowEnqueuer
     {
         protected ConcurrentQueue<BaseMsg> _concurrentQueue = new ConcurrentQueue<BaseMsg>();
         protected AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
