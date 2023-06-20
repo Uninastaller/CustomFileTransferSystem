@@ -12,6 +12,10 @@ namespace Modeel.Model
         // Server => Client
         [StringValue("b.A")]
         REJECT,
+
+        // Server => Client
+        [StringValue("b.b")]
+        ACCEPT,
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]

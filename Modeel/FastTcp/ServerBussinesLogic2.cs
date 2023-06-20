@@ -127,7 +127,7 @@ namespace Modeel.FastTcp
                 MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-
+                    ResourceInformer.GenerateAccept(session);
                 }
                 else if (result == MessageBoxResult.No)
                 {

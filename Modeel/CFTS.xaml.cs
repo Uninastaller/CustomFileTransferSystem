@@ -5,6 +5,7 @@ using Modeel.Model;
 using Modeel.P2P;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -16,7 +17,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace Modeel
 {
@@ -43,6 +43,7 @@ namespace Modeel
         private List<RequestModelObject> _requestModels = new List<RequestModelObject>();
         private readonly IP2pMasterClass _p2PMasterClass;
         private List<IUniversalClientSocket> _p2pClients = new List<IUniversalClientSocket>();
+        private FileReceiver? _fileReceiver;
 
         #endregion PrivateFields
 
@@ -86,7 +87,7 @@ namespace Modeel
         {
             _requestModels.Add(new RequestModelObject()
             {
-                FileName = Settings.Default.File1Name,
+                FilePath = Settings.Default.File1Name,
                 FileSize = Settings.Default.File1Size,
                 IpAddress = Settings.Default.File1IpAddress,
                 Port = Settings.Default.File1Port
@@ -135,7 +136,10 @@ namespace Modeel
             Button? b = sender as Button;
             if (b?.Tag is RequestModelObject requestModel && IPAddress.TryParse(requestModel.IpAddress, out IPAddress? iPAddress))
             {
-                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, requestModel.Port, this, requestModel.FileName, requestModel.FileSize));
+                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, requestModel.Port, this, requestModel.FilePath, requestModel.FileSize));
+
+                int megabyte = 1024 * 1024;
+                _fileReceiver = new FileReceiver(requestModel.FileSize, megabyte, Path.GetFileName(requestModel.FilePath));
             }
         }
     }

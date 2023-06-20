@@ -137,6 +137,17 @@ namespace Modeel.Model
             return succes;
         }
 
+        public static bool GenerateAccept(ISession session)
+        {
+            byte[] request = GenerateMessage(SocketMessageFlag.ACCEPT);
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Logger.WriteLog($"Accept was generated", LoggerInfo.socketMessage);
+            }
+            return succes;
+        }
+
         public static byte[] GenerateMessage(SocketMessageFlag flag, object[]? content = null)
         {
             return Encoding.UTF8.GetBytes($"{flag.GetStringValue()}{(content != null ? messageConnector + string.Join(messageConnector, content) : "")}");

@@ -17,5 +17,6 @@
         public static readonly string P2PSSL = "P2PSSL: ";
         public static readonly string P2P = "P2P: ";
         public static readonly string socketMessage = "SOCKET MESSAGE";
+        public static readonly string fileTransfering = "FILE TRANSFERING";
     }
 }

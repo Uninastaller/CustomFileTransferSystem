@@ -35,6 +35,7 @@ namespace Modeel.FastTcp
                 {
                     _requestSended = false;
                     _waitingForResponseToRequest = false;
+                    _requestAccepted = false;
                 }
             }
         }
@@ -50,6 +51,7 @@ namespace Modeel.FastTcp
                 {
                     _requestingFile = false;
                     _waitingForResponseToRequest = true;
+                    _requestAccepted = false;
                 }
             }
         }
@@ -63,6 +65,23 @@ namespace Modeel.FastTcp
                 _waitingForResponseToRequest = value;
                 if (!value)
                 {
+                    _requestSended = false;
+                    _requestingFile = false;
+                    _requestAccepted = false;
+                }
+            }
+        }
+
+        public bool RequestAccepted
+        {
+            get => _requestAccepted;
+
+            private set
+            {
+                _requestAccepted = value;
+                if (!value)
+                {
+                    _waitingForResponseToRequest = false;
                     _requestSended = false;
                     _requestingFile = false;
                 }
@@ -91,6 +110,7 @@ namespace Modeel.FastTcp
         private bool _requestingFile;
         private bool _requestSended;
         private bool _waitingForResponseToRequest;
+        private bool _requestAccepted;
 
         #endregion PrivateFields
 
@@ -111,6 +131,7 @@ namespace Modeel.FastTcp
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
+            _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
 
             ConnectAsync();
 
@@ -177,6 +198,16 @@ namespace Modeel.FastTcp
                 this.DisconnectAndStop();
                 Logger.WriteLog("Response was rejected, disconnecting from server!", LoggerInfo.warning);
                 MessageBox.Show("Request was rejected!");
+            }
+        }
+
+        private void OnAcceptHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"Accept was received", LoggerInfo.socketMessage);
+
+            if (WaitingForResponseToRequest)
+            {
+                Logger.WriteLog("Response was accepted!", LoggerInfo.fileTransfering);
             }
         }
 
