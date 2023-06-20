@@ -123,6 +123,18 @@ namespace Modeel
 
         }
 
+        private void btnRequest_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is RequestModelObject requestModel && IPAddress.TryParse(requestModel.IpAddress, out IPAddress? iPAddress))
+            {
+                int megabyte = 1024 * 1024;
+                _fileReceiver = new FileReceiver(requestModel.FileSize, megabyte, Path.GetFileName(requestModel.FilePath));
+
+                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, requestModel.Port, this, requestModel.FilePath, requestModel.FileSize, _fileReceiver));
+            }
+        }
+
         #endregion EventHandler
 
         #region OverridedMethods
@@ -131,16 +143,5 @@ namespace Modeel
 
         #endregion OverridedMethods
 
-        private void btnRequest_Click(object sender, RoutedEventArgs e)
-        {
-            Button? b = sender as Button;
-            if (b?.Tag is RequestModelObject requestModel && IPAddress.TryParse(requestModel.IpAddress, out IPAddress? iPAddress))
-            {
-                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, requestModel.Port, this, requestModel.FilePath, requestModel.FileSize));
-
-                int megabyte = 1024 * 1024;
-                _fileReceiver = new FileReceiver(requestModel.FileSize, megabyte, Path.GetFileName(requestModel.FilePath));
-            }
-        }
     }
 }

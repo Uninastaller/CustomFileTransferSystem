@@ -58,7 +58,28 @@ namespace Modeel.Model
 
         #region PublicMethods
 
+        public bool GenerateRequestForFilePart(ISession session)
+        {
+            return ResourceInformer.GenerateRequestForFilePart(AssignmentOfFilePart(), _partSize, session);
+        }
 
+        public void WriteToFile(int partToProcess, byte[] filePart)
+        {
+            int position;
+            lock (_lockObject)
+            {
+                position = GetPositionToWrite(partToProcess);
+
+                using (FileStream fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    fileStream.Position = position * _partSize;
+                    fileStream.Write(filePart, 0, filePart.Length);
+                }
+
+                _receivedParts[partToProcess] = FilePartState.DOWNLOADED;
+            }
+            Logger.WriteLog($"Part No.{partToProcess} was wrote at position {position}.");
+        }
 
         #endregion PublicMethods
 
@@ -79,24 +100,6 @@ namespace Modeel.Model
 
                 return -1; // Všetky časti sú už prijaté
             }
-        }
-
-        private void WriteToFile(int partToProcess, byte[] filePart)
-        {
-            int position;
-            lock (_lockObject)
-            {
-                position = GetPositionToWrite(partToProcess);
-
-                using (FileStream fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.Write))
-                {
-                    fileStream.Position = position * _partSize;
-                    fileStream.Write(filePart, 0, filePart.Length);
-                }
-
-                _receivedParts[partToProcess] = FilePartState.DOWNLOADED;
-            }
-            Logger.WriteLog($"Part No.{partToProcess} was wrote at position {position}.");
         }
 
         private int GetPositionToWrite(int partToProcess)

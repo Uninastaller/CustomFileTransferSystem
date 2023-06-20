@@ -7,14 +7,16 @@ namespace Modeel.Model
     {
         // Client => Server
         [StringValue("a.A")]
-        REQUEST,
+        FILE_REQUEST,
+
+        [StringValue("a.B")]
+        FILE_PART_REQUEST,
 
         // Server => Client
         [StringValue("b.A")]
         REJECT,
 
-        // Server => Client
-        [StringValue("b.b")]
+        [StringValue("b.B")]
         ACCEPT,
     }
 

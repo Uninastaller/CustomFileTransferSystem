@@ -115,13 +115,13 @@ namespace Modeel.Model
             long totalChunkNumbers = fileSize / chunkSize + ((fileSize % chunkSize) > 0 ? 1 : 0);
         }
 
-        public static bool GenerateRequest(string fileName, long fileSize, ISession session)
+        public static bool GenerateRequestForFile(string fileName, long fileSize, ISession session)
         {
-            byte[] request = GenerateMessage(SocketMessageFlag.REQUEST, new object[] { fileName, fileSize });
+            byte[] request = GenerateMessage(SocketMessageFlag.FILE_REQUEST, new object[] { fileName, fileSize });
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Request was generated for file: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
+                Logger.WriteLog($"Request for file was generated for file: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
             }
             return succes;
         }
@@ -144,6 +144,17 @@ namespace Modeel.Model
             if (succes)
             {
                 Logger.WriteLog($"Accept was generated", LoggerInfo.socketMessage);
+            }
+            return succes;
+        }
+
+        public static bool GenerateRequestForFilePart(int filePart, int partSize, ISession session)
+        {
+            byte[] request = GenerateMessage(SocketMessageFlag.FILE_PART_REQUEST, new object[] { filePart, partSize });
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Logger.WriteLog($"Request for file part was generated for file part No.: {filePart} with size: {partSize}", LoggerInfo.fileTransfering);
             }
             return succes;
         }

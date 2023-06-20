@@ -42,7 +42,8 @@ namespace Modeel.FastTcp
         public TcpServerSession(TcpServer server) : base(server)
         {
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-            _flagSwitch.Register(SocketMessageFlag.REQUEST, OnRequestHandler);
+            _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
+            _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
         }
 
         #endregion Ctor
@@ -114,7 +115,7 @@ namespace Modeel.FastTcp
             Logger.WriteLog($"Warning: Non registered message received, disconnecting client!", LoggerInfo.warning);
         }
 
-        private void OnRequestHandler(byte[] buffer, long offset, long size)
+        private void OnRequestFileHandler(byte[] buffer, long offset, long size)
         {
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
@@ -122,6 +123,22 @@ namespace Modeel.FastTcp
             if (long.TryParse(messageParts[2], out long fileSize))
             {
                 OnClientFileRequest(messageParts[1], fileSize);
+            }
+            else
+            {
+                this.Server.FindSession(this.Id).Disconnect();
+                Logger.WriteLog($"Warning: client is sending wrong formats of data, disconnecting!", LoggerInfo.warning);
+            }
+        }
+
+        private void OnRequestFilePartHandler(byte[] buffer, long offset, long size)
+        {
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
+
+            if (int.TryParse(messageParts[1], out int filePart) && int.TryParse(messageParts[2], out int partSize)) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
+            {
+
             }
             else
             {

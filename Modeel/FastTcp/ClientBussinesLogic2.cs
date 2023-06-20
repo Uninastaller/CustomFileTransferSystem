@@ -106,6 +106,8 @@ namespace Modeel.FastTcp
         private string _requestingFileName = string.Empty;
         private long _requestingFileSize;
 
+        private readonly FileReceiver _fileReceiver;
+
         // Transfer flags
         private bool _requestingFile;
         private bool _requestSended;
@@ -116,10 +118,11 @@ namespace Modeel.FastTcp
 
         #region Ctor
 
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, bool sessionWithCentralServer = false) : this(address, port, gui, sessionWithCentralServer: sessionWithCentralServer)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, bool sessionWithCentralServer = false) : this(address, port, gui, sessionWithCentralServer: sessionWithCentralServer)
         {
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
+            _fileReceiver = fileReceiver;
             RequestingFile = true;
         }
 
@@ -197,7 +200,7 @@ namespace Modeel.FastTcp
             {
                 this.DisconnectAndStop();
                 Logger.WriteLog("Response was rejected, disconnecting from server!", LoggerInfo.warning);
-                MessageBox.Show("Request was rejected!");
+                MessageBox.Show("Request for file was rejected!");
             }
         }
 
@@ -207,7 +210,10 @@ namespace Modeel.FastTcp
 
             if (WaitingForResponseToRequest)
             {
-                Logger.WriteLog("Response was accepted!", LoggerInfo.fileTransfering);
+                Logger.WriteLog("Request for file was accepted!", LoggerInfo.fileTransfering);
+
+                // First request for file part
+                _fileReceiver.GenerateRequestForFilePart(this);
             }
         }
 
@@ -230,7 +236,7 @@ namespace Modeel.FastTcp
             if (RequestingFile)
             {
                 await Task.Delay(1000);
-                if (ResourceInformer.GenerateRequest(_requestingFileName, _requestingFileSize, this))
+                if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this))
                     RequestSended = true;
             }
         }
