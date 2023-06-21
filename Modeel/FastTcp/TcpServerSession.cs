@@ -15,6 +15,8 @@ namespace Modeel.FastTcp
 
         #region Properties
 
+        public bool RequestAccepted { get; set; } = false;
+        public string FilePathOfAcceptedfileRequest { get; set; } = string.Empty;
 
 
         #endregion Properties
@@ -136,9 +138,9 @@ namespace Modeel.FastTcp
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
 
-            if (int.TryParse(messageParts[1], out int filePart) && int.TryParse(messageParts[2], out int partSize)) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
+            if (int.TryParse(messageParts[1], out int filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
-
+                ResourceInformer.SendFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
             }
             else
             {

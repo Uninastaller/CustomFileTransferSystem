@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -71,6 +72,11 @@ namespace Modeel.Model
             }
             else
             {
+                if (size < 100000)
+                {
+                    string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+                    Logger.WriteLog($"MESSAGE: {message}", LoggerInfo.warning);
+                }
                 _onNonRegisteredAction?.Invoke();
             }
         }

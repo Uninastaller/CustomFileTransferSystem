@@ -60,10 +60,12 @@ namespace Modeel.Model
 
         public bool GenerateRequestForFilePart(ISession session)
         {
-            return ResourceInformer.GenerateRequestForFilePart(AssignmentOfFilePart(), _partSize, session);
+            int filePart = AssignmentOfFilePart();
+            if (filePart == -1) return false;
+            return ResourceInformer.GenerateRequestForFilePart(filePart, _partSize, session);
         }
 
-        public void WriteToFile(int partToProcess, byte[] filePart)
+        public void WriteToFile(int partToProcess, byte[] filePart, int offset, int lenght)
         {
             int position;
             lock (_lockObject)
@@ -73,12 +75,12 @@ namespace Modeel.Model
                 using (FileStream fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.Write))
                 {
                     fileStream.Position = position * _partSize;
-                    fileStream.Write(filePart, 0, filePart.Length);
+                    fileStream.Write(filePart, offset, lenght);
                 }
 
                 _receivedParts[partToProcess] = FilePartState.DOWNLOADED;
             }
-            Logger.WriteLog($"Part No.{partToProcess} was wrote at position {position}.");
+            Logger.WriteLog($"Part No.{partToProcess} was wrote at position {position}.", LoggerInfo.fileTransfering);
         }
 
         #endregion PublicMethods

@@ -18,6 +18,9 @@ namespace Modeel.Model
 
         [StringValue("b.B")]
         ACCEPT,
+
+        [StringValue("b.C")]
+        FILE_PART
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]

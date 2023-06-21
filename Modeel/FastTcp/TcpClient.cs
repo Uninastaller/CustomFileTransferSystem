@@ -156,7 +156,7 @@ namespace Modeel.FastTcp
         /// <summary>
         /// Option: receive buffer size
         /// </summary>
-        public int OptionReceiveBufferSize { get; set; } = 8192;
+        public int OptionReceiveBufferSize { get; set; } = 1024 * 1024 * 2;
         /// <summary>
         /// Option: send buffer limit
         /// </summary>
@@ -164,7 +164,7 @@ namespace Modeel.FastTcp
         /// <summary>
         /// Option: send buffer size
         /// </summary>
-        public int OptionSendBufferSize { get; set; } = 8192;
+        public int OptionSendBufferSize { get; set; } = 1024 * 1024 * 2;
 
         #region Connect/Disconnect client
 

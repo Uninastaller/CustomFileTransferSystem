@@ -93,16 +93,22 @@ namespace Modeel.Model
             //MessageBox.Show("File transfer completed");
         }
 
-        public static void SendChunk(string filePath, ISession session, long chunkNumber, int chunkSize)
+        public static void SendFilePart(string filePath, ISession session, int partNumber, int partSize)
         {
+            byte[] flag = Encoding.UTF8.GetBytes(SocketMessageFlag.FILE_PART.GetStringValue());
+            byte[] partNumberBytes = BitConverter.GetBytes(partNumber);
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(partNumberBytes);
+
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
             {
-                long offset = chunkNumber * chunkSize;
+                long offset = partNumber * partSize;
                 fileStream.Seek(offset, SeekOrigin.Begin);
 
-                // Read the chunk from the file
-                byte[] buffer = new byte[chunkSize];
-                int bytesRead = fileStream.Read(buffer, 0, chunkSize);
+                byte[] buffer = new byte[partSize + flag.Length + sizeof(int)];
+                int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(int), partSize); // Read the chunk from the file
+                System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
+                System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(int)); // Insert the part number
                 session.SendAsync(buffer, 0, bytesRead);
             }
         }

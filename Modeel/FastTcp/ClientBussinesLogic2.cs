@@ -2,6 +2,7 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -106,7 +107,7 @@ namespace Modeel.FastTcp
         private string _requestingFileName = string.Empty;
         private long _requestingFileSize;
 
-        private readonly FileReceiver _fileReceiver;
+        private readonly FileReceiver? _fileReceiver;
 
         // Transfer flags
         private bool _requestingFile;
@@ -135,6 +136,7 @@ namespace Modeel.FastTcp
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
             _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
+            _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
 
             ConnectAsync();
 
@@ -213,7 +215,22 @@ namespace Modeel.FastTcp
                 Logger.WriteLog("Request for file was accepted!", LoggerInfo.fileTransfering);
 
                 // First request for file part
-                _fileReceiver.GenerateRequestForFilePart(this);
+                _fileReceiver?.GenerateRequestForFilePart(this);
+                RequestAccepted = true;
+            }
+        }
+
+        private void OnFilePartHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"File part was received", LoggerInfo.socketMessage);
+
+            if (RequestAccepted)
+            {
+                int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
+                Logger.WriteLog($"File part NO.:{partNumber} was received!", LoggerInfo.fileTransfering);
+                _fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int));
+
+                _fileReceiver?.GenerateRequestForFilePart(this);
             }
         }
 

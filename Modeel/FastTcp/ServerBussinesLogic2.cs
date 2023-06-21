@@ -122,16 +122,19 @@ namespace Modeel.FastTcp
         {
             Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
 
-            if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length)
+            if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is TcpServerSession serverSession)
             {
                 MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
                     ResourceInformer.GenerateAccept(session);
+                    serverSession.RequestAccepted = true;
+                    serverSession.FilePathOfAcceptedfileRequest = filePath;
                 }
                 else if (result == MessageBoxResult.No)
                 {
                     ResourceInformer.GenerateReject(session);
+                    serverSession.RequestAccepted = false;
                 }
             }
         }
