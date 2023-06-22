@@ -58,10 +58,10 @@ namespace Modeel.Model
 
         #region PublicMethods
 
-        public MethodResults GenerateRequestForFilePart(ISession session)
+        public MethodResult GenerateRequestForFilePart(ISession session)
         {
             int filePart = AssignmentOfFilePart();
-            if (filePart == -1) return MethodResults.DONE;
+            if (filePart == -1) return MethodResult.DONE;
             return ResourceInformer.GenerateRequestForFilePart(filePart, _partSize, session);
         }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Modeel.Model
 {
-    public enum MethodResults
+    public enum MethodResult
     {
         SUCCES,
         ERROR,

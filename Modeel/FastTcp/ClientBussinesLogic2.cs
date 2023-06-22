@@ -21,7 +21,7 @@ namespace Modeel.FastTcp
 
         #region Properties
 
-        public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;
+        public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
         public TypeOfSocket Type { get; }
         public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
@@ -226,7 +226,7 @@ namespace Modeel.FastTcp
 
 
 
-                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResults.SUCCES)
+                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResult.SUCCES)
                 {
                     _waitingForFilePart = true;
                 }
@@ -248,7 +248,7 @@ namespace Modeel.FastTcp
                 Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
                 _fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int));
 
-                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResults.SUCCES)
+                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResult.SUCCES)
                 {
                     _waitingForFilePart = true;
                 }

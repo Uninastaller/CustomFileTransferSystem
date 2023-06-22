@@ -16,35 +16,43 @@ namespace Modeel.Model
 {
     public static class ResourceInformer
     {
+
+        #region Properties
+
+
+
+        #endregion Properties
+
+        #region PublicFields
+
+
+
+        #endregion PublicFields
+
+        #region PrivateFields
+
         private const int _kilobyte = 1024;
         private const int _megabyte = _kilobyte * 1024;
-        public const string messageConnector = "||";
+        private const string messageConnector = "||";
 
-        public static int CalculateBufferSize(long fileSize)
-        {
-            // Determine the available system memory
-            long availableMemory = GC.GetTotalMemory(false);
+        #endregion PrivateFields
 
-            // Choose a buffer size based on the file size and available memory
-            if (fileSize <= availableMemory)
-            {
-                // If the file size is smaller than available memory, use a buffer size equal to the file size
-                return (int)fileSize;
-            }
-            else
-            {
-                // Otherwise, choose a buffer size that is a fraction of available memory
-                double bufferFraction = 0.1;
-                int bufferSize = (int)(availableMemory * bufferFraction);
+        #region ProtectedFields
 
-                // Ensure the buffer size is at least 4KB and at most 1MB
-                return Math.Max(4096, Math.Min(bufferSize, 1048576));
-            }
-        }
+
+
+        #endregion ProtectedFields
+
+        #region Ctor
+
+
+
+        #endregion Ctor
+
+        #region PublicMethods
 
         public static string FormatDataTransferRate(long bytesSent)
         {
-
             string unit;
             double transferRate;
 
@@ -67,7 +75,7 @@ namespace Modeel.Model
             return $"{transferRate:F2} {unit}";
         }
 
-        public static void SendFilePart(string filePath, ISession session, long partNumber, int partSize)
+        public static MethodResult GenerateFilePart(string filePath, ISession session, long partNumber, int partSize)
         {
             byte[] flag = Encoding.UTF8.GetBytes(SocketMessageFlag.FILE_PART.GetStringValue());
             byte[] partNumberBytes = BitConverter.GetBytes(partNumber);
@@ -83,7 +91,9 @@ namespace Modeel.Model
                 int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(int), partSize); // Read the chunk from the file
                 System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
                 System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(int)); // Insert the part number
-                if(session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(int)))
+
+                bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(int));
+                if (succes)
                 {
                     Logger.WriteLog($"Part file: {partNumber}, was sended to client: {session.IpAndPort}!", LoggerInfo.socketMessage);
                 }
@@ -91,10 +101,11 @@ namespace Modeel.Model
                 {
                     Logger.WriteLog($"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!", LoggerInfo.warning);
                 }
+                return succes ? MethodResult.SUCCES : MethodResult.ERROR;
             }
         }
 
-        public static bool GenerateRequestForFile(string fileName, long fileSize, ISession session)
+        public static MethodResult GenerateRequestForFile(string fileName, long fileSize, ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.FILE_REQUEST, new object[] { fileName, fileSize });
             bool succes = session.SendAsync(request, 0, request.Length);
@@ -106,10 +117,10 @@ namespace Modeel.Model
             {
                 Logger.WriteLog($"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
             }
-            return succes;
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static bool GenerateReject(ISession session)
+        public static MethodResult GenerateReject(ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.REJECT);
             bool succes = session.SendAsync(request, 0, request.Length);
@@ -121,10 +132,10 @@ namespace Modeel.Model
             {
                 Logger.WriteLog($"Unable to send reject to client: {session.IpAndPort}", LoggerInfo.warning);
             }
-            return succes;
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static bool GenerateAccept(ISession session)
+        public static MethodResult GenerateAccept(ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.ACCEPT);
             bool succes = session.SendAsync(request, 0, request.Length);
@@ -136,10 +147,10 @@ namespace Modeel.Model
             {
                 Logger.WriteLog($"Unable to send accept to client: {session.IpAndPort}", LoggerInfo.warning);
             }
-            return succes;
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResults GenerateRequestForFilePart(int filePart, long partSize, ISession session)
+        public static MethodResult GenerateRequestForFilePart(int filePart, long partSize, ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.FILE_PART_REQUEST, new object[] { filePart, partSize });
             bool succes = session.SendAsync(request, 0, request.Length);
@@ -151,12 +162,39 @@ namespace Modeel.Model
             {
                 Logger.WriteLog($"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
             }
-            return succes ? MethodResults.SUCCES : MethodResults.ERROR;
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
         public static byte[] GenerateMessage(SocketMessageFlag flag, object[]? content = null)
         {
             return Encoding.UTF8.GetBytes($"{flag.GetStringValue()}{(content != null ? messageConnector + string.Join(messageConnector, content) : "")}");
         }
+
+        #endregion PublicMethods
+
+        #region PrivateMethods
+
+
+
+        #endregion PrivateMethods
+
+        #region ProtectedMethods
+
+
+
+        #endregion ProtectedMethods
+
+        #region Events
+
+
+
+        #endregion Events
+
+        #region OverridedMethods
+
+
+
+        #endregion OverridedMethods
+
     }
 }
