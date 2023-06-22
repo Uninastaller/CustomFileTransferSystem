@@ -18,5 +18,6 @@
         public static readonly string P2P = "P2P: ";
         public static readonly string socketMessage = "SOCKET MESSAGE";
         public static readonly string fileTransfering = "FILE TRANSFERING";
+        public static readonly string disconnect = "DISCONNECT";
     }
 }

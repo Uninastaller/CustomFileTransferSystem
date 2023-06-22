@@ -138,8 +138,9 @@ namespace Modeel.FastTcp
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
 
-            if (int.TryParse(messageParts[1], out int filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
+            if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
+                Logger.WriteLog($"Received file part request for part: {filePartNumber}, from client: {Socket.RemoteEndPoint}!", LoggerInfo.fileTransfering);
                 ResourceInformer.SendFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
             }
             else

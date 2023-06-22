@@ -54,7 +54,7 @@ namespace Modeel.FastTcp
 
         #region Ctor
 
-        public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(address, port, optionAcceptorBacklog)
+        public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024) : base(address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
             Type = TypeOfSocket.TCP;
 
@@ -124,7 +124,8 @@ namespace Modeel.FastTcp
 
             if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is TcpServerSession serverSession)
             {
-                MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                MessageBoxResult result = MessageBoxResult.Yes;
                 if (result == MessageBoxResult.Yes)
                 {
                     ResourceInformer.GenerateAccept(session);

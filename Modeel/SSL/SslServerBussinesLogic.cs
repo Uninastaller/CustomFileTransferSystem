@@ -94,11 +94,6 @@ namespace Modeel.SSL
             }
         }
 
-        private void Test1BigFile(SslSession session)
-        {
-            ResourceInformer.SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", session);
-        }
-
         #endregion PrivateMethods
 
         #region ProtectedMethods
@@ -170,8 +165,6 @@ namespace Modeel.SSL
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
-
-                Test1BigFile(session);
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

@@ -8,11 +8,17 @@
     <Setting Name="File1Size" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">382521151</Value>
     </Setting>
-    <Setting Name="File1IpAddress" Type="System.String" Scope="User">
+    <Setting Name="File1IpAddress1" Type="System.String" Scope="User">
       <Value Profile="(Default)">127.0.0.1</Value>
     </Setting>
-    <Setting Name="File1Port" Type="System.Int32" Scope="User">
+    <Setting Name="File1Port1" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34259</Value>
+    </Setting>
+    <Setting Name="File1IpAddress2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="File1Port2" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">34260</Value>
     </Setting>
   </Settings>
 </SettingsFile>

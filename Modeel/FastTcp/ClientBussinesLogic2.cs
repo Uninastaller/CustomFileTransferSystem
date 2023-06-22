@@ -3,6 +3,7 @@ using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -20,6 +21,7 @@ namespace Modeel.FastTcp
 
         #region Properties
 
+        public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;
         public TypeOfSocket Type { get; }
         public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
@@ -37,6 +39,7 @@ namespace Modeel.FastTcp
                     _requestSended = false;
                     _waitingForResponseToRequest = false;
                     _requestAccepted = false;
+                    _waitingForFilePart = false;
                 }
             }
         }
@@ -115,11 +118,14 @@ namespace Modeel.FastTcp
         private bool _waitingForResponseToRequest;
         private bool _requestAccepted;
 
+        private bool _waitingForFilePart = false;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, bool sessionWithCentralServer = false) : this(address, port, gui, sessionWithCentralServer: sessionWithCentralServer)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
+            : this(address, port, gui, optionReceiveBufferSize:optionReceiveBufferSize, optionSendBufferSize:optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
         {
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
@@ -127,7 +133,7 @@ namespace Modeel.FastTcp
             RequestingFile = true;
         }
 
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(address, port)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192,  bool sessionWithCentralServer = false) : base(address, port, optionReceiveBufferSize, optionSendBufferSize)
         {
             Type = TypeOfSocket.TCP;
 
@@ -192,52 +198,71 @@ namespace Modeel.FastTcp
             TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
+
+
         }
 
         private void OnRejectHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog($"Reject was received", LoggerInfo.socketMessage);
+            Logger.WriteLog($"Reject was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
 
             if (WaitingForResponseToRequest)
             {
                 this.DisconnectAndStop();
-                Logger.WriteLog("Response was rejected, disconnecting from server!", LoggerInfo.warning);
+                Logger.WriteLog("Response was rejected, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
                 MessageBox.Show("Request for file was rejected!");
             }
         }
 
         private void OnAcceptHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog($"Accept was received", LoggerInfo.socketMessage);
+            Logger.WriteLog($"Accept was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
 
             if (WaitingForResponseToRequest)
             {
-                Logger.WriteLog("Request for file was accepted!", LoggerInfo.fileTransfering);
+                Logger.WriteLog($"Request for file was accepted! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
 
                 // First request for file part
-                _fileReceiver?.GenerateRequestForFilePart(this);
+
+
+
+                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResults.SUCCES)
+                {
+                    _waitingForFilePart = true;
+                }
+                else
+                {
+                    _waitingForFilePart = false;
+                }
                 RequestAccepted = true;
             }
         }
 
         private void OnFilePartHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog($"File part was received", LoggerInfo.socketMessage);
+            Logger.WriteLog($"File part was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
 
             if (RequestAccepted)
             {
                 int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
-                Logger.WriteLog($"File part NO.:{partNumber} was received!", LoggerInfo.fileTransfering);
+                Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
                 _fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int));
 
-                _fileReceiver?.GenerateRequestForFilePart(this);
+                if (_fileReceiver?.GenerateRequestForFilePart(this) == MethodResults.SUCCES)
+                {
+                    _waitingForFilePart = true;
+                }
+                else
+                {
+                    _waitingForFilePart = false;
+                }
             }
         }
 
         private void OnNonRegistredMessage()
         {
             this.DisconnectAndStop();
-            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server!", LoggerInfo.warning);
+            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
         }
 
         #endregion EventHandler
@@ -260,7 +285,7 @@ namespace Modeel.FastTcp
 
         protected override void OnDisconnected()
         {
-            Logger.WriteLog($"Tcp client disconnected from session with Id: {Id}", LoggerInfo.tcpClient);
+            Logger.WriteLog($"Tcp client disconnected from session with Id: {Id}", LoggerInfo.disconnect);
 
             // Wait for a while...
             Thread.Sleep(1000);
@@ -270,6 +295,17 @@ namespace Modeel.FastTcp
                 ConnectAsync();
 
             _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+
+            _requestSended = false;
+            _waitingForResponseToRequest = false;
+            _requestAccepted = false;
+
+            if (_waitingForFilePart)
+            {
+                Logger.WriteLog("Reconnecting to server...", LoggerInfo.disconnect);
+                ConnectAsync();
+                RequestingFile = true;
+            }
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)

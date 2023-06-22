@@ -22,7 +22,11 @@ namespace Modeel.FastTcp
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpServer(IPAddress address, int port, int optionAcceptorBacklog) : this(new IPEndPoint(address, port), optionAcceptorBacklog: optionAcceptorBacklog) { }
+        public TcpServer(IPAddress address, int port, int optionReceiveBufferSize, int optionSendBufferSize, int optionAcceptorBacklog) : this(new IPEndPoint(address, port), optionAcceptorBacklog: optionAcceptorBacklog)
+        {
+            OptionSendBufferSize = optionSendBufferSize;
+            OptionReceiveBufferSize = optionReceiveBufferSize;
+        }
         /// <summary>
         /// Initialize TCP server with a given IP address and port number
         /// </summary>
@@ -156,11 +160,11 @@ namespace Modeel.FastTcp
         /// <summary>
         /// Option: receive buffer size
         /// </summary>
-        public int OptionReceiveBufferSize { get; set; } = 1024 * 1024*2;
+        public int OptionReceiveBufferSize { get; set; } = 8192;
         /// <summary>
         /// Option: send buffer size
         /// </summary>
-        public int OptionSendBufferSize { get; set; } = 1024 * 1024 * 2;
+        public int OptionSendBufferSize { get; set; } = 8192;
 
         #region Start/Stop server
 

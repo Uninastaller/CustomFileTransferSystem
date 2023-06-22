@@ -15,6 +15,9 @@ namespace Modeel.SSL
     /// <remarks>Thread-safe</remarks>
     public class SslSession : IDisposable, ISession
     {
+
+        public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;
+
         /// <summary>
         /// Initialize the session with a given server
         /// </summary>

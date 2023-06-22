@@ -51,24 +51,48 @@ namespace Modeel {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string File1IpAddress {
+        public string File1IpAddress1 {
             get {
-                return ((string)(this["File1IpAddress"]));
+                return ((string)(this["File1IpAddress1"]));
             }
             set {
-                this["File1IpAddress"] = value;
+                this["File1IpAddress1"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("34259")]
-        public int File1Port {
+        public int File1Port1 {
             get {
-                return ((int)(this["File1Port"]));
+                return ((int)(this["File1Port1"]));
             }
             set {
-                this["File1Port"] = value;
+                this["File1Port1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
+        public string File1IpAddress2 {
+            get {
+                return ((string)(this["File1IpAddress2"]));
+            }
+            set {
+                this["File1IpAddress2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("34260")]
+        public int File1Port2 {
+            get {
+                return ((int)(this["File1Port2"]));
+            }
+            set {
+                this["File1Port2"] = value;
             }
         }
     }

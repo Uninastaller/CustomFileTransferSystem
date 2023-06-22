@@ -16,7 +16,7 @@ namespace Modeel.Model
 
         public string FileName => _fileName;
         public long FileSize => _fileSize;
-        public int PartSize => _partSize;
+        public long PartSize => _partSize;
 
         #endregion Properties
 
@@ -33,7 +33,7 @@ namespace Modeel.Model
         private readonly long _totalParts; // Celkový počet častí suboru
         private readonly string _fileName;
         private readonly long _fileSize;
-        private readonly int _partSize;
+        private readonly long _partSize;
 
         #endregion PrivateFields
 
@@ -58,15 +58,20 @@ namespace Modeel.Model
 
         #region PublicMethods
 
-        public bool GenerateRequestForFilePart(ISession session)
+        public MethodResults GenerateRequestForFilePart(ISession session)
         {
             int filePart = AssignmentOfFilePart();
-            if (filePart == -1) return false;
+            if (filePart == -1) return MethodResults.DONE;
             return ResourceInformer.GenerateRequestForFilePart(filePart, _partSize, session);
         }
 
         public void WriteToFile(int partToProcess, byte[] filePart, int offset, int lenght)
         {
+            if (_receivedParts[partToProcess] != FilePartState.DOWNLOADING)
+            {
+                Logger.WriteLog("We are not waiting this part!", LoggerInfo.warning);
+            }
+
             int position;
             lock (_lockObject)
             {

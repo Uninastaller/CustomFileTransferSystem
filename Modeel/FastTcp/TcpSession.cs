@@ -16,6 +16,9 @@ namespace Modeel.FastTcp
     /// <remarks>Thread-safe</remarks>
     public class TcpSession : BaseSession, IDisposable, ISession
     {
+
+        public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;
+
         /// <summary>
         /// Initialize the session with a given server
         /// </summary>

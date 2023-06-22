@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Modeel.Model
 {
-    public interface ISession
+    public enum MethodResults
     {
-        public bool SendAsync(byte[] buffer, long offset, long size);
-        public string IpAndPort { get; }
+        SUCCES,
+        ERROR,
+        DONE,
     }
 }

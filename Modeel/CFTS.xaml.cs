@@ -85,13 +85,12 @@ namespace Modeel
 
         private void LoadRequestFromConfig()
         {
-            _requestModels.Add(new RequestModelObject()
-            {
-                FilePath = Settings.Default.File1Name,
-                FileSize = Settings.Default.File1Size,
-                IpAddress = Settings.Default.File1IpAddress,
-                Port = Settings.Default.File1Port
-            });
+            RequestModelObject request = new RequestModelObject();
+            request.FilePath = Settings.Default.File1Name;
+            request.FileSize = Settings.Default.File1Size;
+            request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress1, Port = Settings.Default.File1Port1 });
+            request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress2, Port = Settings.Default.File1Port2 });
+            _requestModels.Add(request);
         }
 
         private void P2pClietsUpdateMessageHandler(P2pClietsUpdateMessage message)
@@ -126,12 +125,19 @@ namespace Modeel
         private void btnRequest_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
-            if (b?.Tag is RequestModelObject requestModel && IPAddress.TryParse(requestModel.IpAddress, out IPAddress? iPAddress))
+
+            if (b?.Tag is RequestModelObject requestModel)
             {
-                int megabyte = 1024 * 1024;
+                int megabyte = 0x100000;
                 _fileReceiver = new FileReceiver(requestModel.FileSize, megabyte, Path.GetFileName(requestModel.FilePath));
 
-                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, requestModel.Port, this, requestModel.FilePath, requestModel.FileSize, _fileReceiver));
+                foreach (BaseClient client in requestModel.Clients)
+                {
+                    if (IPAddress.TryParse(client.IpAddress, out IPAddress? iPAddress))
+                    {
+                        _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(iPAddress, client.Port, this, requestModel.FilePath, requestModel.FileSize, _fileReceiver, 0x200000, 0x200000));
+                    }
+                }
             }
         }
 

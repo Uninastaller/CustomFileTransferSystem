@@ -67,33 +67,7 @@ namespace Modeel.Model
             return $"{transferRate:F2} {unit}";
         }
 
-        public static void SendFile(string filePath, ISession session)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            // Open the file for reading
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                // Choose an appropriate buffer size based on the file size and system resources
-                int bufferSize = CalculateBufferSize(fileStream.Length);
-                Logger.WriteLog($"File buffer chosen for: {bufferSize}", LoggerInfo.socketMessage);
-                bufferSize = 8192;
-
-                byte[] buffer = new byte[bufferSize];
-                int bytesRead;
-                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    // Send the bytes read from the file over the network stream
-                    session.SendAsync(buffer, 0, bytesRead);
-                }
-            }
-            stopwatch.Stop();
-            TimeSpan elapsedTime = stopwatch != null ? stopwatch.Elapsed : TimeSpan.Zero;
-            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.socketMessage);
-            //MessageBox.Show("File transfer completed");
-        }
-
-        public static void SendFilePart(string filePath, ISession session, int partNumber, int partSize)
+        public static void SendFilePart(string filePath, ISession session, long partNumber, int partSize)
         {
             byte[] flag = Encoding.UTF8.GetBytes(SocketMessageFlag.FILE_PART.GetStringValue());
             byte[] partNumberBytes = BitConverter.GetBytes(partNumber);
@@ -109,16 +83,15 @@ namespace Modeel.Model
                 int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(int), partSize); // Read the chunk from the file
                 System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
                 System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(int)); // Insert the part number
-                session.SendAsync(buffer, 0, bytesRead);
+                if(session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(int)))
+                {
+                    Logger.WriteLog($"Part file: {partNumber}, was sended to client: {session.IpAndPort}!", LoggerInfo.socketMessage);
+                }
+                else
+                {
+                    Logger.WriteLog($"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!", LoggerInfo.warning);
+                }
             }
-        }
-
-        public static void StartOfSendingFile(string filePath, ISession session, int chunkSize)
-        {
-            //Generate header
-            string fileName = Path.GetFileName(filePath);
-            long fileSize = new System.IO.FileInfo(filePath).Length;
-            long totalChunkNumbers = fileSize / chunkSize + ((fileSize % chunkSize) > 0 ? 1 : 0);
         }
 
         public static bool GenerateRequestForFile(string fileName, long fileSize, ISession session)
@@ -127,7 +100,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Request for file was generated for file: {fileName} with size: {fileSize}", LoggerInfo.socketMessage);
+                Logger.WriteLog($"Request for file was generated for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+            }
+            else
+            {
+                Logger.WriteLog($"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
             }
             return succes;
         }
@@ -138,7 +115,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Reject was generated", LoggerInfo.socketMessage);
+                Logger.WriteLog($"Reject was generated to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+            }
+            else
+            {
+                Logger.WriteLog($"Unable to send reject to client: {session.IpAndPort}", LoggerInfo.warning);
             }
             return succes;
         }
@@ -149,20 +130,28 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Accept was generated", LoggerInfo.socketMessage);
+                Logger.WriteLog($"Accept was generated to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+            }
+            else
+            {
+                Logger.WriteLog($"Unable to send accept to client: {session.IpAndPort}", LoggerInfo.warning);
             }
             return succes;
         }
 
-        public static bool GenerateRequestForFilePart(int filePart, int partSize, ISession session)
+        public static MethodResults GenerateRequestForFilePart(int filePart, long partSize, ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.FILE_PART_REQUEST, new object[] { filePart, partSize });
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Request for file part was generated for file part No.: {filePart} with size: {partSize}", LoggerInfo.fileTransfering);
+                Logger.WriteLog($"Request for file part was generated for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}", LoggerInfo.fileTransfering);
             }
-            return succes;
+            else
+            {
+                Logger.WriteLog($"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
+            }
+            return succes ? MethodResults.SUCCES : MethodResults.ERROR;
         }
 
         public static byte[] GenerateMessage(SocketMessageFlag flag, object[]? content = null)
