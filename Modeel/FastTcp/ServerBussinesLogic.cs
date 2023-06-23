@@ -175,33 +175,33 @@ namespace Modeel.FastTcp
 
         private void Test1BigFile(System.Net.Sockets.TcpClient client)
         {
-            _stopwatch?.Start();
-            SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", client);
-            _stopwatch?.Stop();
-            TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
-            Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.socketMessage);
-            MessageBox.Show("File transfer completed");
+            //_stopwatch?.Start();
+            //SendFile("C:\\Users\\tomas\\Downloads\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264-maximersk [mrsktv]\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv", client);
+            //_stopwatch?.Stop();
+            //TimeSpan elapsedTime = _stopwatch != null ? _stopwatch.Elapsed : TimeSpan.Zero;
+            //Logger.WriteLog($"File transfer completed in {elapsedTime.TotalSeconds} seconds.", LoggerInfo.socketMessage);
+            //MessageBox.Show("File transfer completed");
         }
 
         private void SendFile(string filePath, System.Net.Sockets.TcpClient client)
         {
-            // Open the file for reading
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                // Choose an appropriate buffer size based on the file size and system resources
-                int bufferSize = ResourceInformer.CalculateBufferSize(fileStream.Length);
-                Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.socketMessage);
+            //// Open the file for reading
+            //using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            //{
+            //    // Choose an appropriate buffer size based on the file size and system resources
+            //    int bufferSize = ResourceInformer.CalculateBufferSize(fileStream.Length);
+            //    Logger.WriteLog($"Fille buffer choosed for: {bufferSize}", LoggerInfo.socketMessage);
 
-                byte[] buffer = new byte[bufferSize];
-                int bytesRead;
-                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    // Send the bytes read from the file over the network stream
-                    //SslSession session = FindSession(_clients.ElementAt(0).Key);
-                    SendMessage(client, buffer, 0, bytesRead);
-                    Logger.WriteLog($"Reading bytes from file and sending: {bytesRead}", LoggerInfo.socketMessage);
-                }
-            }
+            //    byte[] buffer = new byte[bufferSize];
+            //    int bytesRead;
+            //    while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+            //    {
+            //        // Send the bytes read from the file over the network stream
+            //        //SslSession session = FindSession(_clients.ElementAt(0).Key);
+            //        SendMessage(client, buffer, 0, bytesRead);
+            //        Logger.WriteLog($"Reading bytes from file and sending: {bytesRead}", LoggerInfo.socketMessage);
+            //    }
+            //}
         }
 
         private void RemoveClientFromDict(Guid clientId)
