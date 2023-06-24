@@ -76,6 +76,7 @@
                                 <Button x:Name="btnDisconnectFromServer" Content="Disconnect" Tag="{Binding}" Click="btnDisconnectFromServer_Click"/>
                                 <Button x:Name="btnDisconnectFAndStop" Content="DisconnectAndStop" Tag="{Binding}" Click="btnDisconnectAndStop_Click"/>
                                 <Button x:Name="btnConnectAsyncToServer" Content="ConnectAsync" Tag="{Binding}" Click="btnConnectAsyncToServer_Click"/>
+                                <Button x:Name="btnDisposeClient" Content="Dispose" Tag="{Binding}" Click="btnDisposeClient_Click"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -117,6 +118,7 @@
                                 <Button x:Name="btnStopServer" Content="Stop" Tag="{Binding}" Click="btnStopServer_Click"/>
                                 <Button x:Name="btnStartServer" Content="Start" Tag="{Binding}" Click="btnStartServer_Click"/>
                                 <Button x:Name="btnRestartServer" Content="Restart" Tag="{Binding}" Click="btnRestartServer_Click"/>
+                                <Button x:Name="btnDisposeServer" Content="Dispose" Tag="{Binding}" Click="btnDisposeServer_Click"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

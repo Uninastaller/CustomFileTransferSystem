@@ -13,6 +13,7 @@ namespace Modeel.P2P
         public void CloseAllConnections();
         public void CreateNewServer(IUniversalServerSocket socketServer);
         public void CreateNewClient(IUniversalClientSocket socketClient);
-
+        public void RemoveServer(IUniversalServerSocket socketServer);
+        public void RemoveClient(IUniversalClientSocket socketClient);
     }
 }

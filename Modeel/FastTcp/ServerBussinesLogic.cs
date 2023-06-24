@@ -69,7 +69,7 @@ namespace Modeel.FastTcp
 
         public ServerBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024)
         {
-            this.Type = TypeOfSocket.TCP;
+            this.Type = TypeOfSocket.TCP_SERVER;
             _gui = gui;
 
             Id = Guid.NewGuid();

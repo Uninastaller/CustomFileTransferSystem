@@ -8,7 +8,9 @@ namespace Modeel.Model
 {
     public enum TypeOfSocket
     {
-        TCP_SSL = 0,
-        TCP = 1,
+        TCP_SERVER_SSL = 0,
+        TCP_SERVER = 1,
+        TCP_CLIENT_SSL = 2,
+        TCP_CLIENT = 3,
     }
 }

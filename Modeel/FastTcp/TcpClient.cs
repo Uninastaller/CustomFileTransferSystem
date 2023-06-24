@@ -338,15 +338,15 @@ namespace Modeel.FastTcp
                 try
                 {
                     // Shutdown the socket associated with the client
-                    Socket.Shutdown(SocketShutdown.Both);
+                    Socket?.Shutdown(SocketShutdown.Both);
                 }
                 catch (SocketException) {}
 
                 // Close the client socket
-                Socket.Close();
+                Socket?.Close();
 
                 // Dispose the client socket
-                Socket.Dispose();
+                Socket?.Dispose();
 
                 // Dispose event arguments
                 _connectEventArg.Dispose();
@@ -417,6 +417,7 @@ namespace Modeel.FastTcp
 
             // Update the client socket disposed flag
             IsSocketDisposed = false;
+            IsDisposed = false;
 
             // Apply the option: dual mode (this option must be applied before connecting)
             if (Socket.AddressFamily == AddressFamily.InterNetworkV6)

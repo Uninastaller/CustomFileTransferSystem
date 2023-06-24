@@ -53,7 +53,7 @@ namespace Modeel.SSL
 
         public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024) : base(context, address, port, optionAcceptorBacklog)
         {
-            Type = TypeOfSocket.TCP_SSL;
+            Type = TypeOfSocket.TCP_SERVER_SSL;
 
             _gui = gui;
             Start();

@@ -240,6 +240,7 @@ namespace Modeel.SSL
 
             // Update the client socket disposed flag
             IsSocketDisposed = false;
+            IsDisposed = false;
 
             // Apply the option: dual mode (this option must be applied before connecting)
             if (Socket.AddressFamily == AddressFamily.InterNetworkV6)

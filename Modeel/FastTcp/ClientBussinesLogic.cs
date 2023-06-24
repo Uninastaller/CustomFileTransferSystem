@@ -92,7 +92,7 @@ namespace Modeel.FastTcp
         public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false)
         {
             Id = Guid.NewGuid();
-            this.Type = TypeOfSocket.TCP;
+            this.Type = TypeOfSocket.TCP_CLIENT;
 
             _sessionWithCentralServer = sessionWithCentralServer;
 

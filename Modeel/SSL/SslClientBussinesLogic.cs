@@ -47,7 +47,7 @@ namespace Modeel.SSL
 
         public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
         {
-            Type = TypeOfSocket.TCP_SSL;
+            Type = TypeOfSocket.TCP_CLIENT_SSL;
 
 
             _sessionWithCentralServer = sessionWithCentralServer;
@@ -70,11 +70,6 @@ namespace Modeel.SSL
             _stop = true;
 
             DisconnectAsync();
-
-            if (Socket.Connected)
-            {
-                Socket.Shutdown(SocketShutdown.Both);
-            }
 
             if (_timer != null)
             {

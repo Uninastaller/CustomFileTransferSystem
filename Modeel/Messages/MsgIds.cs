@@ -9,5 +9,6 @@
         public static readonly int P2pServersUpdateMessage = 5;
         public static readonly int RefreshTablesMessage = 6;
         public static readonly int MessageReceiveMessage = 7;
+        public static readonly int DisposeMessage = 8;
     }
 }

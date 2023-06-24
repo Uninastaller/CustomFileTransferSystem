@@ -7,6 +7,7 @@ using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -98,6 +99,7 @@ namespace Modeel
             contract.Add(MsgIds.P2pClietsUpdateMessage, typeof(P2pClietsUpdateMessage));
             contract.Add(MsgIds.P2pServersUpdateMessage, typeof(P2pServersUpdateMessage));
             contract.Add(MsgIds.RefreshTablesMessage, typeof(RefreshTablesMessage));
+            contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
 
             Init();
 
@@ -132,6 +134,7 @@ namespace Modeel
              .Case(contract.GetContractId(typeof(P2pClietsUpdateMessage)), (P2pClietsUpdateMessage x) => P2pClietsUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(P2pServersUpdateMessage)), (P2pServersUpdateMessage x) => P2pServersUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
+             .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageMessageHandler(x))
              ;
         }
 
@@ -158,6 +161,27 @@ namespace Modeel
         {
             _p2pServers = message.Servers;
             dgP2pServers.ItemsSource = _p2pServers;
+
+        }
+
+        private void DisposeMessageMessageHandler(DisposeMessage message)
+        {
+            if (message.TypeOfSocket == TypeOfSocket.TCP_SERVER_SSL || message.TypeOfSocket == TypeOfSocket.TCP_SERVER)
+            {
+                IUniversalServerSocket? server = _p2pServers.FirstOrDefault(x => x.Id == message.SessionGuid);
+                if (server != null)
+                {
+                    _p2PMasterClass.RemoveServer(server);
+                }
+            }
+            else
+            {
+                IUniversalClientSocket? client = _p2pClients.FirstOrDefault(x => x.Id == message.SessionGuid);
+                if (client != null)
+                {
+                    _p2PMasterClass.RemoveClient(client);
+                }
+            }
 
         }
 
@@ -240,11 +264,11 @@ namespace Modeel
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2PSSL);
 
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog:1));
+                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
 
                 return;
             }
-            _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog:1));
+            _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnect_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -279,6 +303,15 @@ namespace Modeel
             }
         }
 
+        private void btnDisposeServer_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalServerSocket server)
+            {
+                server.Dispose();
+            }
+        }
+
         private void btnDisconnectFromServer_Click(object sender, RoutedEventArgs e)
         {
             Button? b = sender as Button;
@@ -303,6 +336,15 @@ namespace Modeel
             if (b?.Tag is IUniversalClientSocket client)
             {
                 client.ConnectAsync();
+            }
+        }
+
+        private void btnDisposeClient_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalClientSocket client)
+            {
+                client.Dispose();
             }
         }
 

@@ -38,6 +38,24 @@ public class P2pMasterClass : IP2pMasterClass
         }
     }
 
+    public void RemoveServer(IUniversalServerSocket socketServer)
+    {
+        if (_servers.ContainsKey(socketServer.Id))
+        {
+            _servers.Remove(socketServer.Id);
+            _gui.BaseMsgEnque(new P2pServersUpdateMessage() { Servers = _servers.Values.ToList() });
+        }
+    }
+
+    public void RemoveClient(IUniversalClientSocket socketClient)
+    {
+        if (_clients.ContainsKey(socketClient.Id))
+        {
+            _clients.Remove(socketClient.Id);
+            _gui.BaseMsgEnque(new P2pClietsUpdateMessage() { Clients = _clients.Values.ToList() });
+        }
+    }
+
     public void CloseAllConnections()
     {
         foreach (IUniversalClientSocket client in _clients.Values)
