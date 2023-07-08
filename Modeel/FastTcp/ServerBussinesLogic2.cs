@@ -173,7 +173,6 @@ namespace Modeel.FastTcp
             _timer = null;
             _gui?.BaseMsgEnque(new DisposeMessage(Id, Type));
             _gui = null;
-
         }
 
         protected override TcpSession CreateSession() { return new TcpServerSession(this); }

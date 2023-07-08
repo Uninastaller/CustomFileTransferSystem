@@ -278,6 +278,7 @@ namespace Modeel.FastTcp
 
         protected override void Dispose(bool disposingManagedResources)
         {
+            DisconnectAndStop();
             base.Dispose(disposingManagedResources);
 
             _gui.BaseMsgEnque(new DisposeMessage(Id, Type));

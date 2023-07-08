@@ -65,7 +65,6 @@ namespace Modeel
             lvConnectedClients.ItemsSource = _clients.Values.ToList();
         }
 
-
         private void Window_closedEvent(object? sender, EventArgs e)
         {
             Closed -= Window_closedEvent;

@@ -345,7 +345,7 @@ namespace Modeel
             if (b?.Tag is IUniversalClientSocket client)
             {
                 client.Dispose();
-            }
+            }            
         }
 
         private void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
