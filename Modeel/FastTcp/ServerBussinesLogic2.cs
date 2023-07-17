@@ -140,8 +140,8 @@ namespace Modeel.FastTcp
 
             if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is TcpServerSession serverSession)
             {
-                //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                MessageBoxResult result = MessageBoxResult.Yes;
+               MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+               //MessageBoxResult result = MessageBoxResult.Yes;
                 if (result == MessageBoxResult.Yes)
                 {
                     ResourceInformer.GenerateAccept(session);

@@ -45,7 +45,7 @@ namespace Modeel.Model
          _partSize = partSize;
          _fileSize = fileSize;
          _fileName = fileName;
-         _totalParts = fileSize / partSize + ((fileSize % partSize) > 0 ? 1 : 0); ;
+         _totalParts = fileSize / partSize + ((fileSize % partSize) > 0 ? 1 : 0);
          _receivedParts = new FilePartState[_totalParts];
       }
 

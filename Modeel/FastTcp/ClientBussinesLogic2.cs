@@ -14,333 +14,262 @@ using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
 {
-    public class ClientBussinesLogic2 : TcpClient, IUniversalClientSocket, ISession
-    {
+   public class ClientBussinesLogic2 : TcpClient, IUniversalClientSocket, ISession
+   {
 
-        #region Properties
+      #region Properties
 
-        public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
-        public TypeOfSocket Type { get; }
-        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
-        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+      public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
+      public TypeOfSocket Type { get; }
+      public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
+      public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+      public ClientBussinesLogicState State
+      {
+         get 
+         {
+            return _state; 
+         }
+         set
+         {
+            _state = value; 
+         }
+      }
 
-        // Transfer flags
-        public bool RequestingFile
-        {
-            get => _requestingFile;
+      #endregion Properties
 
-            private set
+      #region PrivateFields
+
+      private IWindowEnqueuer _gui;
+      private bool _sessionWithCentralServer;
+
+      private bool _stop;
+
+      private Timer? _timer;
+      private ulong _timerCounter;
+
+      private long _secondOldBytesSent;
+      private long _secondOldBytesReceived;
+
+      private string _requestingFileName = string.Empty;
+      private long _requestingFileSize;
+
+      private readonly FileReceiver? _fileReceiver;
+
+      private ClientBussinesLogicState _state = ClientBussinesLogicState.NONE;
+
+      #endregion PrivateFields
+
+      #region Ctor
+
+      public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
+          : this(address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
+      {
+         _requestingFileName = fileName;
+         _requestingFileSize = fileSize;
+         _fileReceiver = fileReceiver;
+         //RequestingFile = true;
+
+         State = ClientBussinesLogicState.REQUESTING_FILE;
+      }
+
+      public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, bool sessionWithCentralServer = false) : base(address, port, optionReceiveBufferSize, optionSendBufferSize)
+      {
+         Type = TypeOfSocket.TCP_CLIENT;
+
+         _sessionWithCentralServer = sessionWithCentralServer;
+
+         _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
+         _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
+         _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
+         _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
+
+         ConnectAsync();
+
+         _gui = gui;
+
+         _timer = new Timer(1000); // Set the interval to 1 second
+         _timer.Elapsed += OneSecondHandler;
+         _timer.Start();
+      }
+
+      #endregion Ctor
+
+      #region PublicMethods
+
+      public void DisconnectAndStop()
+      {
+         _stop = true;
+
+         DisconnectAsync();
+
+         if (_timer != null)
+         {
+            _timer.Elapsed -= OneSecondHandler;
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
+         }
+
+         while (IsConnected)
+            Thread.Yield();
+      }
+
+      #endregion PublicMethods
+
+      #region PrivateMethods
+
+      private void RequestFilePart()
+      {
+         MethodResult result = _fileReceiver.GenerateRequestForFilePart(this);
+
+         switch (result)
+         {
+            case MethodResult.SUCCES:
+               State = ClientBussinesLogicState.WAITING_FOR_FILE_PART;
+               break;
+            case MethodResult.DONE:
+               State = ClientBussinesLogicState.NONE;
+               Logger.WriteLog("File is completly transfered", LoggerInfo.fileTransfering);
+               this.Dispose();
+               break;
+            case MethodResult.ERROR:
+               State = ClientBussinesLogicState.REQUEST_ACCEPTED;
+               Logger.WriteLog($"Error in generating request for file part, switching to state: {State}!", LoggerInfo.fileTransfering);
+               break;
+         }
+      }
+
+      private void RequestFile()
+      {
+         if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+            State = ClientBussinesLogicState.REQUEST_SENDED;
+      }
+
+      #endregion PrivateMethods
+
+      #region EventHandler
+
+      private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+      {
+         _timerCounter++;
+
+         if (IsConnected)
+            if (State == ClientBussinesLogicState.REQUESTING_FILE)
             {
-                _requestingFile = value;
-                if (value)
-                {
-                    _requestSended = false;
-                    _waitingForResponseToRequest = false;
-                    _requestAccepted = false;
-                    _waitingForFilePart = false;
-                }
+               RequestFile();
             }
-        }
-
-        public bool RequestSended
-        {
-            get => _requestSended;
-
-            private set
+            else if (State == ClientBussinesLogicState.REQUEST_ACCEPTED)
             {
-                _requestSended = value;
-                if (value)
-                {
-                    _requestingFile = false;
-                    _waitingForResponseToRequest = true;
-                    _requestAccepted = false;
-                }
+               RequestFilePart();
             }
-        }
 
-        public bool WaitingForResponseToRequest
-        {
-            get => _waitingForResponseToRequest;
+         TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
+         TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+         _secondOldBytesSent = BytesSent;
+         _secondOldBytesReceived = BytesReceived;
+      }
 
-            private set
+      private void OnRejectHandler(byte[] buffer, long offset, long size)
+      {
+         Logger.WriteLog($"Reject was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
+
+         if (State == ClientBussinesLogicState.REQUEST_SENDED)
+         {
+            Logger.WriteLog("Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
+            MessageBox.Show("Request for file was rejected!");
+            this.Dispose();
+         }
+      }
+
+      private void OnAcceptHandler(byte[] buffer, long offset, long size)
+      {
+         Logger.WriteLog($"Accept was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
+
+         if (State == ClientBussinesLogicState.REQUEST_SENDED)
+         {
+            Logger.WriteLog($"Request for file was accepted! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
+
+            // First request for file part
+            RequestFilePart();
+         }
+      }
+
+      private void OnFilePartHandler(byte[] buffer, long offset, long size)
+      {
+         Logger.WriteLog($"File part was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
+
+         if (State == ClientBussinesLogicState.WAITING_FOR_FILE_PART)
+         {
+            int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
+            Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
+            if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int)) == MethodResult.ERROR)
             {
-                _waitingForResponseToRequest = value;
-                if (!value)
-                {
-                    _requestSended = false;
-                    _requestingFile = false;
-                    _requestAccepted = false;
-                }
+
             }
-        }
 
-        public bool RequestAccepted
-        {
-            get => _requestAccepted;
+            RequestFilePart();
+         }
+      }
 
-            private set
-            {
-                _requestAccepted = value;
-                if (!value)
-                {
-                    _waitingForResponseToRequest = false;
-                    _requestSended = false;
-                    _requestingFile = false;
-                }
-            }
-        }
+      private void OnNonRegistredMessage()
+      {
+         this.Disconnect();
+         Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
+      }
 
-        #endregion Properties
+      #endregion EventHandler
 
-        #region PrivateFields
+      #region OverridedMethods
 
-        private IWindowEnqueuer _gui;
-        private bool _sessionWithCentralServer;
+      protected override void Dispose(bool disposingManagedResources)
+      {
+         DisconnectAndStop();
+         base.Dispose(disposingManagedResources);
 
-        private bool _stop;
+         _gui.BaseMsgEnque(new DisposeMessage(Id, Type));
+      }
 
-        private Timer? _timer;
-        private ulong _timerCounter;
+      protected override void OnConnected()
+      {
+         Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-        private long _secondOldBytesSent;
-        private long _secondOldBytesReceived;
+         _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+      }
 
-        private string _requestingFileName = string.Empty;
-        private long _requestingFileSize;
+      protected override void OnDisconnected()
+      {
+         Logger.WriteLog($"Tcp client disconnected from session with Id: {Id}", LoggerInfo.disconnect);
 
-        private readonly FileReceiver? _fileReceiver;
+         // Wait for a while...
+         Thread.Sleep(1000);
 
-        // Transfer flags
-        private bool _requestingFile;
-        private bool _requestSended;
-        private bool _waitingForResponseToRequest;
-        private bool _requestAccepted;
-
-        private bool _waitingForFilePart = false;
-
-        #endregion PrivateFields
-
-        #region Ctor
-
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
-            : this(address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
-        {
-            _requestingFileName = fileName;
-            _requestingFileSize = fileSize;
-            _fileReceiver = fileReceiver;
-            RequestingFile = true;
-        }
-
-        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, bool sessionWithCentralServer = false) : base(address, port, optionReceiveBufferSize, optionSendBufferSize)
-        {
-            Type = TypeOfSocket.TCP_CLIENT;
-
-            _sessionWithCentralServer = sessionWithCentralServer;
-
-            _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-            _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
-            _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
-            _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
-
+         // Try to connect again
+         if (!_stop)
             ConnectAsync();
 
-            _gui = gui;
+         _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
 
-            _timer = new Timer(1000); // Set the interval to 1 second
-            _timer.Elapsed += OneSecondHandler;
-            _timer.Start();
-        }
+         State = ClientBussinesLogicState.NONE;
+      }
 
-        #endregion Ctor
+      protected override void OnReceived(byte[] buffer, long offset, long size)
+      {
+         _flagSwitch.Switch(buffer, offset, size);
+         //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-        #region PublicMethods
+         //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
 
-        public void DisconnectAndStop()
-        {
-            _stop = true;
+         //Logger.WriteLog($"Tcp client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
+         //Logger.WriteLog($"Tcp client obtained a message[{size}]", LoggerInfo.socketMessage);
+      }
 
-            DisconnectAsync();
+      protected override void OnError(SocketError error)
+      {
+         Logger.WriteLog($"Tcp client caught an error with code {error}", LoggerInfo.tcpClient);
+      }
 
-            if (_timer != null)
-            {
-                _timer.Elapsed -= OneSecondHandler;
-                _timer.Stop();
-                _timer.Dispose();
-                _timer = null;
-            }
+      #endregion OverridedMethods             
 
-            while (IsConnected)
-                Thread.Yield();
-        }
-
-        #endregion PublicMethods
-
-        #region PrivateMethods
-
-
-
-        #endregion PrivateMethods
-
-        #region EventHandler
-
-        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-        {
-            _timerCounter++;
-
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
-            _secondOldBytesSent = BytesSent;
-            _secondOldBytesReceived = BytesReceived;
-        }
-
-        private void OnRejectHandler(byte[] buffer, long offset, long size)
-        {
-            Logger.WriteLog($"Reject was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
-
-            if (WaitingForResponseToRequest)
-            {
-                this.DisconnectAndStop();
-                Logger.WriteLog("Response was rejected, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
-                MessageBox.Show("Request for file was rejected!");
-            }
-        }
-
-        private void OnAcceptHandler(byte[] buffer, long offset, long size)
-        {
-            Logger.WriteLog($"Accept was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
-
-            if (WaitingForResponseToRequest)
-            {
-                Logger.WriteLog($"Request for file was accepted! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
-
-                // First request for file part
-
-                MethodResult result = _fileReceiver.GenerateRequestForFilePart(this);
-
-                switch (result)
-                {
-                    case MethodResult.SUCCES:
-                        _waitingForFilePart = true;
-                        break;
-                    case MethodResult.DONE:
-                        DisconnectAndStop();
-                        Dispose();
-                        break;
-                    default:
-                        _waitingForFilePart = false;
-                        break;
-                }
-
-                RequestAccepted = true;
-            }
-        }
-
-        private void OnFilePartHandler(byte[] buffer, long offset, long size)
-        {
-            Logger.WriteLog($"File part was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
-
-            if (RequestAccepted)
-            {
-                int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
-                Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
-                if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int)) == MethodResult.ERROR)
-                {
-
-                }
-
-                MethodResult result = _fileReceiver.GenerateRequestForFilePart(this);
-
-                switch (result)
-                {
-                    case MethodResult.SUCCES:
-                        _waitingForFilePart = true;
-                        break;
-                    case MethodResult.DONE:
-                        DisconnectAndStop();
-                        Dispose();
-                        break;
-                    default:
-                        _waitingForFilePart = false;
-                        break;
-                }
-            }
-        }
-
-        private void OnNonRegistredMessage()
-        {
-            this.Disconnect();
-            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
-        }
-
-        #endregion EventHandler
-
-        #region OverridedMethods
-
-        protected override void Dispose(bool disposingManagedResources)
-        {
-            DisconnectAndStop();
-            base.Dispose(disposingManagedResources);
-
-            _gui.BaseMsgEnque(new DisposeMessage(Id, Type));
-        }
-
-        protected override async void OnConnected()
-        {
-            Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
-
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
-
-            if (RequestingFile || _waitingForFilePart)
-            {
-                await Task.Delay(1000);
-                if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
-                    RequestSended = true;
-            }
-        }
-
-        protected override void OnDisconnected()
-        {
-            Logger.WriteLog($"Tcp client disconnected from session with Id: {Id}", LoggerInfo.disconnect);
-
-            // Wait for a while...
-            Thread.Sleep(1000);
-
-            // Try to connect again
-            if (!_stop)
-                ConnectAsync();
-
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
-
-            _requestSended = false;
-            _waitingForResponseToRequest = false;
-            _requestAccepted = false;
-
-            //if (_waitingForFilePart)
-            //{
-            //    Logger.WriteLog("Reconnecting to server...", LoggerInfo.disconnect);
-            //    ConnectAsync();
-            //    RequestingFile = true;
-            //}
-        }
-
-        protected override void OnReceived(byte[] buffer, long offset, long size)
-        {
-            _flagSwitch.Switch(buffer, offset, size);
-            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-
-            //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
-
-            //Logger.WriteLog($"Tcp client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
-            //Logger.WriteLog($"Tcp client obtained a message[{size}]", LoggerInfo.socketMessage);
-        }
-
-        protected override void OnError(SocketError error)
-        {
-            Logger.WriteLog($"Tcp client caught an error with code {error}", LoggerInfo.tcpClient);
-        }
-
-        #endregion OverridedMethods             
-
-    }
+   }
 }
 
