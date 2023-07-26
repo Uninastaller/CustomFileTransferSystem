@@ -140,7 +140,7 @@ namespace Modeel.Model
          return succes ? MethodResult.SUCCES : MethodResult.ERROR;
       }
 
-      public static MethodResult GenerateRequestForFilePart(int filePart, long partSize, ISession session)
+      public static MethodResult GenerateRequestForFilePart(long filePart, long partSize, ISession session)
       {
          byte[] request = GenerateMessage(SocketMessageFlag.FILE_PART_REQUEST, new object[] { filePart, partSize });
          bool succes = session.SendAsync(request, 0, request.Length);

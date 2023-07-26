@@ -2,6 +2,7 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using Modeel.P2P;
 using Modeel.SSL;
 using System;
@@ -166,7 +167,7 @@ namespace Modeel
 
         private void DisposeMessageMessageHandler(DisposeMessage message)
         {
-            if (message.TypeOfSocket == TypeOfSocket.TCP_SERVER_SSL || message.TypeOfSocket == TypeOfSocket.TCP_SERVER)
+            if (message.TypeOfSocket == TypeOfSocket.SERVER)
             {
                 IUniversalServerSocket? server = _p2pServers.FirstOrDefault(x => x.Id == message.SessionGuid);
                 if (server != null)

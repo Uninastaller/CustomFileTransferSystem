@@ -1,4 +1,5 @@
-﻿using Modeel.SSL;
+﻿using Modeel.Model.Enums;
+using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Modeel.Model
     public interface IUniversalClientSocket
     {
         public Guid Id { get; }
-        public TypeOfSocket Type { get; }
+        public TypeOfClientSocket Type { get; }
         int Port { get; }
         string Address { get; }
         long BytesSent { get; }

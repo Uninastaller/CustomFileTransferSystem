@@ -2,6 +2,7 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using System;
 using System.IO;
 using System.Net;
@@ -22,7 +23,7 @@ namespace Modeel.SSL
 
         #region Properties
 
-        public TypeOfSocket Type { get; }
+        public TypeOfClientSocket Type { get; }
         public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
 
@@ -47,7 +48,7 @@ namespace Modeel.SSL
 
         public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
         {
-            Type = TypeOfSocket.TCP_CLIENT_SSL;
+            Type = TypeOfClientSocket.TCP_CLIENT_SSL;
 
 
             _sessionWithCentralServer = sessionWithCentralServer;

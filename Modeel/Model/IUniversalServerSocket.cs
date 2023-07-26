@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Modeel.Model.Enums;
 
 namespace Modeel.Model
 {
     public interface IUniversalServerSocket
     {
         public Guid Id { get; }
-        public TypeOfSocket Type { get; }
+        public TypeOfServerSocket Type { get; }
         long ConnectedSessions { get; }
         bool IsAccepting { get; }
         bool IsStarted { get; }

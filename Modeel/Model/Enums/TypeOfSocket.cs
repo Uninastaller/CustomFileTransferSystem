@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modeel.Model
+namespace Modeel.Model.Enums
 {
     public enum TypeOfSocket
     {
-        TCP_SERVER_SSL = 0,
-        TCP_SERVER = 1,
-        TCP_CLIENT_SSL = 2,
-        TCP_CLIENT = 3,
+        SERVER = 0,
+        CLIENT = 0,
     }
 }

@@ -18,7 +18,6 @@ namespace Modeel.FastTcp
         public bool RequestAccepted { get; set; } = false;
         public string FilePathOfAcceptedfileRequest { get; set; } = string.Empty;
 
-
         #endregion Properties
 
         #region PublicFields
@@ -43,6 +42,7 @@ namespace Modeel.FastTcp
 
         public TcpServerSession(TcpServer server) : base(server)
         {
+            Logger.WriteLog($"Guid: {Id}, Starting");
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
             _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
@@ -138,7 +138,7 @@ namespace Modeel.FastTcp
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
 
-            if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
+            if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazdy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
                 Logger.WriteLog($"Received file part request for part: {filePartNumber}, from client: {Socket.RemoteEndPoint}!", LoggerInfo.fileTransfering);
                 ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);

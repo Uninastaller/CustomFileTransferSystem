@@ -2,6 +2,7 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -18,7 +19,7 @@ namespace Modeel.FastTcp
 
         #region Properties
 
-        public TypeOfSocket Type { get; }
+        public TypeOfClientSocket Type { get; }
         public string Address => _address.ToString();
         public Guid Id { get; }
         public bool IsConnecting { get; private set; } = false;
@@ -92,7 +93,7 @@ namespace Modeel.FastTcp
         public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false)
         {
             Id = Guid.NewGuid();
-            this.Type = TypeOfSocket.TCP_CLIENT;
+            this.Type = TypeOfClientSocket.TCP_CLIENT;
 
             _sessionWithCentralServer = sessionWithCentralServer;
 

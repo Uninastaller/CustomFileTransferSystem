@@ -1,6 +1,7 @@
 ﻿using Modeel.Frq;
 using Modeel.Log;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using Modeel.SSL;
 using System;
 using System.Collections.Generic;
@@ -34,7 +35,7 @@ namespace Modeel.FastTcp
         public int OptionAcceptorBacklog { get; set; } = 1024;
         public int OptionReceiveBufferSize { get; set; } = 8192;
         public int OptionSendBufferSize { get; set; } = 8192;
-        public TypeOfSocket Type { get; }
+        public TypeOfServerSocket Type { get; }
 
         #endregion Properties
 
@@ -69,7 +70,7 @@ namespace Modeel.FastTcp
 
         public ServerBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, int optionAcceptorBacklog = 1024)
         {
-            this.Type = TypeOfSocket.TCP_SERVER;
+            this.Type = TypeOfServerSocket.TCP_SERVER;
             _gui = gui;
 
             Id = Guid.NewGuid();

@@ -1,17 +1,14 @@
 ﻿using Modeel.Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Buffer = Modeel.Model.Buffer;
 
 namespace Modeel.FastTcp
-{ 
-/// <summary>
+{
+    /// <summary>
     /// TCP client is used to read/write data from/into the connected TCP server
     /// </summary>
     /// <remarks>Thread-safe</remarks>
@@ -32,17 +29,17 @@ namespace Modeel.FastTcp
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpClient(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) {}
+        public TcpClient(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) { }
         /// <summary>
         /// Initialize TCP client with a given DNS endpoint
         /// </summary>
         /// <param name="endpoint">DNS endpoint</param>
-        public TcpClient(DnsEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Host, endpoint.Port) {}
+        public TcpClient(DnsEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Host, endpoint.Port) { }
         /// <summary>
         /// Initialize TCP client with a given IP endpoint
         /// </summary>
         /// <param name="endpoint">IP endpoint</param>
-        public TcpClient(IPEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port) {}
+        public TcpClient(IPEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port) { }
         /// <summary>
         /// Initialize TCP client with a given endpoint, address and port
         /// </summary>
@@ -340,7 +337,7 @@ namespace Modeel.FastTcp
                     // Shutdown the socket associated with the client
                     Socket?.Shutdown(SocketShutdown.Both);
                 }
-                catch (SocketException) {}
+                catch (SocketException) { }
 
                 // Close the client socket
                 Socket?.Close();
@@ -356,7 +353,7 @@ namespace Modeel.FastTcp
                 // Update the client socket disposed flag
                 IsSocketDisposed = true;
             }
-            catch (ObjectDisposedException) {}
+            catch (ObjectDisposedException) { }
 
             // Update the connected flag
             IsConnected = false;
@@ -677,6 +674,7 @@ namespace Modeel.FastTcp
         /// </summary>
         private void TryReceive()
         {
+
             if (_receiving)
                 return;
 
@@ -697,7 +695,11 @@ namespace Modeel.FastTcp
                     if (!Socket.ReceiveAsync(_receiveEventArg))
                         process = ProcessReceive(_receiveEventArg);
                 }
-                catch (ObjectDisposedException) {}
+                catch (ObjectDisposedException) { }
+                catch (InvalidOperationException)
+                {
+                    _receiving = false;
+                }
             }
         }
 
@@ -757,7 +759,7 @@ namespace Modeel.FastTcp
                     if (!Socket.SendAsync(_sendEventArg))
                         process = ProcessSend(_sendEventArg);
                 }
-                catch (ObjectDisposedException) {}
+                catch (ObjectDisposedException) { }
             }
         }
 
@@ -771,7 +773,7 @@ namespace Modeel.FastTcp
                 // Clear send buffers
                 _sendBufferMain.Clear();
                 _sendBufferFlush.Clear();
-                _sendBufferFlushOffset= 0;
+                _sendBufferFlushOffset = 0;
 
                 // Update statistic
                 BytesPending = 0;
@@ -973,19 +975,19 @@ namespace Modeel.FastTcp
         /// <summary>
         /// Handle client connecting notification
         /// </summary>
-        protected virtual void OnConnecting() {}
+        protected virtual void OnConnecting() { }
         /// <summary>
         /// Handle client connected notification
         /// </summary>
-        protected virtual void OnConnected() {}
+        protected virtual void OnConnected() { }
         /// <summary>
         /// Handle client disconnecting notification
         /// </summary>
-        protected virtual void OnDisconnecting() {}
+        protected virtual void OnDisconnecting() { }
         /// <summary>
         /// Handle client disconnected notification
         /// </summary>
-        protected virtual void OnDisconnected() {}
+        protected virtual void OnDisconnected() { }
 
         /// <summary>
         /// Handle buffer received notification
@@ -996,7 +998,7 @@ namespace Modeel.FastTcp
         /// <remarks>
         /// Notification is called when another chunk of buffer was received from the server
         /// </remarks>
-        protected virtual void OnReceived(byte[] buffer, long offset, long size) {}
+        protected virtual void OnReceived(byte[] buffer, long offset, long size) { }
         /// <summary>
         /// Handle buffer sent notification
         /// </summary>
@@ -1006,7 +1008,7 @@ namespace Modeel.FastTcp
         /// Notification is called when another chunk of buffer was sent to the server.
         /// This handler could be used to send another buffer to the server for instance when the pending size is zero.
         /// </remarks>
-        protected virtual void OnSent(long sent, long pending) {}
+        protected virtual void OnSent(long sent, long pending) { }
 
         /// <summary>
         /// Handle empty send buffer notification
@@ -1015,13 +1017,13 @@ namespace Modeel.FastTcp
         /// Notification is called when the send buffer is empty and ready for a new data to send.
         /// This handler could be used to send another buffer to the server.
         /// </remarks>
-        protected virtual void OnEmpty() {}
+        protected virtual void OnEmpty() { }
 
         /// <summary>
         /// Handle error notification
         /// </summary>
         /// <param name="error">Socket error code</param>
-        protected virtual void OnError(SocketError error) {}
+        protected virtual void OnError(SocketError error) { }
 
         #endregion
 

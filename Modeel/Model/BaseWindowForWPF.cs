@@ -65,7 +65,7 @@ namespace Modeel.Model
             {
                 if (_concurrentQueue.TryDequeue(out BaseMsg? baseMsgFromQueue))
                 {
-                    Logger.WriteLog("New message received", LoggerInfo.msgReceivLocal, baseMsgFromQueue.GetType().Name);
+                    //Logger.WriteLog("New message received", LoggerInfo.msgReceivLocal, baseMsgFromQueue.GetType().Name);
                     // calling of registered method for ai
                     msgSwitch.Switch(baseMsgFromQueue.ai, baseMsgFromQueue);
                 }
@@ -117,7 +117,7 @@ namespace Modeel.Model
 
         public void BaseMsgEnque(BaseMsg baseMsg)
         {
-            Logger.WriteLog("Sending message", LoggerInfo.msgSendLocal, baseMsg.GetType().Name);
+            //Logger.WriteLog("Sending message", LoggerInfo.msgSendLocal, baseMsg.GetType().Name);
             _concurrentQueue.Enqueue(baseMsg);
             _autoResetEvent.Set();
         }

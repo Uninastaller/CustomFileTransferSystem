@@ -1,6 +1,7 @@
 ﻿using Modeel.FastTcp;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using System;
 using System.Diagnostics;
 using System.IO;

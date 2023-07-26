@@ -2,6 +2,7 @@
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +20,7 @@ namespace Modeel.FastTcp
 
         #region Properties
 
-        public TypeOfSocket Type { get; }
+        public TypeOfServerSocket Type { get; }
         public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
         public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
 
@@ -57,7 +58,7 @@ namespace Modeel.FastTcp
 
         public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024) : base(address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
-            Type = TypeOfSocket.TCP_SERVER;
+            Type = TypeOfServerSocket.TCP_SERVER;
 
             _gui = gui;
             Start();
@@ -134,6 +135,12 @@ namespace Modeel.FastTcp
             //Logger.WriteLog($"Tcp server obtained a message, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
         }
 
+        /// <summary>
+        /// Its called when TcpServerSesion receive FILE_REQUEST message and invoke this event 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="filePath"></param>
+        /// <param name="fileSize"></param>
         private void OnClientFileRequest(TcpSession session, string filePath, long fileSize)
         {
             Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
@@ -147,13 +154,13 @@ namespace Modeel.FastTcp
                     ResourceInformer.GenerateAccept(session);
                     serverSession.RequestAccepted = true;
                     serverSession.FilePathOfAcceptedfileRequest = filePath;
-                }
-                else if (result == MessageBoxResult.No)
-                {
-                    ResourceInformer.GenerateReject(session);
-                    serverSession.RequestAccepted = false;
+                    return;
                 }
             }
+
+            ResourceInformer.GenerateReject(session);
+            session.Disconnect();
+            session.Dispose();
         }
 
         #endregion EventHandler
@@ -171,7 +178,7 @@ namespace Modeel.FastTcp
             }
             _clients = null;
             _timer = null;
-            _gui?.BaseMsgEnque(new DisposeMessage(Id, Type));
+            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER));
             _gui = null;
         }
 

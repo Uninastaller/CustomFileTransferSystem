@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modeel.Model
+namespace Modeel.Model.Enums
 {
-    public enum SocketState
+    public enum RequestResponses
     {
-        CONNECTED = 0,
-        DISCONNECTED = 1,
+        ACCEPT,
+        REJECT,
     }
 }
