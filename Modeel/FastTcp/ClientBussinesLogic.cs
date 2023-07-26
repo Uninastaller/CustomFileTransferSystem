@@ -64,6 +64,9 @@ namespace Modeel.FastTcp
             }
         }
 
+        public long TransferSendRate { get; private set; }
+        public long TransferReceiveRate { get; private set; }
+
         #endregion Properties
 
         #region PrivateFields
@@ -339,8 +342,10 @@ namespace Modeel.FastTcp
         {
             _timerCounter++;
 
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            TransferSendRate = BytesSent - _secondOldBytesSent;
+            TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
+            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferSendRate);
+            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
 

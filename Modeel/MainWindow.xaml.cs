@@ -23,6 +23,9 @@ namespace Modeel
             Thread.CurrentThread.Name = $"{this.GetType().Name}";
 
             Logger.WriteLog("START OF PROGRAM", LoggerInfo.methodEntry);
+
+            contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
+
             InitializeComponent();
 
             _ = BaseWindowForWPF.CreateWindow<CFTS>();

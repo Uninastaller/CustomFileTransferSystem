@@ -17,7 +17,9 @@ namespace Modeel.Model
         long BytesSent { get; }
         long BytesReceived { get; }
         string TransferSendRateFormatedAsText { get; }
+        long TransferSendRate { get; }
         string TransferReceiveRateFormatedAsText { get; }
+        long TransferReceiveRate { get; }
         int OptionReceiveBufferSize { get; set; } // = 8192;
         int OptionSendBufferSize { get; set; } // = 8192;
         public bool Disconnect();

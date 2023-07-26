@@ -5,12 +5,14 @@ using Modeel.P2P;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Modeel
 {
@@ -38,7 +40,8 @@ namespace Modeel
         private readonly IP2pMasterClass _p2PMasterClass;
         //private List<IUniversalClientSocket> _p2pClients = new List<IUniversalClientSocket>();
         //private FileReceiver? fileReceiver;
-        private ObservableCollection<DownloadModelObject> _downloadModels = new ObservableCollection<DownloadModelObject>();
+        private List<DownloadModelObject> _downloadModels = new List<DownloadModelObject>();
+        //private AutoRefreshingCollection<DownloadModelObject> _downloadModels = new AutoRefreshingCollection<DownloadModelObject>();
 
         private Timer? _timer;
 
@@ -66,7 +69,7 @@ namespace Modeel
 
             // anonymous method that will be called every time the timer elapses
             // there is a need to transfer calling to ui thread, so we are sending message to ourself
-            _timer = new Timer(100); // Set the interval to .1 second
+            _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += Timer_elapsed;
             _timer.Start();
         }
@@ -79,6 +82,7 @@ namespace Modeel
              .Case(contract.GetContractId(typeof(SocketStateChangeMessage)), (SocketStateChangeMessage x) => SocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(P2pClietsUpdateMessage)), (P2pClietsUpdateMessage x) => P2pClietsUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
+             .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
              ;
         }
 
@@ -90,10 +94,18 @@ namespace Modeel
 
         #region PrivateMethods
 
+        private void DisposeMessageHandler(DisposeMessage disposeMessage)
+        {
+            DownloadModelObject? downloadModelObject = _downloadModels.FirstOrDefault(x => x.Clients.Any(client => client.Id == disposeMessage.SessionGuid));
+            downloadModelObject?.Clients.RemoveAll(client => client.Id == disposeMessage.SessionGuid);
+        }
+
         private void RefreshTablesMessageHandler()
         {
-            dgDownloading.ItemsSource = null;
-            dgDownloading.ItemsSource = _downloadModels;
+            //dgDownloading.ItemsSource = null;
+            //dgDownloading.ItemsSource = _downloadModels;
+            ICollectionView dataGridCollectionView = CollectionViewSource.GetDefaultView(dgDownloading.ItemsSource);
+            dataGridCollectionView.Refresh();
         }
 
         private void LoadRequestFromConfig()
@@ -198,6 +210,42 @@ namespace Modeel
                         row.DetailsVisibility = Visibility.Visible;
                     }
                 }
+            }
+        }
+
+        private void btnDisconnectFromServer_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalClientSocket client)
+            {
+                client.Disconnect();
+            }
+        }
+
+        private void btnDisconnectAndStop_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalClientSocket client)
+            {
+                client.DisconnectAndStop();
+            }
+        }
+
+        private void btnConnectAsyncToServer_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalClientSocket client)
+            {
+                client.ConnectAsync();
+            }
+        }
+
+        private void btnDisposeClient_Click(object sender, RoutedEventArgs e)
+        {
+            Button? b = sender as Button;
+            if (b?.Tag is IUniversalClientSocket client)
+            {
+                client.Dispose();
             }
         }
 

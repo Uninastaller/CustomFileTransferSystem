@@ -4,6 +4,9 @@ using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -21,8 +24,8 @@ namespace Modeel.FastTcp
 
         public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
         public TypeOfClientSocket Type { get; }
-        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
-        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteSendDifferentials.Sum() / _byteSendDifferentials.Count);
+        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteReceivedDifferentials.Sum() / _byteReceivedDifferentials.Count);
         public ClientBussinesLogicState State
         {
             get
@@ -35,9 +38,16 @@ namespace Modeel.FastTcp
             }
         }
 
+        public long TransferSendRate { get; private set; }
+        public long TransferReceiveRate { get; private set; }
+
         #endregion Properties
 
         #region PrivateFields
+
+        private int _bufferSize = 10; // Number of seconds to consider for the average transfer rate
+        private List<long> _byteSendDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
+        private List<long> _byteReceivedDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
 
         private IWindowEnqueuer _gui;
         private bool _sessionWithCentralServer;
@@ -66,6 +76,7 @@ namespace Modeel.FastTcp
         public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
             : this(address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
         {
+
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
             _fileReceiver = fileReceiver;
@@ -169,9 +180,19 @@ namespace Modeel.FastTcp
                     RequestFilePart();
                 }
 
+            _byteSendDifferentials.Insert(0, BytesSent - _secondOldBytesSent);
+            _byteReceivedDifferentials.Insert(0, BytesReceived - _secondOldBytesReceived);
 
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesSent - _secondOldBytesSent);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(BytesReceived - _secondOldBytesReceived);
+            if (_byteSendDifferentials.Count > _bufferSize)
+            {
+                _byteSendDifferentials.RemoveAt(_bufferSize);
+                _byteReceivedDifferentials.RemoveAt(_bufferSize);
+            }
+
+            TransferSendRate = BytesSent - _secondOldBytesSent;
+            TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
+            //TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferSendRate);
+            //TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
         }
@@ -230,6 +251,8 @@ namespace Modeel.FastTcp
 
         protected override void Dispose(bool disposingManagedResources)
         {
+            TransferReceiveRate = 0;
+            TransferSendRate = 0;
             DisconnectAndStop();
             base.Dispose(disposingManagedResources);
 

@@ -50,7 +50,6 @@ namespace Modeel.FastTcp
         private int _bufferSize = 10; // Number of seconds to consider for the average transfer rate
         private List<long> _byteSendDifferentials = new List<long>(); // Circular buffer to store byte differentials
         private List<long> _byteReceivedDifferentials = new List<long>(); // Circular buffer to store byte differentials
-        private int _currentIndex = 0; // Current index in the circular buffer
 
         #endregion PrivateFields
 
