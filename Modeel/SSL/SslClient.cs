@@ -14,7 +14,7 @@ namespace Modeel.SSL
     /// SSL client is used to read/write data from/into the connected SSL server
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslClient : IDisposable
+    public class SslClient :  BaseSession, IDisposable
     {
         /// <summary>
         /// Initialize SSL client with a given server IP address and port number
@@ -22,7 +22,10 @@ namespace Modeel.SSL
         /// <param name="context">SSL context</param>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public SslClient(SslContext context, IPAddress address, int port) : this(context, new IPEndPoint(address, port)) { }
+        public SslClient(SslContext context, IPAddress address, int port, int optionReceiveBufferSize, int optionSendBufferSize) : this(context, new IPEndPoint(address, port)) {
+            OptionReceiveBufferSize = optionReceiveBufferSize;
+            OptionSendBufferSize = optionSendBufferSize;
+        }
         /// <summary>
         /// Initialize SSL client with a given server IP address and port number
         /// </summary>

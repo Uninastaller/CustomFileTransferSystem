@@ -25,31 +25,6 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\\\Users\\\\tomas\\\\Downloads\\\\The.Office.US.S05.Season.5.Complete.720p.NF.WEB.x264" +
-            "-maximersk [mrsktv]\\\\The.Office.US.S05E15.720p.NF.WEB.x264-MRSK.mkv")]
-        public string File1Name {
-            get {
-                return ((string)(this["File1Name"]));
-            }
-            set {
-                this["File1Name"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("382521151")]
-        public long File1Size {
-            get {
-                return ((long)(this["File1Size"]));
-            }
-            set {
-                this["File1Size"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
         public string File1IpAddress1 {
             get {
@@ -93,6 +68,90 @@ namespace Modeel {
             }
             set {
                 this["File1Port2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\tomas\\Downloads\\v0.0.1.zip")]
+        public string File1Name {
+            get {
+                return ((string)(this["File1Name"]));
+            }
+            set {
+                this["File1Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2033973432")]
+        public long File1Size {
+            get {
+                return ((long)(this["File1Size"]));
+            }
+            set {
+                this["File1Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\tomas\\Downloads\\sample-2mb-text-file.txt")]
+        public string File2Name {
+            get {
+                return ((string)(this["File2Name"]));
+            }
+            set {
+                this["File2Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2167737")]
+        public long File2Size {
+            get {
+                return ((long)(this["File2Size"]));
+            }
+            set {
+                this["File2Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
+        public string File2IpAddress1 {
+            get {
+                return ((string)(this["File2IpAddress1"]));
+            }
+            set {
+                this["File2IpAddress1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("34259")]
+        public int File2Port1 {
+            get {
+                return ((int)(this["File2Port1"]));
+            }
+            set {
+                this["File2Port1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4194304")]
+        public long FlagSwitchCache {
+            get {
+                return ((long)(this["FlagSwitchCache"]));
+            }
+            set {
+                this["FlagSwitchCache"] = value;
             }
         }
     }

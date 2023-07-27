@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Modeel.Model
+namespace Modeel.Model.Enums
 {
     public enum SocketMessageFlag
     {
@@ -20,7 +20,14 @@ namespace Modeel.Model
         ACCEPT,
 
         [StringValue("b.C")]
-        FILE_PART
+        FILE_PART,
+
+
+
+
+
+        [StringValue("e.F")]
+        END_OF_MESSAGE_FLAG
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]

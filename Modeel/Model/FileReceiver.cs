@@ -18,6 +18,7 @@ namespace Modeel.Model
         public bool DownloadDone { get; set; } = false;
         public long NumberOfDownloadedParts { get; private set; } = 0;
         public float PercentageDownload => (NumberOfDownloadedParts / (float)TotalParts) * 100;
+        public long LastPartSize =>_lastPartSize;
 
         #endregion Properties
 
@@ -35,6 +36,7 @@ namespace Modeel.Model
         private readonly string _fileName;
         private readonly long _fileSize;
         private readonly long _partSize;
+        private readonly long _lastPartSize;
 
         #endregion PrivateFields
 
@@ -53,6 +55,7 @@ namespace Modeel.Model
             _fileName = fileName;
             _totalParts = fileSize / partSize + ((fileSize % partSize) > 0 ? 1 : 0);
             _receivedParts = new FilePartState[_totalParts];
+            _lastPartSize = fileSize % partSize != 0 ? fileSize % partSize : partSize;
         }
 
         #endregion Ctor

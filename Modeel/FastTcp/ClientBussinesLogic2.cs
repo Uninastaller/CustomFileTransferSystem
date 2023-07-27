@@ -80,7 +80,8 @@ namespace Modeel.FastTcp
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
             _fileReceiver = fileReceiver;
-            //RequestingFile = true;
+
+            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler);
 
             State = ClientBussinesLogicState.REQUESTING_FILE;
         }
@@ -140,6 +141,10 @@ namespace Modeel.FastTcp
                 Logger.WriteLog("File is completly transfered", LoggerInfo.fileTransfering);
                 this.Dispose();
                 return;
+            }
+            else if (_assignedFilePart == _fileReceiver.TotalParts)
+            {
+                _flagSwitch.SetLastPartSize(_fileReceiver.LastPartSize);
             }
 
             MethodResult result = _fileReceiver.GenerateRequestForFilePart(this, _assignedFilePart);

@@ -107,7 +107,7 @@ namespace Modeel
             Closed += Window_closedEvent;
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _clientBussinesLogic = new SslClientBussinesLogic(_contextForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
+            //_clientBussinesLogic = new SslClientBussinesLogic(_contextForCentralServerConnect, _ipAddress, _serverPort, this, sessionWithCentralServer: true);
 
             _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -244,8 +244,8 @@ namespace Modeel
                 _timer = null;
             }
 
-            _clientBussinesLogic.DisconnectAndStop();
-            _clientBussinesLogic.Dispose();
+            _clientBussinesLogic?.DisconnectAndStop();
+            _clientBussinesLogic?.Dispose();
             _p2PMasterClass.CloseAllConnections();
             _p2pClients.Clear();
             _p2pServers.Clear();

@@ -1,10 +1,9 @@
 ﻿using Modeel.Log;
+using Modeel.Model.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Modeel.Model
 {
@@ -28,6 +27,12 @@ namespace Modeel.Model
         private Dictionary<byte[], Action<byte[], long, long>> _binding;
         private Action? _onNonRegisteredAction;
 
+        //private byte[] _cache = new byte[Settings.Default.FlagSwitchCache];
+        private long _partSize;
+        private Buffer _cache = new Buffer();
+        private Action<byte[], long, long>? _cachingAction;
+        private long _defaultPartSize;
+
         #endregion PrivateFields
 
         #region Ctor
@@ -40,6 +45,20 @@ namespace Modeel.Model
         #endregion Ctor
 
         #region PublicMethods
+
+        public void SetLastPartSize(long size)
+        {
+            _partSize = size;
+            Logger.WriteLog($"SWITCH, setting part size for last part, size is now: {_partSize}");
+        }
+
+        public void SetCaching(long partSize, Action<byte[], long, long> cachingAction)
+        {
+            _defaultPartSize = partSize;
+            _partSize = partSize;
+            _cache.Reserve(partSize * 2);
+            _cachingAction = cachingAction;
+        }
 
         public void OnNonRegistered(Action handler)
         {
@@ -59,17 +78,105 @@ namespace Modeel.Model
             }
         }
 
+        //public void Switch(byte[] buffer, long offset, long size)
+        //{
+        //    Logger.WriteLog($"SWITCH START, partSize: {_partSize}");
+        //    // Check if message is long enought to have flag
+        //    if (size < 3)
+        //    {
+        //        Logger.WriteLog($"SWITCH SIZE -3, partSize: {_partSize}");
+        //        Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
+        //        _onNonRegisteredAction?.Invoke();
+        //    }
+        //    // Try found action by message flag
+        //    else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? action))
+        //    {
+        //        Logger.WriteLog($"SWITCH ACTION FOUND: {action.Method}, partSize: {_partSize}");
+        //        // Action is caching action and message size is not full file part
+        //        if (action == _cachingAction && (size - 3 - sizeof(int)) < _partSize)
+        //        {
+        //            Logger.WriteLog($"SWITCH STARTING CASHING, SIZE WAS: {size - 3 - sizeof(int)}, partSize: {_partSize}");
+        //            // Save message for later bcs its not completed
+        //            _cache.Clear();
+        //            _cache.Append(buffer, offset, size);
+        //        }
+        //        // Action is not caching action
+        //        else
+        //        {
+        //            // Invoke coresponding action
+        //            Logger.WriteLog($"SWITCH INVOKING CORESPONDING METHOD, partSize: {_partSize}");
+        //            action.Invoke(buffer, offset, size);
+        //        }
+        //    }
+        //    // Flag is not registered or is missing
+        //    // If there is already something in cache and new message + data in cache are not larger than file part
+        //    else if (_cache.Size > 0 && (_cache.Size + size - 3 - sizeof(int) <= _partSize))
+        //    {
+        //        Logger.WriteLog($"SWITCH ADDING TO CACHE, ACTUAL SIZE: {_cache.Size}, DATA SIZE: {size - 3 - sizeof(int)}, partSize: {_partSize}");
+        //        _cache.Append(buffer, offset, size);
+
+        //        // Check if in cache is not full file part
+        //        Logger.WriteLog($"SWITCH  CHECKING IF ITS DONE, ACTUAL: {_cache.Size}, DONE: {_partSize}, partSize: {_partSize}");
+        //        if ((_cache.Size - 3 - sizeof(int)) == _partSize)
+        //        {
+        //            _partSize = _defaultPartSize;
+        //            Logger.WriteLog($"SWITCH DONE, partSize: {_partSize}");
+        //            _cachingAction.Invoke(_cache.Data, 0, _cache.Capacity);
+        //            _cache.Clear();
+        //        }
+        //    }
+        //    // Received data are completly garbage
+        //    else
+        //    {
+        //        if (size < 100000)
+        //        {
+        //            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+        //            Logger.WriteLog($"MESSAGE: {message}", LoggerInfo.warning);
+        //        }
+        //        _onNonRegisteredAction?.Invoke();
+        //    }
+        //}
+
         public void Switch(byte[] buffer, long offset, long size)
         {
+            // Check if message is long enought to have flag
             if (size < 3)
             {
                 Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
                 _onNonRegisteredAction?.Invoke();
             }
-            else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? handler))
+            // Try found action by message flag
+            else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? action))
             {
-                handler.Invoke(buffer, offset, size);
+                // Action is caching action and message size is not full file part
+                if (action == _cachingAction && (size - 3 - sizeof(int)) < _partSize)
+                {
+                    // Save message for later bcs its not completed
+                    _cache.Clear();
+                    _cache.Append(buffer, offset, size);
+                }
+                // Action is not caching action
+                else
+                {
+                    // Invoke coresponding action
+                    action.Invoke(buffer, offset, size);
+                }
             }
+            // Flag is not registered or is missing
+            // If there is already something in cache and new message + data in cache are not larger than file part
+            else if (_cache.Size > 0 && (_cache.Size + size - 3 - sizeof(int) <= _partSize))
+            {
+                _cache.Append(buffer, offset, size);
+
+                // Check if in cache is not full file part
+                if ((_cache.Size - 3 - sizeof(int)) == _partSize)
+                {
+                    _partSize = _defaultPartSize;
+                    _cachingAction.Invoke(_cache.Data, 0, _cache.Size);
+                    _cache.Clear();
+                }
+            }
+            // Received data are completly garbage
             else
             {
                 if (size < 100000)
@@ -80,6 +187,34 @@ namespace Modeel.Model
                 _onNonRegisteredAction?.Invoke();
             }
         }
+
+        //public void Switch(byte[] buffer, long offset, long size)
+        //{
+        //    // Check if message is long enought to have flag
+        //    if (size < 3)
+        //    {
+        //        Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
+        //        _onNonRegisteredAction?.Invoke();
+        //    }
+        //    // Try found action by message flag
+        //    else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? action))
+        //    {
+        //        // Action is caching action and message size is not full file part
+
+        //        action.Invoke(buffer, offset, size);
+        //    }
+        //    // Flag is not registered or is missing
+        //    // If there is already something in cache and new message + data in cache are not larger than file par
+        //    else
+        //    {
+        //        if (size < 100000)
+        //        {
+        //            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+        //            Logger.WriteLog($"MESSAGE: {message}", LoggerInfo.warning);
+        //        }
+        //        _onNonRegisteredAction?.Invoke();
+        //    }
+        //}
 
         #endregion PublicMethods
 

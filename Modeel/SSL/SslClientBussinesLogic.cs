@@ -4,34 +4,51 @@ using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Timers;
-using System.Windows.Navigation;
+using System.Windows;
 using Timer = System.Timers.Timer;
 
 
 namespace Modeel.SSL
 {
-    public class SslClientBussinesLogic : SslClient, IUniversalClientSocket
+    public class SslClientBussinesLogic : SslClient, IUniversalClientSocket, ISession
     {
 
         #region Properties
 
+        public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
         public TypeOfClientSocket Type { get; }
-        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
-        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteSendDifferentials.Sum() / _byteSendDifferentials.Count);
+        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteReceivedDifferentials.Sum() / _byteReceivedDifferentials.Count);
+
+        public ClientBussinesLogicState State
+        {
+            get
+            {
+                return _state;
+            }
+            set
+            {
+                _state = value;
+            }
+        }
 
         public long TransferSendRate { get; private set; }
         public long TransferReceiveRate { get; private set; }
+
         #endregion Properties
 
         #region PrivateFields
+
+        private int _bufferSize = 10; // Number of seconds to consider for the average transfer rate
+        private List<long> _byteSendDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
+        private List<long> _byteReceivedDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
 
         private IWindowEnqueuer _gui;
         private bool _sessionWithCentralServer;
@@ -44,16 +61,41 @@ namespace Modeel.SSL
         private long _secondOldBytesSent;
         private long _secondOldBytesReceived;
 
+        private string _requestingFileName = string.Empty;
+        private long _requestingFileSize;
+
+        private readonly FileReceiver? _fileReceiver;
+
+        private ClientBussinesLogicState _state = ClientBussinesLogicState.NONE;
+
+        private long _assignedFilePart;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false) : base(context, address, port)
+        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
+            : this(context, address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
+        {
+            _requestingFileName = fileName;
+            _requestingFileSize = fileSize;
+            _fileReceiver = fileReceiver;
+
+            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler);
+
+            State = ClientBussinesLogicState.REQUESTING_FILE;
+        }
+
+        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, bool sessionWithCentralServer = false) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize)
         {
             Type = TypeOfClientSocket.TCP_CLIENT_SSL;
 
-
             _sessionWithCentralServer = sessionWithCentralServer;
+
+            _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
+            _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
+            _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
+            _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
 
             ConnectAsync();
 
@@ -90,9 +132,39 @@ namespace Modeel.SSL
 
         #region PrivateMethods
 
-        private void TestMessage()
+        private void RequestFilePart()
         {
-            //SendAsync("Hellou from SSlClientBussinesLoggic[1s]");
+            _assignedFilePart = _fileReceiver.AssignmentOfFilePart();
+            if (_assignedFilePart == -1)
+            {
+                State = ClientBussinesLogicState.NONE;
+                Logger.WriteLog("File is completly transfered", LoggerInfo.fileTransfering);
+                this.Dispose();
+                return;
+            }
+            else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
+            {
+                _flagSwitch.SetLastPartSize(_fileReceiver.LastPartSize);
+            }
+
+            MethodResult result = _fileReceiver.GenerateRequestForFilePart(this, _assignedFilePart);
+
+            switch (result)
+            {
+                case MethodResult.SUCCES:
+                    State = ClientBussinesLogicState.WAITING_FOR_FILE_PART;
+                    break;
+                case MethodResult.ERROR:
+                    State = ClientBussinesLogicState.REQUEST_ACCEPTED;
+                    Logger.WriteLog($"Error in generating request for file part, switching to state: {State}!", LoggerInfo.fileTransfering);
+                    break;
+            }
+        }
+
+        private void RequestFile()
+        {
+            if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+                State = ClientBussinesLogicState.REQUEST_SENDED;
         }
 
         #endregion PrivateMethods
@@ -103,23 +175,105 @@ namespace Modeel.SSL
         {
             _timerCounter++;
 
+            if (IsConnected)
+                if (State == ClientBussinesLogicState.REQUESTING_FILE)
+                {
+                    RequestFile();
+                }
+                else if (State == ClientBussinesLogicState.REQUEST_ACCEPTED)
+                {
+                    RequestFilePart();
+                }
+
+            _byteSendDifferentials.Insert(0, BytesSent - _secondOldBytesSent);
+            _byteReceivedDifferentials.Insert(0, BytesReceived - _secondOldBytesReceived);
+
+            if (_byteSendDifferentials.Count > _bufferSize)
+            {
+                _byteSendDifferentials.RemoveAt(_bufferSize);
+                _byteReceivedDifferentials.RemoveAt(_bufferSize);
+            }
+
             TransferSendRate = BytesSent - _secondOldBytesSent;
             TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferSendRate);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
+            //TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferSendRate);
+            //TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
 
-            TestMessage();
+        }
+
+        private void OnRejectHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"Reject was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
+
+            if (State == ClientBussinesLogicState.REQUEST_SENDED)
+            {
+                Logger.WriteLog("Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
+                MessageBox.Show("Request for file was rejected!");
+                this.Dispose();
+            }
+        }
+
+        private void OnAcceptHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"Accept was received [CLIENT]: {Address}:{Port}", LoggerInfo.socketMessage);
+
+            if (State == ClientBussinesLogicState.REQUEST_SENDED)
+            {
+                Logger.WriteLog($"Request for file was accepted! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
+
+                // First request for file part
+                RequestFilePart();
+            }
+        }
+
+        private void OnFilePartHandler(byte[] buffer, long offset, long size)
+        {
+            Logger.WriteLog($"File part was received [CLIENT]: {Address}:{Port}, with size: {size}", LoggerInfo.socketMessage);
+
+            if (State == ClientBussinesLogicState.WAITING_FOR_FILE_PART)
+            {
+                int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
+                Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
+                if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int)) == MethodResult.ERROR)
+                {
+
+                }
+
+                RequestFilePart();
+            }
+        }
+
+        private void OnNonRegistredMessage()
+        {
+            this.Disconnect();
+            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
         }
 
         #endregion EventHandler
 
         #region OverridedMethods
 
+        protected override void Dispose(bool disposingManagedResources)
+        {
+            TransferReceiveRate = 0;
+            TransferSendRate = 0;
+            DisconnectAndStop();
+            base.Dispose(disposingManagedResources);
+
+            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
+        }
+
         protected override void OnConnected()
         {
             Logger.WriteLog($"Ssl client connected a new session with Id {Id}", LoggerInfo.sslClient);
+
+            if (_fileReceiver != null && !_fileReceiver.DownloadDone)
+            {
+                Thread.Sleep(100);
+                RequestFile();
+            }
 
             _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
         }
@@ -127,12 +281,18 @@ namespace Modeel.SSL
         protected override void OnHandshaked()
         {
             Logger.WriteLog($"Ssl client handshaked a new session with Id {Id}", LoggerInfo.sslClient);
-            SendAsync("Hello from SSL client!");
+            //SendAsync("Hello from SSL client!");
         }
 
         protected override void OnDisconnected()
         {
             Logger.WriteLog($"Ssl client disconnected from session with Id: {Id}", LoggerInfo.sslClient);
+
+            if (_assignedFilePart != -1)
+            {
+                _fileReceiver?.ReAssignFilePart(_assignedFilePart);
+                _assignedFilePart = 0;
+            }
 
             // Wait for a while...
             Thread.Sleep(1000);
@@ -146,9 +306,10 @@ namespace Modeel.SSL
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            //Logger.WriteLog($"Ssl client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
-            Logger.WriteLog($"Ssl client obtained a message[{size}]", LoggerInfo.socketMessage);
+            _flagSwitch.Switch(buffer, offset, size);
+            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            ////Logger.WriteLog($"Ssl client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
+            //Logger.WriteLog($"Ssl client obtained a message[{size}]", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)

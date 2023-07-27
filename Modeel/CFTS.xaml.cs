@@ -2,6 +2,7 @@
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.P2P;
+using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,6 +10,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -42,6 +45,10 @@ namespace Modeel
         //private FileReceiver? fileReceiver;
         private List<DownloadModelObject> _downloadModels = new List<DownloadModelObject>();
         //private AutoRefreshingCollection<DownloadModelObject> _downloadModels = new AutoRefreshingCollection<DownloadModelObject>();
+        private SslContext _contextForP2pAsClient;
+        private SslContext _contextForP2pAsServer;
+        private readonly string _certificateNameForP2pAsClient = "MyTestCertificateClient.pfx";
+        private readonly string _certificateNameForP2pAsServer = "MyTestCertificateServer.pfx";
 
         private Timer? _timer;
 
@@ -66,6 +73,9 @@ namespace Modeel
             _p2PMasterClass = new P2pMasterClass(this);
 
             Closed += Window_closedEvent;
+
+            _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+            _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
 
             // anonymous method that will be called every time the timer elapses
             // there is a need to transfer calling to ui thread, so we are sending message to ourself
@@ -115,7 +125,14 @@ namespace Modeel
             request.FileSize = Settings.Default.File1Size;
             request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress1, Port = Settings.Default.File1Port1 });
             request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress2, Port = Settings.Default.File1Port2 });
+
+            RequestModelObject request2 = new RequestModelObject();
+            request2.FilePath = Settings.Default.File2Name;
+            request2.FileSize = Settings.Default.File2Size;
+            request2.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File2IpAddress1, Port = Settings.Default.File2Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL });
+
             _requestModels.Add(request);
+            _requestModels.Add(request2);
         }
 
         private void P2pClietsUpdateMessageHandler(P2pClietsUpdateMessage message)
@@ -184,7 +201,9 @@ namespace Modeel
                         }
                         else if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL)
                         {
-                            // To do
+                            IUniversalClientSocket socket = new SslClientBussinesLogic(_contextForP2pAsClient, iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, filePartSize * 2, filePartSize * 2);
+                            downloadModelObject.Clients.Add(socket);
+                            _p2PMasterClass.CreateNewClient(socket);
                         }
                     }
                 }

@@ -1,5 +1,6 @@
 ﻿using Modeel.Log;
 using Modeel.Model;
+using Modeel.Model.Enums;
 using Modeel.SSL;
 using System;
 using System.Collections.Generic;

@@ -13,7 +13,7 @@ namespace Modeel.SSL
     /// SSL session is used to read and write data from the connected SSL client
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslSession : IDisposable, ISession
+    public class SslSession : BaseSession, IDisposable, ISession
     {
 
         public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;

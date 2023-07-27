@@ -20,7 +20,11 @@ namespace Modeel.SSL
         /// <param name="context">SSL context</param>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public SslServer(SslContext context, IPAddress address, int port, int optionAcceptorBacklog) : this(context, new IPEndPoint(address, port), optionAcceptorBacklog:optionAcceptorBacklog) { }
+        public SslServer(SslContext context, IPAddress address, int port, int optionReceiveBufferSize, int optionSendBufferSize, int optionAcceptorBacklog) : this(context, new IPEndPoint(address, port), optionAcceptorBacklog: optionAcceptorBacklog)
+        {
+            OptionSendBufferSize = optionSendBufferSize;
+            OptionReceiveBufferSize = optionReceiveBufferSize;
+        }
 
         /// <summary>
         /// Initialize SSL server with a given IP address and port number
@@ -47,7 +51,7 @@ namespace Modeel.SSL
         /// </summary>
         /// <param name="context">SSL context</param>
         /// <param name="endpoint">IP endpoint</param>
-        public SslServer(SslContext context, IPEndPoint endpoint, int optionAcceptorBacklog = 1024) : this(context, endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port, optionAcceptorBacklog:optionAcceptorBacklog) { }
+        public SslServer(SslContext context, IPEndPoint endpoint, int optionAcceptorBacklog = 1024) : this(context, endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port, optionAcceptorBacklog: optionAcceptorBacklog) { }
         /// <summary>
         /// Initialize SSL server with a given SSL context, endpoint, address and port
         /// </summary>
