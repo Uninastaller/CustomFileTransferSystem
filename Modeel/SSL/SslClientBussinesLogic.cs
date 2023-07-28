@@ -51,7 +51,7 @@ namespace Modeel.SSL
         private List<long> _byteReceivedDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
 
         private IWindowEnqueuer _gui;
-        private bool _sessionWithCentralServer;
+        private TypeOfSession _typeOfSession;
 
         private bool _stop;
 
@@ -74,8 +74,8 @@ namespace Modeel.SSL
 
         #region Ctor
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, bool sessionWithCentralServer = false)
-            : this(context, address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, sessionWithCentralServer: sessionWithCentralServer)
+        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING)
+            : this(context, address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, typeOfSession: typeOfSession)
         {
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
@@ -86,11 +86,11 @@ namespace Modeel.SSL
             State = ClientBussinesLogicState.REQUESTING_FILE;
         }
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, bool sessionWithCentralServer = false) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize)
+        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize)
         {
             Type = TypeOfClientSocket.TCP_CLIENT_SSL;
 
-            _sessionWithCentralServer = sessionWithCentralServer;
+            _typeOfSession = typeOfSession;
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
@@ -245,10 +245,18 @@ namespace Modeel.SSL
             }
         }
 
-        private void OnNonRegistredMessage()
+        private void OnNonRegistredMessage(string message)
         {
-            this.Disconnect();
-            Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
+            if (_typeOfSession == TypeOfSession.TOR_CONTROL_SESSION)
+            {
+                _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
+                Logger.WriteLog($"Tor cotroller obtained a message[{message.Length}]: {message}", LoggerInfo.torControl);
+            }
+            else
+            {
+                this.Disconnect();
+                Logger.WriteLog($"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}", LoggerInfo.warning);
+            }
         }
 
         #endregion EventHandler
@@ -275,7 +283,7 @@ namespace Modeel.SSL
                 RequestFile();
             }
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnHandshaked()
@@ -301,7 +309,7 @@ namespace Modeel.SSL
             if (!_stop)
                 ConnectAsync();
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)

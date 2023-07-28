@@ -5,11 +5,9 @@ using Modeel.Model.Enums;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows.Media;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Modeel
 {
@@ -51,7 +49,7 @@ namespace Modeel
                 FillTorrcWithDefaultContent();
             }
 
-            _controlSocket = new ClientBussinesLogic2(_ipAddress, _controlPort, this);
+            _controlSocket = new ClientBussinesLogic2(_ipAddress, _controlPort, this, typeOfSession: TypeOfSession.TOR_CONTROL_SESSION);
         }
 
         internal void Init()
@@ -70,19 +68,22 @@ namespace Modeel
 
         private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
         {
-            if (message.SocketState == SocketState.CONNECTED)
+            if (message.TypeOfSession == TypeOfSession.TOR_CONTROL_SESSION)
             {
-                rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
-                SendStringToControlSocket("AUTHENTICATE ");
-                SendStringToControlSocket("SETEVENTS CIRC");
+                if (message.SocketState == SocketState.CONNECTED)
+                {
+                    rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
+                    SendStringToControlSocket("AUTHENTICATE ");
+                    SendStringToControlSocket("SETEVENTS CIRC");
 
-                //SendStringToControlSocket("SETEVENTS CIRC INFO WARN ERR");
-                //SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
+                    //SendStringToControlSocket("SETEVENTS CIRC INFO WARN ERR");
+                    //SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
 
-            }
-            else if (message.SocketState == SocketState.DISCONNECTED)
-            {
-                rtgControlSocketState.Fill = new SolidColorBrush(Colors.Red);
+                }
+                else if (message.SocketState == SocketState.DISCONNECTED)
+                {
+                    rtgControlSocketState.Fill = new SolidColorBrush(Colors.Red);
+                }
             }
         }
 
@@ -106,7 +107,7 @@ namespace Modeel
                 message += "\r\n";
                 _controlSocket.Send(Encoding.ASCII.GetBytes(message));
                 tbkTextForControlSocket.Text += "[CLIENT]: " + message;
-                tbkTextForControlSocket.ScrollToEnd();  
+                tbkTextForControlSocket.ScrollToEnd();
             }
         }
 

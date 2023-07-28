@@ -25,7 +25,7 @@ namespace Modeel.Model
         #region PrivateFields
 
         private Dictionary<byte[], Action<byte[], long, long>> _binding;
-        private Action? _onNonRegisteredAction;
+        private Action<string>? _onNonRegisteredAction;
 
         //private byte[] _cache = new byte[Settings.Default.FlagSwitchCache];
         private long _partSize;
@@ -60,7 +60,7 @@ namespace Modeel.Model
             _cachingAction = cachingAction;
         }
 
-        public void OnNonRegistered(Action handler)
+        public void OnNonRegistered(Action<string> handler)
         {
             _onNonRegisteredAction = handler;
         }
@@ -143,7 +143,7 @@ namespace Modeel.Model
             if (size < 3)
             {
                 Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
-                _onNonRegisteredAction?.Invoke();
+                _onNonRegisteredAction?.Invoke(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
             }
             // Try found action by message flag
             else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? action))
@@ -179,12 +179,7 @@ namespace Modeel.Model
             // Received data are completly garbage
             else
             {
-                if (size < 100000)
-                {
-                    string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-                    Logger.WriteLog($"MESSAGE: {message}", LoggerInfo.warning);
-                }
-                _onNonRegisteredAction?.Invoke();
+                _onNonRegisteredAction?.Invoke(size < 100000 ? Encoding.UTF8.GetString(buffer, (int)offset, (int)size) : string.Empty);
             }
         }
 

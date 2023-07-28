@@ -19,6 +19,12 @@ namespace Modeel.FastTcp
 
         #region Properties
 
+        
+
+
+
+
+
         public TypeOfClientSocket Type { get; }
         public string Address => _address.ToString();
         public Guid Id { get; }
@@ -59,7 +65,7 @@ namespace Modeel.FastTcp
                 if (value != _isConnected)
                 {
                     _isConnected = value;
-                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED, SessionWithCentralServer = _sessionWithCentralServer });
+                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
                 }
             }
         }
@@ -73,7 +79,7 @@ namespace Modeel.FastTcp
 
         private byte[] _readBuffer = new byte[1000];
 
-        private bool _sessionWithCentralServer;
+        private TypeOfSession _typeOfSession;
         private bool _isConnected = false;
 
         private readonly IWindowEnqueuer _gui;
@@ -89,16 +95,31 @@ namespace Modeel.FastTcp
         private readonly Timer _timer;
         private UInt64 _timerCounter;
 
+
+
+        WebProxy proxy;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, bool sessionWithCentralServer = false)
+        public ClientBussinesLogic(IPAddress address, int port, IWindowEnqueuer gui, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING)
         {
+            // Create a TCP client and configure the SOCKS proxy
+            //System.Net.Sockets.TcpClient tcpClient = new System.Net.Sockets.TcpClient(new IPEndPoint(IPAddress.Parse(socksHost), socksPort));
+            // Configure the SOCKS proxy settings
+            // Set the SOCKS proxy address and port
+            string socksHost = "127.0.0.1";
+            int socksPort = 9050;
+            proxy = new WebProxy(socksHost, socksPort);
+            //proxy.ProxyType = WebProxyType.Socks;
+
+
+
             Id = Guid.NewGuid();
             this.Type = TypeOfClientSocket.TCP_CLIENT;
 
-            _sessionWithCentralServer = sessionWithCentralServer;
+            _typeOfSession = typeOfSession;
 
             _gui = gui;
             _address = address;
@@ -163,7 +184,7 @@ namespace Modeel.FastTcp
                 IsConnecting = true;
 
                 Socket = new System.Net.Sockets.TcpClient();
-
+                
                 // Start connecting to the server asynchronously
                 result = Socket.BeginConnect(_address, _port, null, null);
 

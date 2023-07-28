@@ -116,7 +116,7 @@ namespace Modeel.SSL
         public delegate void ClientFileRequestHandler(SslSession sender, string filePath, long fileSize);
         public event ClientFileRequestHandler? ClientFileRequest;
 
-        private void OnNonRegistredMessage()
+        private void OnNonRegistredMessage(string message)
         {
             this.Server.FindSession(this.Id).Disconnect();
             Logger.WriteLog($"Warning: Non registered message received, disconnecting client!", LoggerInfo.warning);

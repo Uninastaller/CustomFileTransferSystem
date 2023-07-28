@@ -188,7 +188,7 @@ namespace Modeel
 
         private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
         {
-            if (message.SessionWithCentralServer)
+            if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
             {
                 if (message.SocketState == SocketState.CONNECTED)
                 {
@@ -363,7 +363,7 @@ namespace Modeel
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)
         {
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
+            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(P2pIpAddress, P2pPort, this));
         }
 
         #endregion EventHandlers

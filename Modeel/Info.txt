@@ -28,6 +28,7 @@ GETCONF SocksPort
 SETEVENTS CIRC
 SIGNAL HEARTBEAT
 GETINFO circuit-status
+netstat -an
 
 
 
