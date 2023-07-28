@@ -142,7 +142,7 @@ namespace Modeel.FastTcp
                 this.Dispose();
                 return;
             }
-            else if (_assignedFilePart == _fileReceiver.TotalParts)
+            else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
             {
                 _flagSwitch.SetLastPartSize(_fileReceiver.LastPartSize);
             }
