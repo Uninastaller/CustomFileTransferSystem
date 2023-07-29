@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using Buffer = System.Buffer;
 using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
@@ -96,7 +97,8 @@ namespace Modeel.FastTcp
         private UInt64 _timerCounter;
 
 
-
+        string socksHost = "127.0.0.1";
+        int socksPort = 9050;
         WebProxy proxy;
 
         #endregion PrivateFields
@@ -109,9 +111,9 @@ namespace Modeel.FastTcp
             //System.Net.Sockets.TcpClient tcpClient = new System.Net.Sockets.TcpClient(new IPEndPoint(IPAddress.Parse(socksHost), socksPort));
             // Configure the SOCKS proxy settings
             // Set the SOCKS proxy address and port
-            string socksHost = "127.0.0.1";
-            int socksPort = 9050;
-            proxy = new WebProxy(socksHost, socksPort);
+            //string socksHost = "127.0.0.1";
+            //int socksPort = 9050;
+            //proxy = new WebProxy(socksHost, socksPort);
             //proxy.ProxyType = WebProxyType.Socks;
 
 
@@ -184,9 +186,10 @@ namespace Modeel.FastTcp
                 IsConnecting = true;
 
                 Socket = new System.Net.Sockets.TcpClient();
-                
+
                 // Start connecting to the server asynchronously
-                result = Socket.BeginConnect(_address, _port, null, null);
+                //result = Socket.BeginConnect(_address, _port, null, null);
+                result = Socket.BeginConnect(_address, socksPort, null, null);
 
                 // Wait up to 5 seconds for the connection to complete
                 bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(5));
@@ -300,6 +303,88 @@ namespace Modeel.FastTcp
 
         private void OnConnected()
         {
+
+            // Send a request to connect to the target host and port through the SOCKS proxy
+            string targetHost = "127.0.0.1";
+            int targetPort = _port;
+            IPAddress ipAddress;
+            bool isIp = IPAddress.TryParse(targetHost, out ipAddress);
+
+            byte[] request4 = new byte[9];
+            request4[0] = 0x04;
+            request4[1] = 0x01;
+            request4[2] = (byte)((targetPort >> 8) & 0xFF); // Port high byte
+            request4[3] = (byte)(targetPort & 0xFF);        // Port low byte
+            ipAddress.GetAddressBytes().CopyTo(request4, 4);
+            request4[8] = 0x00; // Null terminator
+
+
+            byte[] request5 = new byte[10];
+            request5[0] = 0x05;
+            request5[1] = 0x00;
+            request5[2] = 0x00;
+
+
+
+
+
+
+
+
+
+
+
+            //// Set the SOCKS version based on whether the targetHost is an IP address or a domain name
+            //byte socksVersion = (byte)(isIp ? 0x04 : 0x05);
+
+            //// Send a request to connect to the target host and port through the SOCKS proxy
+            //byte[] request;
+            //if (socksVersion == 0x04)
+            //{
+            //    // SOCKS4 request
+            //    request = new byte[9];
+            //    request[0] = 0x04; // SOCKS version 4
+            //    request[1] = 0x01; // Command: Connect
+            //    request[2] = (byte)((targetPort >> 8) & 0xFF); // Port high byte
+            //    request[3] = (byte)(targetPort & 0xFF);        // Port low byte
+            //    ipAddress.GetAddressBytes().CopyTo(request, 4);
+            //    request[8] = 0x00; // Null terminator
+            //}
+            //else
+            //{
+            //    // SOCKS5 request
+            //    request = new byte[10];
+            //    request[0] = 0x05; // SOCKS version 5
+            //    request[1] = 0x01; // Command: Connect
+            //    request[2] = 0x00; // Reserved (must be 0x00)
+
+            //    if (isIp)
+            //    {
+            //        ipAddress.GetAddressBytes().CopyTo(request, 3);
+            //    }
+            //    else
+            //    {
+            //        // Use domain name
+            //        request[3] = 0x03; // Address type: Domain name
+            //        byte[] domainBytes = System.Text.Encoding.ASCII.GetBytes(targetHost);
+            //        request[4] = (byte)domainBytes.Length;
+            //        domainBytes.CopyTo(request, 5);
+            //    }
+
+            //    request[request.Length - 2] = (byte)((targetPort >> 8) & 0xFF); // Port high byte
+            //    request[request.Length - 1] = (byte)(targetPort & 0xFF);        // Port low byte
+            //}
+
+            Send(request4);
+            //NetworkStream proxyStream = Socket.GetStream();
+            //proxyStream.Write(request, 0, request.Length);
+
+            //Send($"CONNECT {_address}:{_port} HTTP/1.1<CR><LF>");
+            //Send($"<CR><LF>");
+
+            //Send($"socks5h://localhost:{_port}");
+
+
             IsConnecting = false;
             IsConnected = true;
             StartReceivingData();

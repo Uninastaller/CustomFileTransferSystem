@@ -29,6 +29,8 @@ SETEVENTS CIRC
 SIGNAL HEARTBEAT
 GETINFO circuit-status
 netstat -an
+https://en.wikipedia.org/wiki/SOCKS
+GETINFO stream-status
 
 
 

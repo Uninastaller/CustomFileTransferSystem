@@ -74,10 +74,10 @@ namespace Modeel
                 {
                     rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
                     SendStringToControlSocket("AUTHENTICATE ");
-                    SendStringToControlSocket("SETEVENTS CIRC");
+                    //SendStringToControlSocket("SETEVENTS CIRC");
 
                     //SendStringToControlSocket("SETEVENTS CIRC INFO WARN ERR");
-                    //SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
+                    SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
 
                 }
                 else if (message.SocketState == SocketState.DISCONNECTED)
