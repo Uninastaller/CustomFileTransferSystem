@@ -58,7 +58,6 @@ namespace Modeel.FastTcp
         public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024) : base(address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
             Type = TypeOfServerSocket.TCP_SERVER;
-
             _gui = gui;
             Start();
 

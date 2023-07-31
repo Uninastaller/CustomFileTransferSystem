@@ -28,8 +28,8 @@ namespace Modeel
 
             InitializeComponent();
 
-            _ = BaseWindowForWPF.CreateWindow<CFTS>();
-            _ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
+            //_ = BaseWindowForWPF.CreateWindow<CFTS>();
+            //_ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
         }
 
         private void btServerWindow_Click(object sender, RoutedEventArgs e)

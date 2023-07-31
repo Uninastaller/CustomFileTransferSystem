@@ -43,6 +43,13 @@ namespace Modeel
 
         private Timer? _timer;
 
+        #region PrivateFields
+
+        private IPAddress? _publicIpAddress;
+        private IPAddress? _localIpAddress;
+
+        #endregion PrivateFields
+
         #region Properties
 
         public static int GetRandomFreePort
@@ -127,7 +134,7 @@ namespace Modeel
 
         #endregion Ctor
 
-        internal void Init()
+        internal async void Init()
         {
             msgSwitch
              .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
@@ -137,10 +144,13 @@ namespace Modeel
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
              .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageMessageHandler(x))
              ;
+
+            _publicIpAddress = await NetworkUtils.GetPublicIPAddress();
+            _localIpAddress = NetworkUtils.GetLocalIPAddress();
+            tbP2pIpAddress.Text = _localIpAddress?.ToString();
         }
 
         #region PrivateMethods
-
 
         private void RefreshTablesMessageHandler()
         {
@@ -349,21 +359,22 @@ namespace Modeel
             }            
         }
 
-        private void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
+        private async void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
         {
             if (!IsPortFree(P2pPort))
             {
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2P);
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
                 return;
             }
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+            //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)
         {
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(P2pIpAddress, P2pPort, this));
+            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
         }
 
         #endregion EventHandlers
