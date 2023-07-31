@@ -9,6 +9,6 @@ namespace Modeel.Model.Enums
     public enum TypeOfSocket
     {
         SERVER = 0,
-        CLIENT = 0,
+        CLIENT = 1,
     }
 }

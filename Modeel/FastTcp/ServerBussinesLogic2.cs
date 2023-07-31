@@ -167,6 +167,8 @@ namespace Modeel.FastTcp
 
         protected override void OnDispose()
         {
+            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER));
+
             if (_timer != null)
             {
                 _timer.Elapsed -= OneSecondHandler;
@@ -176,7 +178,6 @@ namespace Modeel.FastTcp
             }
             _clients = null;
             _timer = null;
-            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER));
             _gui = null;
         }
 

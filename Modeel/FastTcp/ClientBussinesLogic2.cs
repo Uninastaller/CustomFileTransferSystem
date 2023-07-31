@@ -266,12 +266,11 @@ namespace Modeel.FastTcp
 
         protected override void Dispose(bool disposingManagedResources)
         {
+            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
             TransferReceiveRate = 0;
             TransferSendRate = 0;
             DisconnectAndStop();
             base.Dispose(disposingManagedResources);
-
-            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
         }
 
         protected override void OnConnected()
