@@ -101,6 +101,9 @@ namespace Modeel.FastTcp
         int socksPort = 9050;
         WebProxy proxy;
 
+        private IPAddress? _publicIpAddress;
+        private IPAddress? _localIpAddress;
+
         #endregion PrivateFields
 
         #region Ctor
@@ -130,11 +133,19 @@ namespace Modeel.FastTcp
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
+
+            Init();
         }
 
         #endregion Ctor
 
         #region PublicMethods
+
+        public async void Init()
+        {
+            _publicIpAddress = await NetworkUtils.GetPublicIPAddress();
+            _localIpAddress = NetworkUtils.GetLocalIPAddress();
+        }
 
         public virtual bool DisconnectAsync() => Disconnect();
 
@@ -305,17 +316,17 @@ namespace Modeel.FastTcp
         {
 
             // Send a request to connect to the target host and port through the SOCKS proxy
-            string targetHost = "127.0.0.1";
+            //string targetHost = "127.0.0.1";
             int targetPort = _port;
-            IPAddress ipAddress;
-            bool isIp = IPAddress.TryParse(targetHost, out ipAddress);
+            //IPAddress ipAddress;
+            //bool isIp = IPAddress.TryParse(targetHost, out ipAddress);
 
             byte[] request4 = new byte[9];
             request4[0] = 0x04;
             request4[1] = 0x01;
             request4[2] = (byte)((targetPort >> 8) & 0xFF); // Port high byte
             request4[3] = (byte)(targetPort & 0xFF);        // Port low byte
-            ipAddress.GetAddressBytes().CopyTo(request4, 4);
+            _publicIpAddress?.GetAddressBytes().CopyTo(request4, 4);
             request4[8] = 0x00; // Null terminator
 
 

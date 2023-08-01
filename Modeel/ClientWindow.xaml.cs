@@ -374,7 +374,9 @@ namespace Modeel
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)
         {
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
+            //_p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
+            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(IPAddress.Parse("127.0.0.1"), P2pPort, this));
+
         }
 
         #endregion EventHandlers
