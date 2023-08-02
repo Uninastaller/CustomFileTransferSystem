@@ -1,10 +1,8 @@
-﻿using Microsoft.Win32;
-using Modeel.Log;
+﻿using Modeel.Log;
 using Modeel.Model.Enums;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Modeel.Model
 {
@@ -17,24 +15,27 @@ namespace Modeel.Model
         public long FileSize => _fileSize;
         public long PartSize => _partSize;
         public long TotalParts => _totalParts;
-        public bool DownloadDone
+        public bool NoPartsForAsignmentLeft
         {
             get
             {
-                return _downloadDone;
+                return _noPartsForAsignmentLeft;
             }
             set
             {
-                if (value)
+                if (value && AllPartsAreDownloaded)
                 {
                     OnDownloadDone();
                 }
-                _downloadDone = value;
+                _noPartsForAsignmentLeft = value;
             }
         }
         public long NumberOfDownloadedParts { get; private set; } = 0;
         public float PercentageDownload => (NumberOfDownloadedParts / (float)TotalParts) * 100;
         public long LastPartSize => _lastPartSize;
+
+        //public bool AllPartsAreDownloaded => !_receivedParts.Any(part => part != FilePartState.DOWNLOADED);
+        public bool AllPartsAreDownloaded => NumberOfDownloadedParts == TotalParts;
 
         #endregion Properties
 
@@ -55,7 +56,7 @@ namespace Modeel.Model
         private readonly long _fileSize;
         private readonly long _partSize;
         private readonly long _lastPartSize;
-        private bool _downloadDone = false;
+        private bool _noPartsForAsignmentLeft = false;
 
         #endregion PrivateFields
 
@@ -89,6 +90,8 @@ namespace Modeel.Model
             _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, ".cfts");
 
             Logger.WriteLog($"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!", LoggerInfo.downloadingStatusFile);
+
+            DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, 3);
         }
 
         /// <summary>
@@ -168,7 +171,13 @@ namespace Modeel.Model
                         _receivedParts[partToProcess] = FilePartState.DOWNLOADED;
                         NumberOfDownloadedParts++;
 
-                        //DownloadingStatusFileController.Save(_fileNameDownloadingStatus);
+
+                        DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, partToProcess);
+
+                        if (_noPartsForAsignmentLeft && AllPartsAreDownloaded)
+                        {
+                            OnDownloadDone();
+                        }
 
                         Logger.WriteLog($"Part No.{partToProcess} was written at position {position}.", LoggerInfo.fileTransfering);
                         return MethodResult.SUCCES;
@@ -205,8 +214,8 @@ namespace Modeel.Model
                     }
                 }
 
-                DownloadDone = true;
-                return -1; // Všetky časti sú už prijaté
+                NoPartsForAsignmentLeft = true;
+                return -1; // There are no part that are waiting for asignment
             }
         }
 
@@ -223,6 +232,7 @@ namespace Modeel.Model
                 Logger.WriteLog($"Changeing extension of downloading file from .tmp to: {Path.GetExtension(_fileName)}!", LoggerInfo.fileTransfering);
                 File.Move(_fileNameDownloading, _fileName);
             }
+            DownloadingStatusFileController.DownloadDone(_fileNameDownloadingStatus);
         }
 
         private int GetPositionToWrite(int partToProcess)

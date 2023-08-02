@@ -147,7 +147,7 @@ namespace Modeel
 
             _publicIpAddress = await NetworkUtils.GetPublicIPAddress();
             _localIpAddress = NetworkUtils.GetLocalIPAddress();
-            tbP2pIpAddress.Text = _localIpAddress?.ToString();
+            //tbP2pIpAddress.Text = _localIpAddress?.ToString();
         }
 
         #region PrivateMethods
@@ -365,11 +365,12 @@ namespace Modeel
             {
                 Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2P);
                 // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
                 return;
             }
-            //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+            //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)

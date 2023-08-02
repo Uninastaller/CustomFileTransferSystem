@@ -185,6 +185,8 @@ namespace Modeel
 
             if (b?.Tag is RequestModelObject requestModel && requestModel.Clients.Any(client => client.UseThisClient == true))
             {
+                //int megabyte = 0x100000;
+                //int filePartSize = megabyte;
                 //FileReceiver fileReceiver = new FileReceiver(requestModel.FileSize, filePartSize, Path.GetFileName(requestModel.FilePath));
                 FileReceiver fileReceiver = GetFileReceiver(Path.GetFileName(requestModel.FilePath), requestModel.FileSize);
                 DownloadModelObject downloadModelObject = new DownloadModelObject(fileReceiver);

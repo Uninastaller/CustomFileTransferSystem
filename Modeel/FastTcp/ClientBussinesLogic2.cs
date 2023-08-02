@@ -305,7 +305,7 @@ namespace Modeel.FastTcp
         {
             Logger.WriteLog($"Tcp client connected a new session with Id {Id}", LoggerInfo.tcpClient);
 
-            if (_fileReceiver != null && !_fileReceiver.DownloadDone)
+            if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
             {
                 Thread.Sleep(100);
                 RequestFile();

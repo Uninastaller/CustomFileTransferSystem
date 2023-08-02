@@ -43,10 +43,17 @@ namespace Modeel.Model
 
         #region PublicMethods
 
-        public static void NewPartDownloaded(string fileNameDownloadingStatus, long partNumber)
+        public static void NewPartDownloaded(string fileNameDownloadingStatus, long partNumber, FilePartState filePartState = FilePartState.DOWNLOADED)
         {
+            // Part number starting with part 0
+
+            byte newValue = (byte)filePartState;
+            newValue += 48;
+
             using (FileStream fileStream = new FileStream(fileNameDownloadingStatus, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
+                fileStream.Seek((2 * partNumber), SeekOrigin.Begin);
+                fileStream.WriteByte(newValue);
             }
         }
 
@@ -100,6 +107,13 @@ namespace Modeel.Model
             return false;
         }
 
+        public static void DownloadDone(string fileNameDownloadingStatus)
+        {
+            if (File.Exists(fileNameDownloadingStatus))
+            {
+                File.Delete(fileNameDownloadingStatus);
+            }
+        }
 
         #endregion PublicMethods
 
