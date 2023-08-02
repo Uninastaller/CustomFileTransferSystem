@@ -23,8 +23,8 @@ namespace Modeel.Model
 
         #region PrivateFields
 
-        private const int _kilobyte = 1024;
-        private const int _megabyte = _kilobyte * 1024;
+        private const int _kilobyte = 0x400;
+        private const int _megabyte = 0x100000;
 
         #endregion PrivateFields
 
@@ -79,12 +79,12 @@ namespace Modeel.Model
                 long offset = partNumber * partSize;
                 fileStream.Seek(offset, SeekOrigin.Begin);
 
-                byte[] buffer = new byte[partSize + flag.Length + sizeof(int)];
-                int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(int), partSize); // Read the chunk from the file
+                byte[] buffer = new byte[partSize + flag.Length + sizeof(long)];
+                int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(long), partSize); // Read the chunk from the file
                 System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
-                System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(int)); // Insert the part number
+                System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(long)); // Insert the part number
 
-                bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(int));
+                bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(long));
                 if (succes)
                 {
                     Logger.WriteLog($"Part file: {partNumber}, was sended to client: {session.IpAndPort}!", LoggerInfo.socketMessage);
@@ -142,7 +142,7 @@ namespace Modeel.Model
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResult GenerateRequestForFilePart(long filePart, long partSize, ISession session)
+        public static MethodResult GenerateRequestForFilePart(long filePart, int partSize, ISession session)
         {
             byte[] request = GenerateMessage(SocketMessageFlag.FILE_PART_REQUEST, new object[] { filePart, partSize });
             bool succes = session.SendAsync(request, 0, request.Length);

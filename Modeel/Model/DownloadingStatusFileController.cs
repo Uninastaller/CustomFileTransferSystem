@@ -60,7 +60,7 @@ namespace Modeel.Model
         public static void InitialSaveOfStatusFile(string fileNameDownloadingStatus, DownloadStatus downloadingStatus)
             => InitialSaveOfStatusFile(fileNameDownloadingStatus, downloadingStatus.ReceivedParts, downloadingStatus.TotalParts, downloadingStatus.FileSize, downloadingStatus.PartSize, downloadingStatus.LastPartSize);
 
-        public static void InitialSaveOfStatusFile(string fileNameDownloadingStatus, FilePartState[] receivedParts, long totalParts, long fileSize, long partSize, long lastPartSize)
+        public static void InitialSaveOfStatusFile(string fileNameDownloadingStatus, FilePartState[] receivedParts, long totalParts, long fileSize, int partSize, int lastPartSize)
         {
             string serializedData = $"{string.Join(";", receivedParts.Select(e => (int)e))}\n{totalParts}\n{fileSize}\n{partSize}\n{lastPartSize}";
             File.WriteAllText(fileNameDownloadingStatus, serializedData);
@@ -85,8 +85,8 @@ namespace Modeel.Model
             FilePartState[] receivedParts = lines[0].Split(';').Select(value => (FilePartState)int.Parse(value)).ToArray();
             long totalParts = long.Parse(lines[1]);
             long fileSize = long.Parse(lines[2]);
-            long partSize = long.Parse(lines[3]);
-            long lastPartSize = long.Parse(lines[4]);
+            int partSize = int.Parse(lines[3]);
+            int lastPartSize = int.Parse(lines[4]);
 
             return new DownloadStatus
             {
@@ -148,7 +148,7 @@ namespace Modeel.Model
         public FilePartState[] ReceivedParts { get; set; }
         public long TotalParts { get; set; }
         public long FileSize { get; set; }
-        public long PartSize { get; set; }
-        public long LastPartSize { get; set; }
+        public int PartSize { get; set; }
+        public int LastPartSize { get; set; }
     }
 }

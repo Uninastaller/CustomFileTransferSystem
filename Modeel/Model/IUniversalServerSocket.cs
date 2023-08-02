@@ -22,7 +22,9 @@ namespace Modeel.Model
         int OptionReceiveBufferSize { get; set; } // = 8192;
         int OptionSendBufferSize { get; set; } // = 8192;
         string TransferSendRateFormatedAsText { get; }
+        long TransferSendRate { get; }
         string TransferReceiveRateFormatedAsText { get; }
+        long TransferReceiveRate { get; }
         public bool Stop();
         public void Dispose();
         public bool Restart();

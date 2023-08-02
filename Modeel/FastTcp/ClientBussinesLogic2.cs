@@ -25,8 +25,9 @@ namespace Modeel.FastTcp
 
         public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
         public TypeOfClientSocket Type { get; }
-        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteSendDifferentials.Sum() / _byteSendDifferentials.Count);
-        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(_byteReceivedDifferentials.Sum() / _byteReceivedDifferentials.Count);
+        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferSendRate);
+        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
+
         public ClientBussinesLogicState State
         {
             get
@@ -46,9 +47,7 @@ namespace Modeel.FastTcp
 
         #region PrivateFields
 
-        private int _bufferSize = 10; // Number of seconds to consider for the average transfer rate
-        private List<long> _byteSendDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
-        private List<long> _byteReceivedDifferentials = new List<long>() { 1 }; // Circular buffer to store byte differentials
+        private const int _flagBytesCount = 3;
 
         private IWindowEnqueuer _gui;
         private TypeOfSession _typeOfSession;
@@ -217,14 +216,6 @@ namespace Modeel.FastTcp
                     RequestFilePart();
                 }
 
-            _byteSendDifferentials.Insert(0, BytesSent - _secondOldBytesSent);
-            _byteReceivedDifferentials.Insert(0, BytesReceived - _secondOldBytesReceived);
-
-            if (_byteSendDifferentials.Count > _bufferSize)
-            {
-                _byteSendDifferentials.RemoveAt(_bufferSize);
-                _byteReceivedDifferentials.RemoveAt(_bufferSize);
-            }
 
             TransferSendRate = BytesSent - _secondOldBytesSent;
             TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
@@ -265,9 +256,9 @@ namespace Modeel.FastTcp
             {
                 RequestFilePartAsync();
 
-                int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
+                long partNumber = BitConverter.ToInt64(buffer, (int)offset + _flagBytesCount);
                 Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
-                if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int)) == MethodResult.ERROR)
+                if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + _flagBytesCount + sizeof(long), (int)size - _flagBytesCount - sizeof(long)) == MethodResult.ERROR)
                 {
 
                 }

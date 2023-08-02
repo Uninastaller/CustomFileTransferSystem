@@ -24,8 +24,10 @@ namespace Modeel.SSL
         #region Properties
 
         public TypeOfServerSocket Type { get; }
-        public string TransferSendRateFormatedAsText { get; private set; } = string.Empty;
-        public string TransferReceiveRateFormatedAsText { get; private set; } = string.Empty;
+        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferSendRate);
+        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
+        public long TransferSendRate { get; private set; }
+        public long TransferReceiveRate { get; private set; }
 
         #endregion Properties
 
@@ -48,10 +50,6 @@ namespace Modeel.SSL
 
         private long _secondOldBytesSent;
         private long _secondOldBytesReceived;
-
-        private int _bufferSize = 10; // Number of seconds to consider for the average transfer rate
-        private List<long> _byteSendDifferentials = new List<long>(); // Circular buffer to store byte differentials
-        private List<long> _byteReceivedDifferentials = new List<long>(); // Circular buffer to store byte differentials
 
         #endregion PrivateFields
 
@@ -109,20 +107,10 @@ namespace Modeel.SSL
         {
             _timerCounter++;
 
-            _byteSendDifferentials.Insert(0, BytesSent - _secondOldBytesSent);
-            _byteReceivedDifferentials.Insert(0, BytesReceived - _secondOldBytesReceived);
-
-            if (_byteSendDifferentials.Count > _bufferSize)
-            {
-                _byteSendDifferentials.RemoveAt(_bufferSize);
-                _byteReceivedDifferentials.RemoveAt(_bufferSize);
-            }
-
-            TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(_byteSendDifferentials.Sum() / _byteSendDifferentials.Count);
-            TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(_byteReceivedDifferentials.Sum() / _byteReceivedDifferentials.Count);
+            TransferSendRate = BytesSent - _secondOldBytesSent;
+            TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
-
         }
 
         private void OnReceiveMessage(SslSession sesion, string message)

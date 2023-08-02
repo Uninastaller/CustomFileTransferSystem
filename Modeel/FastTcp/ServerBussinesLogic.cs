@@ -37,6 +37,10 @@ namespace Modeel.FastTcp
         public int OptionSendBufferSize { get; set; } = 8192;
         public TypeOfServerSocket Type { get; }
 
+        public long TransferSendRate => 0;
+
+        public long TransferReceiveRate => 0;
+
         #endregion Properties
 
         #region PublicFields

@@ -99,3 +99,23 @@ FILES SCHEME:
 
         
 #endregion OverridedMethods
+
+Numeric Data Types:
+
+sbyte: 8-bit signed integer. Range: -128 to 127. Memory: 1 byte.
+byte: 8-bit unsigned integer. Range: 0 to 255. Memory: 1 byte.
+short (Int16): 16-bit signed integer. Range: -32,768 to 32,767. Memory: 2 bytes.
+ushort (UInt16): 16-bit unsigned integer. Range: 0 to 65,535. Memory: 2 bytes.
+int (Int32): 32-bit signed integer. Range: -2,147,483,648 to 2,147,483,647. Memory: 4 bytes.
+uint (UInt32): 32-bit unsigned integer. Range: 0 to 4,294,967,295. Memory: 4 bytes.
+long (Int64): 64-bit signed integer. Range: -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807. Memory: 8 bytes.
+ulong (UInt64): 64-bit unsigned integer. Range: 0 to 18,446,744,073,709,551,615. Memory: 8 bytes.
+float: 32-bit single-precision floating-point. Memory: 4 bytes.
+double: 64-bit double-precision floating-point. Memory: 8 bytes.
+decimal: 128-bit decimal. Precision: 28-29 significant digits. Memory: 16 bytes.
+Character Data Types:
+
+char: 16-bit Unicode character. Memory: 2 bytes.
+Boolean Data Type:
+
+bool: Represents true or false values. Memory: Typically 1 byte.

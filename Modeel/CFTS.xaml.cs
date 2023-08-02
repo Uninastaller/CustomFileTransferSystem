@@ -197,7 +197,7 @@ namespace Modeel
                     {
                         if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT)
                         {
-                            IUniversalClientSocket socket = new ClientBussinesLogic2(iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, (int)fileReceiver.PartSize * 2, (int)fileReceiver.PartSize * 2);
+                            IUniversalClientSocket socket = new ClientBussinesLogic2(iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, fileReceiver.PartSize * 2, fileReceiver.PartSize * 2);
                             downloadModelObject.Clients.Add(socket);
                             _p2PMasterClass.CreateNewClient(socket);
                         }
@@ -235,7 +235,7 @@ namespace Modeel
                     {
                         if (FileReceiver.CalculateLastPartSize(downloadStatus.FileSize, (int)downloadStatus.PartSize) == downloadStatus.LastPartSize)
                         {
-                            return new FileReceiver(downloadStatus.ReceivedParts, downloadStatus.TotalParts, downloadStatus.FileSize, (int)downloadStatus.PartSize, downloadStatus.LastPartSize, downloadingFile);
+                            return new FileReceiver(downloadStatus.ReceivedParts, downloadStatus.TotalParts, downloadStatus.FileSize, downloadStatus.PartSize, downloadStatus.LastPartSize, downloadingFile);
                         }
                         else
                         {

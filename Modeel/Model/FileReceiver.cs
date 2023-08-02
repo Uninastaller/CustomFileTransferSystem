@@ -13,7 +13,7 @@ namespace Modeel.Model
 
         public string FileName => _fileName;
         public long FileSize => _fileSize;
-        public long PartSize => _partSize;
+        public int PartSize => _partSize;
         public long TotalParts => _totalParts;
         public bool NoPartsForAsignmentLeft
         {
@@ -32,7 +32,7 @@ namespace Modeel.Model
         }
         public long NumberOfDownloadedParts { get; private set; } = 0;
         public float PercentageDownload => (NumberOfDownloadedParts / (float)TotalParts) * 100;
-        public long LastPartSize => _lastPartSize;
+        public int LastPartSize => _lastPartSize;
 
         //public bool AllPartsAreDownloaded => !_receivedParts.Any(part => part != FilePartState.DOWNLOADED);
         public bool AllPartsAreDownloaded => NumberOfDownloadedParts == TotalParts;
@@ -54,8 +54,8 @@ namespace Modeel.Model
         private readonly string _fileNameDownloading;
         private readonly string _fileNameDownloadingStatus;
         private readonly long _fileSize;
-        private readonly long _partSize;
-        private readonly long _lastPartSize;
+        private readonly int _partSize;
+        private readonly int _lastPartSize;
         private bool _noPartsForAsignmentLeft = false;
 
         #endregion PrivateFields
@@ -77,7 +77,7 @@ namespace Modeel.Model
         /// <param name="partSize"></param>
         /// <param name="lastPartSize"></param>
         /// <param name="fileName"></param>
-        public FileReceiver(FilePartState[] receivedParts, long totalParts, long fileSize, int partSize, long lastPartSize, string fileName)
+        public FileReceiver(FilePartState[] receivedParts, long totalParts, long fileSize, int partSize, int lastPartSize, string fileName)
         {
             _receivedParts = receivedParts.Select(part => part == FilePartState.DOWNLOADING ? FilePartState.WAITING_FOR_ASSIGNMENT : part).ToArray();
             _totalParts = totalParts;
@@ -125,9 +125,9 @@ namespace Modeel.Model
             return fileSize / partSize + ((fileSize % partSize) > 0 ? 1 : 0);
         }
 
-        public static long CalculateLastPartSize(long fileSize, int partSize)
+        public static int CalculateLastPartSize(long fileSize, int partSize)
         {
-            return fileSize % partSize != 0 ? fileSize % partSize : partSize;
+            return (int)(fileSize % partSize != 0 ? fileSize % partSize : partSize);
         }
 
         public void ReAssignFilePart(long filePartNumber)
@@ -142,7 +142,7 @@ namespace Modeel.Model
             return ResourceInformer.GenerateRequestForFilePart(filePart, _partSize, session);
         }
 
-        public MethodResult WriteToFile(int partToProcess, byte[] filePart, int offset, int length)
+        public MethodResult WriteToFile(long partToProcess, byte[] filePart, int offset, int length)
         {
             if (_receivedParts[partToProcess] != FilePartState.DOWNLOADING)
             {
@@ -150,7 +150,7 @@ namespace Modeel.Model
                 return MethodResult.SUCCES;
             }
 
-            int position;
+            long position;
             lock (_lockObject)
             {
                 position = GetPositionToWrite(partToProcess);
@@ -200,11 +200,11 @@ namespace Modeel.Model
             return MethodResult.ERROR;
         }
 
-        public int AssignmentOfFilePart()
+        public long AssignmentOfFilePart()
         {
             lock (_lockObject)
             {
-                for (int i = 0; i < _totalParts; i++)
+                for (long i = 0; i < _totalParts; i++)
                 {
                     if (_receivedParts[i] == FilePartState.WAITING_FOR_ASSIGNMENT)
                     {
@@ -235,10 +235,10 @@ namespace Modeel.Model
             DownloadingStatusFileController.DownloadDone(_fileNameDownloadingStatus);
         }
 
-        private int GetPositionToWrite(int partToProcess)
+        private long GetPositionToWrite(long partToProcess)
         {
-            int position = 0;
-            for (int i = 0; i < partToProcess; i++)
+            long position = 0;
+            for (long i = 0; i < partToProcess; i++)
             {
                 if (_receivedParts[i] == FilePartState.DOWNLOADED)
                 {

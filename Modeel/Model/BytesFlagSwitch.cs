@@ -28,10 +28,11 @@ namespace Modeel.Model
         private Action<string>? _onNonRegisteredAction;
 
         //private byte[] _cache = new byte[Settings.Default.FlagSwitchCache];
-        private long _partSize;
+        private int _partSize;
         private Buffer _cache = new Buffer();
         private Action<byte[], long, long>? _cachingAction;
-        private long _defaultPartSize;
+        private int _defaultPartSize;
+        private const int _flagBytesCount = 3;
 
         #endregion PrivateFields
 
@@ -46,13 +47,13 @@ namespace Modeel.Model
 
         #region PublicMethods
 
-        public void SetLastPartSize(long size)
+        public void SetLastPartSize(int size)
         {
             _partSize = size;
             Logger.WriteLog($"SWITCH, setting part size for last part, size is now: {_partSize}");
         }
 
-        public void SetCaching(long partSize, Action<byte[], long, long> cachingAction)
+        public void SetCaching(int partSize, Action<byte[], long, long> cachingAction)
         {
             _defaultPartSize = partSize;
             _partSize = partSize;
@@ -146,10 +147,10 @@ namespace Modeel.Model
                 _onNonRegisteredAction?.Invoke(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
             }
             // Try found action by message flag
-            else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(3).ToArray(), out Action<byte[], long, long>? action))
+            else if (_binding.TryGetValue(buffer.Skip((int)offset).Take(_flagBytesCount).ToArray(), out Action<byte[], long, long>? action))
             {
-                // Action is caching action and message size is not full file part
-                if (action == _cachingAction && (size - 3 - sizeof(int)) < _partSize)
+                // Action is caching-action and message size is not full file part
+                if (action == _cachingAction && (size - _flagBytesCount - sizeof(long)) < _partSize)
                 {
                     // Save message for later bcs its not completed
                     _cache.Clear();
@@ -164,12 +165,12 @@ namespace Modeel.Model
             }
             // Flag is not registered or is missing
             // If there is already something in cache and new message + data in cache are not larger than file part
-            else if (_cache.Size > 0 && (_cache.Size + size - 3 - sizeof(int) <= _partSize))
+            else if (_cache.Size > 0 && (_cache.Size + size - _flagBytesCount - sizeof(long) <= _partSize))
             {
                 _cache.Append(buffer, offset, size);
 
                 // Check if in cache is not full file part
-                if ((_cache.Size - 3 - sizeof(int)) == _partSize)
+                if ((_cache.Size - _flagBytesCount - sizeof(long)) == _partSize)
                 {
                     _partSize = _defaultPartSize;
                     _cachingAction.Invoke(_cache.Data, 0, _cache.Size);
