@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using Timer = System.Timers.Timer;
@@ -163,6 +164,35 @@ namespace Modeel.FastTcp
             }
         }
 
+        private async void RequestFilePartAsync()
+        {
+            _assignedFilePart = _fileReceiver.AssignmentOfFilePart();
+            if (_assignedFilePart == -1)
+            {
+                State = ClientBussinesLogicState.NONE;
+                Logger.WriteLog("File is completly transfered", LoggerInfo.fileTransfering);
+                this.Dispose();
+                return;
+            }
+            else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
+            {
+                _flagSwitch.SetLastPartSize(_fileReceiver.LastPartSize);
+            }
+
+            MethodResult result = await Task.Run(() => _fileReceiver.GenerateRequestForFilePart(this, _assignedFilePart));
+
+            switch (result)
+            {
+                case MethodResult.SUCCES:
+                    State = ClientBussinesLogicState.WAITING_FOR_FILE_PART;
+                    break;
+                case MethodResult.ERROR:
+                    State = ClientBussinesLogicState.REQUEST_ACCEPTED;
+                    Logger.WriteLog($"Error in generating request for file part, switching to state: {State}!", LoggerInfo.fileTransfering);
+                    break;
+            }
+        }
+
         private void RequestFile()
         {
             if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
@@ -198,8 +228,6 @@ namespace Modeel.FastTcp
 
             TransferSendRate = BytesSent - _secondOldBytesSent;
             TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
-            //TransferSendRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferSendRate);
-            //TransferReceiveRateFormatedAsText = ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
             _secondOldBytesSent = BytesSent;
             _secondOldBytesReceived = BytesReceived;
         }
@@ -235,14 +263,14 @@ namespace Modeel.FastTcp
 
             if (State == ClientBussinesLogicState.WAITING_FOR_FILE_PART)
             {
+                RequestFilePartAsync();
+
                 int partNumber = BitConverter.ToInt32(buffer, (int)offset + 3);
                 Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
                 if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + 3 + sizeof(int), (int)size - 3 - sizeof(int)) == MethodResult.ERROR)
                 {
 
                 }
-
-                RequestFilePart();
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using Modeel.FastTcp;
+using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.P2P;
@@ -184,9 +185,8 @@ namespace Modeel
 
             if (b?.Tag is RequestModelObject requestModel && requestModel.Clients.Any(client => client.UseThisClient == true))
             {
-                int megabyte = 0x100000;
-                int filePartSize = megabyte;
-                FileReceiver fileReceiver = new FileReceiver(requestModel.FileSize, filePartSize, Path.GetFileName(requestModel.FilePath));
+                //FileReceiver fileReceiver = new FileReceiver(requestModel.FileSize, filePartSize, Path.GetFileName(requestModel.FilePath));
+                FileReceiver fileReceiver = GetFileReceiver(Path.GetFileName(requestModel.FilePath), requestModel.FileSize);
                 DownloadModelObject downloadModelObject = new DownloadModelObject(fileReceiver);
 
                 foreach (BaseClient baseClient in requestModel.Clients)
@@ -195,13 +195,13 @@ namespace Modeel
                     {
                         if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT)
                         {
-                            IUniversalClientSocket socket = new ClientBussinesLogic2(iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, filePartSize * 2, filePartSize * 2);
+                            IUniversalClientSocket socket = new ClientBussinesLogic2(iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, (int)fileReceiver.PartSize * 2, (int)fileReceiver.PartSize * 2);
                             downloadModelObject.Clients.Add(socket);
                             _p2PMasterClass.CreateNewClient(socket);
                         }
                         else if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL)
                         {
-                            IUniversalClientSocket socket = new SslClientBussinesLogic(_contextForP2pAsClient, iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, filePartSize * 2, filePartSize * 2);
+                            IUniversalClientSocket socket = new SslClientBussinesLogic(_contextForP2pAsClient, iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, (int)fileReceiver.PartSize * 2, (int)fileReceiver.PartSize * 2);
                             downloadModelObject.Clients.Add(socket);
                             _p2PMasterClass.CreateNewClient(socket);
                         }
@@ -211,6 +211,52 @@ namespace Modeel
                 _downloadModels.Add(downloadModelObject);
 
             }
+        }
+
+        /// <summary>
+        /// Look if there is Downloading status file, we need to know if we starting download from beggining or continuing 
+        /// </summary>
+        /// <param name="downloadingFile"></param>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
+        private FileReceiver GetFileReceiver(string downloadingFile, long fileSize)
+        {
+            string downloadingStatusFile = Path.ChangeExtension(downloadingFile, ".cfts");
+
+            if (DownloadingStatusFileController.CheckForValidStatusFile(downloadingStatusFile))
+            {
+                DownloadStatus downloadStatus = DownloadingStatusFileController.LoadStatusFile(downloadingStatusFile);
+
+                if (downloadStatus.FileSize == fileSize)
+                {
+                    if (FileReceiver.CalculateTotalPartsCount(downloadStatus.FileSize, (int)downloadStatus.PartSize) == downloadStatus.TotalParts)
+                    {
+                        if (FileReceiver.CalculateLastPartSize(downloadStatus.FileSize, (int)downloadStatus.PartSize) == downloadStatus.LastPartSize)
+                        {
+                            return new FileReceiver(downloadStatus.ReceivedParts, downloadStatus.TotalParts, downloadStatus.FileSize, (int)downloadStatus.PartSize, downloadStatus.LastPartSize, downloadingFile);
+                        }
+                        else
+                        {
+                            Logger.WriteLog("Saved Status File has different last part size, starting downloading from beginning", LoggerInfo.downloadingStatusFile);
+                        }
+                    }
+                    else
+                    {
+                        Logger.WriteLog("Saved Status File has different total file part count, starting downloading from beginning", LoggerInfo.downloadingStatusFile);
+                    }
+                }
+                else
+                {
+                    Logger.WriteLog("Saved Status File has different file size, starting downloading from beginning", LoggerInfo.downloadingStatusFile);
+                }
+            }
+            else
+            {
+                Logger.WriteLog("Saved Status File is Invalid, starting downloading from beginning", LoggerInfo.downloadingStatusFile);
+            }
+            int megabyte = 0x100000;
+            int filePartSize = megabyte;
+            return new FileReceiver(fileSize, filePartSize, downloadingFile);
         }
 
         private void btnExpandColapse_Click(object sender, RoutedEventArgs e)

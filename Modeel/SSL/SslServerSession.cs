@@ -145,7 +145,7 @@ namespace Modeel.SSL
 
             if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazdy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
-                Logger.WriteLog($"Received file part request for part: {filePartNumber}, from client: {Socket.RemoteEndPoint}!", LoggerInfo.fileTransfering);
+                Logger.WriteLog($"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!", LoggerInfo.fileTransfering);
                 ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
             }
             else

@@ -20,5 +20,6 @@
         public static readonly string fileTransfering = "FILE TRANSFERING";
         public static readonly string disconnect = "DISCONNECT";
         public static readonly string torControl = "TOR-CONTROLL";
+        public static readonly string downloadingStatusFile = "DOWNLOADING_STATUS_FILE";
     }
 }
