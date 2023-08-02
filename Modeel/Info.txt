@@ -118,4 +118,4 @@ Character Data Types:
 char: 16-bit Unicode character. Memory: 2 bytes.
 Boolean Data Type:
 
-bool: Represents true or false values. Memory: Typically 1 byte.
+bool: Represents true or false values. Memory: Typically 1 byte. 
