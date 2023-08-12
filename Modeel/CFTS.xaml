@@ -86,7 +86,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>-->
-
+                <DataGridTextColumn Header="DownloadingTime" Binding="{Binding FileReceiver.DownloadingTime}"/>
                 <DataGridTextColumn Header="Name" Binding="{Binding FileReceiver.FileName}"/>
                 <DataGridTextColumn Header="Size" Binding="{Binding FileReceiver.FileSize}"/>
                 <DataGridTextColumn Header="Download Speed" Binding="{Binding TransferReceiveRateFormatedAsText}"/>

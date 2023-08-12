@@ -1,5 +1,7 @@
 ﻿using Modeel.Log;
 using Modeel.Model.Enums;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -33,6 +35,14 @@ namespace Modeel.Model
         public long NumberOfDownloadedParts { get; private set; } = 0;
         public float PercentageDownload => (NumberOfDownloadedParts / (float)TotalParts) * 100;
         public int LastPartSize => _lastPartSize;
+        public string DownloadingTime
+        {
+            get
+            {
+                TimeSpan elapsedTime = _downloadingTime.Elapsed;
+                return $"{elapsedTime.Hours:D2}:{elapsedTime.Minutes:D2}:{elapsedTime.Seconds:D2}";
+            }
+        }
 
         //public bool AllPartsAreDownloaded => !_receivedParts.Any(part => part != FilePartState.DOWNLOADED);
         public bool AllPartsAreDownloaded => NumberOfDownloadedParts == TotalParts;
@@ -57,6 +67,8 @@ namespace Modeel.Model
         private readonly int _partSize;
         private readonly int _lastPartSize;
         private bool _noPartsForAsignmentLeft = false;
+
+        private Stopwatch _downloadingTime = new Stopwatch();
 
         #endregion PrivateFields
 
@@ -89,6 +101,8 @@ namespace Modeel.Model
             _fileNameDownloading = Path.ChangeExtension(_fileName, ".tmp");
             _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, ".cfts");
 
+            _downloadingTime.Start();
+
             Logger.WriteLog($"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!", LoggerInfo.downloadingStatusFile);
 
             DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, 3);
@@ -110,6 +124,8 @@ namespace Modeel.Model
             _totalParts = CalculateTotalPartsCount(fileSize, partSize);
             _receivedParts = new FilePartState[_totalParts];
             _lastPartSize = CalculateLastPartSize(fileSize, partSize);
+
+            _downloadingTime.Start();
 
             Logger.WriteLog("Starting downloading from beginning!", LoggerInfo.downloadingStatusFile);
 
@@ -233,6 +249,8 @@ namespace Modeel.Model
                 File.Move(_fileNameDownloading, _fileName);
             }
             DownloadingStatusFileController.DownloadDone(_fileNameDownloadingStatus);
+
+            _downloadingTime.Stop();
         }
 
         private long GetPositionToWrite(long partToProcess)
