@@ -14,15 +14,6 @@
     <Setting Name="File1Port2" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34260</Value>
     </Setting>
-    <Setting Name="File1Name" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\Users\tomas\Downloads\v0.0.1.zip</Value>
-    </Setting>
-    <Setting Name="File1Size" Type="System.Int64" Scope="User">
-      <Value Profile="(Default)">2033973432</Value>
-    </Setting>
-    <Setting Name="File2Name" Type="System.String" Scope="User">
-      <Value Profile="(Default)">C:\Users\tomas\Downloads\sample-2mb-text-file.txt</Value>
-    </Setting>
     <Setting Name="File2Size" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">2167737</Value>
     </Setting>
@@ -34,6 +25,27 @@
     </Setting>
     <Setting Name="FlagSwitchCache" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">4194304</Value>
+    </Setting>
+    <Setting Name="File1Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">JohnWick.mkv</Value>
+    </Setting>
+    <Setting Name="File1Size" Type="System.Int64" Scope="User">
+      <Value Profile="(Default)">14651859537</Value>
+    </Setting>
+    <Setting Name="File2Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">SampleText.txt</Value>
+    </Setting>
+    <Setting Name="File3Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">PDF.pdf</Value>
+    </Setting>
+    <Setting Name="File3Size" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3821115</Value>
+    </Setting>
+    <Setting Name="File3IpAddress1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="File3Port1" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">34259</Value>
     </Setting>
   </Settings>
 </SettingsFile>

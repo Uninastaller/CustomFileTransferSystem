@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -125,15 +126,21 @@ namespace Modeel
             request.FilePath = Settings.Default.File1Name;
             request.FileSize = Settings.Default.File1Size;
             request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress1, Port = Settings.Default.File1Port1 });
-            request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress2, Port = Settings.Default.File1Port2 });
+            request.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File1IpAddress2, Port = Settings.Default.File1Port2 , UseThisClient = false});
 
             RequestModelObject request2 = new RequestModelObject();
             request2.FilePath = Settings.Default.File2Name;
             request2.FileSize = Settings.Default.File2Size;
             request2.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File2IpAddress1, Port = Settings.Default.File2Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL });
 
+            RequestModelObject request3 = new RequestModelObject();
+            request3.FilePath = Settings.Default.File3Name;
+            request3.FileSize = Settings.Default.File3Size;
+            request3.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File3IpAddress1, Port = Settings.Default.File3Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT });
+
             _requestModels.Add(request);
             _requestModels.Add(request2);
+            _requestModels.Add(request3);
         }
 
         private void P2pClietsUpdateMessageHandler(P2pClietsUpdateMessage message)
@@ -188,7 +195,7 @@ namespace Modeel
                 //int megabyte = 0x100000;
                 //int filePartSize = megabyte;
                 //FileReceiver fileReceiver = new FileReceiver(requestModel.FileSize, filePartSize, Path.GetFileName(requestModel.FilePath));
-                FileReceiver fileReceiver = GetFileReceiver(Path.GetFileName(requestModel.FilePath), requestModel.FileSize);
+                FileReceiver fileReceiver = GetFileReceiver($@"{ConfigurationManager.AppSettings["DownloadingDirectory"]}\{Path.GetFileName(requestModel.FilePath)}", requestModel.FileSize);
                 DownloadModelObject downloadModelObject = new DownloadModelObject(fileReceiver);
 
                 foreach (BaseClient baseClient in requestModel.Clients)

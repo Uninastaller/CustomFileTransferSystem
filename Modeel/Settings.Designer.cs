@@ -73,42 +73,6 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\tomas\\Downloads\\v0.0.1.zip")]
-        public string File1Name {
-            get {
-                return ((string)(this["File1Name"]));
-            }
-            set {
-                this["File1Name"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2033973432")]
-        public long File1Size {
-            get {
-                return ((long)(this["File1Size"]));
-            }
-            set {
-                this["File1Size"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\tomas\\Downloads\\sample-2mb-text-file.txt")]
-        public string File2Name {
-            get {
-                return ((string)(this["File2Name"]));
-            }
-            set {
-                this["File2Name"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("2167737")]
         public long File2Size {
             get {
@@ -152,6 +116,90 @@ namespace Modeel {
             }
             set {
                 this["FlagSwitchCache"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("JohnWick.mkv")]
+        public string File1Name {
+            get {
+                return ((string)(this["File1Name"]));
+            }
+            set {
+                this["File1Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("14651859537")]
+        public long File1Size {
+            get {
+                return ((long)(this["File1Size"]));
+            }
+            set {
+                this["File1Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("SampleText.txt")]
+        public string File2Name {
+            get {
+                return ((string)(this["File2Name"]));
+            }
+            set {
+                this["File2Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("PDF.pdf")]
+        public string File3Name {
+            get {
+                return ((string)(this["File3Name"]));
+            }
+            set {
+                this["File3Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3821115")]
+        public int File3Size {
+            get {
+                return ((int)(this["File3Size"]));
+            }
+            set {
+                this["File3Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
+        public string File3IpAddress1 {
+            get {
+                return ((string)(this["File3IpAddress1"]));
+            }
+            set {
+                this["File3IpAddress1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("34259")]
+        public int File3Port1 {
+            get {
+                return ((int)(this["File3Port1"]));
+            }
+            set {
+                this["File3Port1"] = value;
             }
         }
     }

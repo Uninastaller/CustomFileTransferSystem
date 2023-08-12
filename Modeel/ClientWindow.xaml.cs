@@ -147,7 +147,7 @@ namespace Modeel
 
             _publicIpAddress = await NetworkUtils.GetPublicIPAddress();
             _localIpAddress = NetworkUtils.GetLocalIPAddress();
-            //tbP2pIpAddress.Text = _localIpAddress?.ToString();
+            tbP2pIpAddress.Text = _localIpAddress?.ToString();
         }
 
         #region PrivateMethods

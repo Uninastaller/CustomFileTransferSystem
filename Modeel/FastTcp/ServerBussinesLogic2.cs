@@ -5,6 +5,7 @@ using Modeel.Model;
 using Modeel.Model.Enums;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -124,6 +125,8 @@ namespace Modeel.FastTcp
         /// <param name="fileSize"></param>
         private void OnClientFileRequest(TcpSession session, string filePath, long fileSize)
         {
+
+            filePath = $@"{ConfigurationManager.AppSettings["UploadingDirectory"]}\{Path.GetFileName(filePath)}";
             Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
 
             if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is TcpServerSession serverSession)
