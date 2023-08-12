@@ -2,23 +2,14 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Modeel" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="File1IpAddress1" Type="System.String" Scope="User">
-      <Value Profile="(Default)">127.0.0.1</Value>
-    </Setting>
     <Setting Name="File1Port1" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34259</Value>
-    </Setting>
-    <Setting Name="File1IpAddress2" Type="System.String" Scope="User">
-      <Value Profile="(Default)">127.0.0.1</Value>
     </Setting>
     <Setting Name="File1Port2" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34260</Value>
     </Setting>
     <Setting Name="File2Size" Type="System.Int64" Scope="User">
       <Value Profile="(Default)">2167737</Value>
-    </Setting>
-    <Setting Name="File2IpAddress1" Type="System.String" Scope="User">
-      <Value Profile="(Default)">127.0.0.1</Value>
     </Setting>
     <Setting Name="File2Port1" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34259</Value>
@@ -41,11 +32,32 @@
     <Setting Name="File3Size" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">3821115</Value>
     </Setting>
-    <Setting Name="File3IpAddress1" Type="System.String" Scope="User">
-      <Value Profile="(Default)">127.0.0.1</Value>
-    </Setting>
     <Setting Name="File3Port1" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">34259</Value>
+    </Setting>
+    <Setting Name="File4Port1" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">34259</Value>
+    </Setting>
+    <Setting Name="File1IpAddress1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.120</Value>
+    </Setting>
+    <Setting Name="File1IpAddress2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.120</Value>
+    </Setting>
+    <Setting Name="File2IpAddress1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.120</Value>
+    </Setting>
+    <Setting Name="File3IpAddress1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.120</Value>
+    </Setting>
+    <Setting Name="File4Name" Type="System.String" Scope="User">
+      <Value Profile="(Default)">TheOffice.mkv</Value>
+    </Setting>
+    <Setting Name="File4Size" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">315069931</Value>
+    </Setting>
+    <Setting Name="File4IpAddress1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.0.120</Value>
     </Setting>
   </Settings>
 </SettingsFile>

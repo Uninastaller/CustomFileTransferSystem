@@ -138,6 +138,12 @@ namespace Modeel
             request3.FileSize = Settings.Default.File3Size;
             request3.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File3IpAddress1, Port = Settings.Default.File3Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT });
 
+            RequestModelObject request4 = new RequestModelObject();
+            request4.FilePath = Settings.Default.File4Name;
+            request4.FileSize = Settings.Default.File4Size;
+            request4.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File4IpAddress1, Port = Settings.Default.File4Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT });
+
+            _requestModels.Add(request4);
             _requestModels.Add(request);
             _requestModels.Add(request2);
             _requestModels.Add(request3);

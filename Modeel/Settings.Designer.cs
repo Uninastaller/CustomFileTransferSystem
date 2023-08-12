@@ -25,18 +25,6 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string File1IpAddress1 {
-            get {
-                return ((string)(this["File1IpAddress1"]));
-            }
-            set {
-                this["File1IpAddress1"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("34259")]
         public int File1Port1 {
             get {
@@ -44,18 +32,6 @@ namespace Modeel {
             }
             set {
                 this["File1Port1"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string File1IpAddress2 {
-            get {
-                return ((string)(this["File1IpAddress2"]));
-            }
-            set {
-                this["File1IpAddress2"] = value;
             }
         }
         
@@ -80,18 +56,6 @@ namespace Modeel {
             }
             set {
                 this["File2Size"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string File2IpAddress1 {
-            get {
-                return ((string)(this["File2IpAddress1"]));
-            }
-            set {
-                this["File2IpAddress1"] = value;
             }
         }
         
@@ -181,7 +145,67 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("34259")]
+        public int File3Port1 {
+            get {
+                return ((int)(this["File3Port1"]));
+            }
+            set {
+                this["File3Port1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("34259")]
+        public int File4Port1 {
+            get {
+                return ((int)(this["File4Port1"]));
+            }
+            set {
+                this["File4Port1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.0.120")]
+        public string File1IpAddress1 {
+            get {
+                return ((string)(this["File1IpAddress1"]));
+            }
+            set {
+                this["File1IpAddress1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.0.120")]
+        public string File1IpAddress2 {
+            get {
+                return ((string)(this["File1IpAddress2"]));
+            }
+            set {
+                this["File1IpAddress2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.0.120")]
+        public string File2IpAddress1 {
+            get {
+                return ((string)(this["File2IpAddress1"]));
+            }
+            set {
+                this["File2IpAddress1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.0.120")]
         public string File3IpAddress1 {
             get {
                 return ((string)(this["File3IpAddress1"]));
@@ -193,13 +217,37 @@ namespace Modeel {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("34259")]
-        public int File3Port1 {
+        [global::System.Configuration.DefaultSettingValueAttribute("TheOffice.mkv")]
+        public string File4Name {
             get {
-                return ((int)(this["File3Port1"]));
+                return ((string)(this["File4Name"]));
             }
             set {
-                this["File3Port1"] = value;
+                this["File4Name"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("315069931")]
+        public int File4Size {
+            get {
+                return ((int)(this["File4Size"]));
+            }
+            set {
+                this["File4Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192.168.0.120")]
+        public string File4IpAddress1 {
+            get {
+                return ((string)(this["File4IpAddress1"]));
+            }
+            set {
+                this["File4IpAddress1"] = value;
             }
         }
     }
