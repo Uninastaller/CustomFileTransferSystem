@@ -25,7 +25,8 @@ namespace Modeel.Model
 
         #region PrivateFields
 
-
+        private const byte _charZeroPositionInAscci = 48;
+        private const byte _valueOfDownloadedPart = ((byte)FilePartState.DOWNLOADED) + _charZeroPositionInAscci;
 
         #endregion PrivateFields
 
@@ -43,17 +44,28 @@ namespace Modeel.Model
 
         #region PublicMethods
 
-        public static void NewPartDownloaded(string fileNameDownloadingStatus, long partNumber, FilePartState filePartState = FilePartState.DOWNLOADED)
-        {
-            // Part number starting with part 0
+        //public static void NewPartDownloaded(string fileNameDownloadingStatus, long partNumber, FilePartState filePartState = FilePartState.DOWNLOADED)
+        //{
+        //    // Part numbers starting with part 0
 
-            byte newValue = (byte)filePartState;
-            newValue += 48;
+        //    byte newValue = (byte)filePartState;
+        //    newValue += 48;
+
+        //    using (FileStream fileStream = new FileStream(fileNameDownloadingStatus, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+        //    {
+        //        fileStream.Seek((2 * partNumber), SeekOrigin.Begin);
+        //        fileStream.WriteByte(newValue);
+        //    }
+        //}
+
+        public static void NewPartDownloaded(string fileNameDownloadingStatus, long partNumber)
+        {
+            // Part numbers starting with part 0
 
             using (FileStream fileStream = new FileStream(fileNameDownloadingStatus, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
                 fileStream.Seek((2 * partNumber), SeekOrigin.Begin);
-                fileStream.WriteByte(newValue);
+                fileStream.WriteByte(_valueOfDownloadedPart);
             }
         }
 

@@ -104,8 +104,6 @@ namespace Modeel.Model
             _downloadingTime.Start();
 
             Logger.WriteLog($"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!", LoggerInfo.downloadingStatusFile);
-
-            DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, 3);
         }
 
         /// <summary>
@@ -190,7 +188,7 @@ namespace Modeel.Model
 
                         DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, partToProcess);
 
-                        if (_noPartsForAsignmentLeft && AllPartsAreDownloaded)
+                        if (NoPartsForAsignmentLeft && AllPartsAreDownloaded)
                         {
                             OnDownloadDone();
                         }
@@ -225,7 +223,6 @@ namespace Modeel.Model
                     if (_receivedParts[i] == FilePartState.WAITING_FOR_ASSIGNMENT)
                     {
                         _receivedParts[i] = FilePartState.DOWNLOADING;
-                        _receivedParts.FirstOrDefault(x => x == FilePartState.DOWNLOADED);
                         return i;
                     }
                 }
@@ -245,6 +242,7 @@ namespace Modeel.Model
             // Change extension of file to default
             if (File.Exists(_fileNameDownloading) && !File.Exists(_fileName))
             {
+                Thread.Sleep(100);
                 Logger.WriteLog($"Changeing extension of downloading file from .tmp to: {Path.GetExtension(_fileName)}!", LoggerInfo.fileTransfering);
                 File.Move(_fileNameDownloading, _fileName);
             }

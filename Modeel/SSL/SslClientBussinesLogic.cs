@@ -254,10 +254,12 @@ namespace Modeel.SSL
 
                 long partNumber = BitConverter.ToInt64(buffer, (int)offset + _flagBytesCount);
                 Logger.WriteLog($"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}", LoggerInfo.fileTransfering);
-                if (_fileReceiver?.WriteToFile(partNumber, buffer, (int)offset + _flagBytesCount + sizeof(long), (int)size - _flagBytesCount - sizeof(long)) == MethodResult.ERROR)
+                if (_fileReceiver.WriteToFile(partNumber, buffer, (int)offset + _flagBytesCount + sizeof(long), (int)size - _flagBytesCount - sizeof(long)) == MethodResult.ERROR)
                 {
 
                 }
+
+                //RequestFilePart();
             }
         }
 
