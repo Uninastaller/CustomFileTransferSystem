@@ -43,7 +43,7 @@ namespace Modeel
 
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.Debug, button.Name);
+                Logger.WriteLog(LogLevel.DEBUG, button.Name);
 
                 OpenServerWindow();
             }
@@ -65,7 +65,7 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.Debug, button.Name);
+                Logger.WriteLog(LogLevel.DEBUG, button.Name);
 
                 OpenClientWindow();
             }

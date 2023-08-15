@@ -214,14 +214,14 @@ namespace Modeel.FastTcp
                 }
                 else
                 {
-                    Logger.WriteLog(LogLevel.Debug, "Connection attempt timed out.");
+                    Logger.WriteLog(LogLevel.DEBUG, "Connection attempt timed out.");
                     AutoConnect = true;
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Logger.WriteLog(LogLevel.Error, $"Failed to connect to server: {ex.Message}");
+                Logger.WriteLog(LogLevel.ERROR, $"Failed to connect to server: {ex.Message}");
 
                 // Set IsConnecting to false to indicate that the client is not connecting
                 IsConnecting = false;
@@ -258,7 +258,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog(LogLevel.Error, $"Failed to disconnect from server: {ex.Message}");
+                Logger.WriteLog(LogLevel.ERROR, $"Failed to disconnect from server: {ex.Message}");
                 return false;
             }
         }
@@ -301,7 +301,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog(LogLevel.Error, $"Failed to start receiving data: {ex.Message}");
+                Logger.WriteLog(LogLevel.ERROR, $"Failed to start receiving data: {ex.Message}");
                 Disconnect();
             }
         }
@@ -402,7 +402,7 @@ namespace Modeel.FastTcp
             //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
 
             //Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
-            Logger.WriteLog(LogLevel.Debug, $"Tcp client obtained a message[{buffer.Length}]");
+            Logger.WriteLog(LogLevel.DEBUG, $"Tcp client obtained a message[{buffer.Length}]");
         }
 
         #endregion PrivateMethods
@@ -495,7 +495,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog(LogLevel.Error, $"Failed to receive data from server: {ex.Message}");
+                Logger.WriteLog(LogLevel.ERROR, $"Failed to receive data from server: {ex.Message}");
                 Disconnect();
             }
         }

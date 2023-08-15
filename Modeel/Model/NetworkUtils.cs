@@ -22,7 +22,7 @@ namespace Modeel.Model
                     return ip;
                 }
             }
-            Logger.WriteLog(LogLevel.Error, "No network adapters with an IPv4 address in the system!");
+            Logger.WriteLog(LogLevel.ERROR, "No network adapters with an IPv4 address in the system!");
             return null;
         }
 
@@ -42,7 +42,7 @@ namespace Modeel.Model
             catch (Exception ex)
             {
                 // Handle any exceptions that might occur during the request
-                Logger.WriteLog(LogLevel.Error, $"Error while fetching public IP address: {ex.Message}");
+                Logger.WriteLog(LogLevel.ERROR, $"Error while fetching public IP address: {ex.Message}");
                 return null;
             }
         }

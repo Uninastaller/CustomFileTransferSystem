@@ -175,7 +175,7 @@ namespace Modeel.FastTcp
 
             string message = Encoding.UTF8.GetString(receivedData);
 
-            Logger.WriteLog(LogLevel.Debug, $"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}");
+            Logger.WriteLog(LogLevel.DEBUG, $"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}");
         }
 
         private void Test1BigFile(System.Net.Sockets.TcpClient client)

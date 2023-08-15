@@ -10,10 +10,16 @@ namespace Modeel.P2P
 {
     public interface IP2pMasterClass
     {
-        public void CloseAllConnections();
-        public void CreateNewServer(IUniversalServerSocket socketServer);
-        public void CreateNewClient(IUniversalClientSocket socketClient);
-        public void RemoveServer(IUniversalServerSocket socketServer);
-        public void RemoveClient(IUniversalClientSocket socketClient);
+        void CloseAllConnections();
+        void CreateNewServer(IUniversalServerSocket socketServer);
+        void CreateNewClient(IUniversalClientSocket socketClient);
+        void RemoveServer(IUniversalServerSocket socketServer);
+        void RemoveClient(IUniversalClientSocket socketClient);
+        long GetTotalUploadingSpeedOfAllRunningServersInBytes();
+        long GetTotalUploadingSpeedOfAllRunningServersInKiloBytes();
+        long GetTotalUploadingSpeedOfAllRunningServersInMegaBytes();
+        long GetTotalDownloadingSpeedOfAllRunningClientsInBytes();
+        long GetTotalDownloadingSpeedOfAllRunningClientsInKiloBytes();
+        long GetTotalDownloadingSpeedOfAllRunningClientsInMegaBytes();
     }
 }

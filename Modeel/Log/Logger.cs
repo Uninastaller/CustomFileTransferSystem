@@ -9,7 +9,7 @@ namespace Modeel.Log
 {
     public static class Logger
     {
-        private static readonly int sizeLimit = 0x100000 * 1; // 1 MB
+        private static readonly int sizeLimit = 0x100000 * 10; // 1 MB
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
         private static readonly string _logFilePath = @"C:\Logs";
         private static readonly string _logFilePathAndName = Path.Combine(_logFilePath, "Active.csv");
@@ -47,7 +47,7 @@ namespace Modeel.Log
                 CallingFilePath = callingFilePath,
                 CallingMethod = callingMethod,
                 ThreadName = Thread.CurrentThread.Name ?? string.Empty,
-               DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
+                DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
             }); ;
             _autoResetEvent.Set();
         }
@@ -75,14 +75,26 @@ namespace Modeel.Log
                 }
                 else
                 {
-                    if (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
+                    if (_concurrentQueue.Count > 0)
                     {
-
                         lock (_lockObect)
                         {
-                            WriteLog_(logEntry.LogLevel, logEntry.Message, logEntry.LineNumber, logEntry.CallingFilePath, logEntry.CallingMethod, logEntry.ThreadName, logEntry.DateTime);
+                            while (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
+                            {
+
+                                WriteLog_(logEntry.LogLevel, logEntry.Message, logEntry.LineNumber, logEntry.CallingFilePath, logEntry.CallingMethod, logEntry.ThreadName, logEntry.DateTime);
+                            }
                         }
                     }
+
+                    //if (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
+                    //{
+
+                    //    lock (_lockObect)
+                    //    {
+                    //        WriteLog_(logEntry.LogLevel, logEntry.Message, logEntry.LineNumber, logEntry.CallingFilePath, logEntry.CallingMethod, logEntry.ThreadName, logEntry.DateTime);
+                    //    }
+                    //}
                 }
             }
         }

@@ -10,6 +10,9 @@ using System.Linq;
 
 public class P2pMasterClass : IP2pMasterClass
 {
+    private const long _kiloByte = 0x400;   //KB
+    private const long _megaByte = 0x100000; //MB
+
     private IWindowEnqueuer _gui;
 
     private readonly Dictionary<Guid, IUniversalClientSocket> _clients = new Dictionary<Guid, IUniversalClientSocket>();
@@ -18,6 +21,36 @@ public class P2pMasterClass : IP2pMasterClass
     public P2pMasterClass(IWindowEnqueuer gui)
     {
         _gui = gui;
+    }
+
+    public long GetTotalUploadingSpeedOfAllRunningServersInBytes()
+    {
+        return _servers.Sum(server => server.Value.TransferSendRate);
+    }
+
+    public long GetTotalUploadingSpeedOfAllRunningServersInKiloBytes()
+    {
+        return GetTotalUploadingSpeedOfAllRunningServersInBytes() / _kiloByte;
+    }
+
+    public long GetTotalUploadingSpeedOfAllRunningServersInMegaBytes()
+    {
+        return GetTotalUploadingSpeedOfAllRunningServersInBytes() / _megaByte;
+    }
+
+    public long GetTotalDownloadingSpeedOfAllRunningClientsInBytes()
+    {
+        return _clients.Sum(client => client.Value.TransferReceiveRate);
+    }
+
+    public long GetTotalDownloadingSpeedOfAllRunningClientsInKiloBytes()
+    {
+        return GetTotalDownloadingSpeedOfAllRunningClientsInBytes() / _kiloByte;
+    }
+
+    public long GetTotalDownloadingSpeedOfAllRunningClientsInMegaBytes()
+    {
+        return GetTotalDownloadingSpeedOfAllRunningClientsInBytes() / _megaByte;
     }
 
     public void CreateNewServer(IUniversalServerSocket socketServer)
@@ -72,7 +105,7 @@ public class P2pMasterClass : IP2pMasterClass
         }
         _servers.Clear();
 
-        Logger.WriteLog(LogLevel.Debug, "All connections was closed!");
+        Logger.WriteLog(LogLevel.DEBUG, "All connections was closed!");
     }
 
 }

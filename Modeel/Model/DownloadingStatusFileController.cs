@@ -84,14 +84,14 @@ namespace Modeel.Model
         {
             if (!File.Exists(fileNameDownloadingStatus))
             {
-                Logger.WriteLog(LogLevel.Error, "File does not exist.");
+                Logger.WriteLog(LogLevel.ERROR, "File does not exist.");
                 return null;
             }
 
             string[] lines = File.ReadAllLines(fileNameDownloadingStatus);
             if (lines.Length < 5)
             {
-                Logger.WriteLog(LogLevel.Error, "Invalid file format.");
+                Logger.WriteLog(LogLevel.ERROR, "Invalid file format.");
                 return null;
             }
 

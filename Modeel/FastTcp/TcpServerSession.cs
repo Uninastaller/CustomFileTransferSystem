@@ -43,7 +43,7 @@ namespace Modeel.FastTcp
 
         public TcpServerSession(TcpServer server) : base(server)
         {
-            Logger.WriteLog(LogLevel.Info, $"Guid: {Id}, Starting");
+            Logger.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
@@ -82,7 +82,7 @@ namespace Modeel.FastTcp
         protected override void OnDisconnected()
         {
             OnClientDisconnected();
-            Logger.WriteLog(LogLevel.Info, $"Tcp session with Id {Id} disconnected!");
+            Logger.WriteLog(LogLevel.INFO, $"Tcp session with Id {Id} disconnected!");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -92,7 +92,7 @@ namespace Modeel.FastTcp
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog(LogLevel.Error, $"Tcp session caught an error with code {error}");
+            Logger.WriteLog(LogLevel.ERROR, $"Tcp session caught an error with code {error}");
         }
 
         //protected override void OnConnected()
@@ -116,7 +116,7 @@ namespace Modeel.FastTcp
         private void OnNonRegistredMessage(string message)
         {
             this.Server.FindSession(this.Id).Disconnect();
-            Logger.WriteLog(LogLevel.Warning, $"Warning: Non registered message received, disconnecting client!");
+            Logger.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
         }
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
@@ -131,7 +131,7 @@ namespace Modeel.FastTcp
             else
             {
                 this.Server.FindSession(this.Id).Disconnect();
-                Logger.WriteLog(LogLevel.Warning, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Logger.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }
 
@@ -142,13 +142,13 @@ namespace Modeel.FastTcp
 
             if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazdy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
-                Logger.WriteLog(LogLevel.Debug, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
+                Logger.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
                 ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
             }
             else
             {
                 this.Server.FindSession(this.Id).Disconnect();
-                Logger.WriteLog(LogLevel.Warning, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Logger.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }
 
