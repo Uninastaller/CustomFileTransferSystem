@@ -87,11 +87,11 @@ namespace Modeel.Model
                 bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(long));
                 if (succes)
                 {
-                    Logger.WriteLog($"Part file: {partNumber}, was sended to client: {session.IpAndPort}!", LoggerInfo.socketMessage);
+                    Logger.WriteLog(LogLevel.Debug, $"Part file: {partNumber}, was sended to client: {session.IpAndPort}!");
                 }
                 else
                 {
-                    Logger.WriteLog($"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!", LoggerInfo.warning);
+                    Logger.WriteLog(LogLevel.Warning, $"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!");
                 }
                 return succes ? MethodResult.SUCCES : MethodResult.ERROR;
             }
@@ -103,11 +103,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Request for file was generated for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+                Logger.WriteLog(LogLevel.Debug, $"Request for file was generated for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}");
             }
             else
             {
-                Logger.WriteLog($"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -118,11 +118,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Reject was generated to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+                Logger.WriteLog(LogLevel.Debug, $"Reject was generated to client: {session.IpAndPort}");
             }
             else
             {
-                Logger.WriteLog($"Unable to send reject to client: {session.IpAndPort}", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Unable to send reject to client: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -133,11 +133,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Accept was generated to client: {session.IpAndPort}", LoggerInfo.socketMessage);
+                Logger.WriteLog(LogLevel.Debug, $"Accept was generated to client: {session.IpAndPort}");
             }
             else
             {
-                Logger.WriteLog($"Unable to send accept to client: {session.IpAndPort}", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Unable to send accept to client: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -148,11 +148,11 @@ namespace Modeel.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Logger.WriteLog($"Request for file part was generated for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}", LoggerInfo.fileTransfering);
+                Logger.WriteLog(LogLevel.Debug, $"Request for file part was generated for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}");
             }
             else
             {
-                Logger.WriteLog($"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }

@@ -5,6 +5,7 @@ using Modeel.Model;
 using System;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Modeel
 {
@@ -22,7 +23,7 @@ namespace Modeel
         {
             Thread.CurrentThread.Name = $"{this.GetType().Name}";
 
-            Logger.WriteLog("START OF PROGRAM", LoggerInfo.methodEntry);
+            //Logger.WriteLog(LogLevel.Debug, "START OF PROGRAM");
 
             contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
 
@@ -35,13 +36,17 @@ namespace Modeel
         private void btServerWindow_Click(object sender, RoutedEventArgs e)
         {
             //_form = null;
-            _clientWindow = null;
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            //_clientWindow = null;
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+            //GC.Collect();
 
-            Logger.WriteLog("MyButton_server_Click", LoggerInfo.methodEntry);
-            OpenServerWindow();
+            if (sender is Button button)
+            {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
+                OpenServerWindow();
+            }
         }
 
         private void OpenServerWindow()
@@ -58,8 +63,12 @@ namespace Modeel
 
         private void btClientWindow_Click(object sender, RoutedEventArgs e)
         {
-            Logger.WriteLog("MyButton2_client_Click", LoggerInfo.methodEntry);
-            OpenClientWindow();
+            if (sender is Button button)
+            {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
+                OpenClientWindow();
+            }
         }
 
         private void OpenClientWindow()

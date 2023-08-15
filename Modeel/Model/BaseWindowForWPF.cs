@@ -31,7 +31,7 @@ namespace Modeel.Model
         private void HandleMessage(CancellationToken cancellationToken)
         {
             Thread.CurrentThread.Name = $"{GetType().Name}_WorkerThread";
-            Logger.WriteLog("WorkerThread starting", LoggerInfo.methodEntry);
+            Logger.WriteLog(LogLevel.Debug, "WorkerThread starting");
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -56,7 +56,7 @@ namespace Modeel.Model
                     Dispatcher.BeginInvoke(handlingMessageInGuiThread);
                 }
             }
-            Logger.WriteLog("WorkerThread closing", LoggerInfo.methodExit);
+            Logger.WriteLog(LogLevel.Debug, "WorkerThread closing");
         }
 
         private void HandlingMessageInGuiThread()
@@ -102,7 +102,7 @@ namespace Modeel.Model
             {
                 Thread.Sleep(50);
             }
-            Logger.WriteLog("New window created", LoggerInfo.windowCreated, typeof(T).Name);
+            Logger.WriteLog(LogLevel.Debug, $"New window created with type of: {typeof(T).Name}");
             return window;
         }
 
@@ -110,7 +110,7 @@ namespace Modeel.Model
         {
             Closed -= Window_closedEvent;
             _cancellationTokenSource.Cancel();
-            Logger.WriteLog("Window and his threads closing", LoggerInfo.windowClosed, sender?.GetType().Name);
+            Logger.WriteLog(LogLevel.Debug, $"Window of type: {sender?.GetType().Name} and his threads are closing");
             _windowWorkerThread.Join();
             Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
         }

@@ -103,7 +103,7 @@ namespace Modeel.Model
 
             _downloadingTime.Start();
 
-            Logger.WriteLog($"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!", LoggerInfo.downloadingStatusFile);
+            Logger.WriteLog(LogLevel.Debug, $"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!");
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Modeel.Model
 
             _downloadingTime.Start();
 
-            Logger.WriteLog("Starting downloading from beginning!", LoggerInfo.downloadingStatusFile);
+            Logger.WriteLog(LogLevel.Debug, "Starting downloading from beginning!");
 
             DownloadingStatusFileController.InitialSaveOfStatusFile(_fileNameDownloadingStatus, _receivedParts, TotalParts, FileSize, PartSize, LastPartSize);
         }
@@ -160,7 +160,7 @@ namespace Modeel.Model
         {
             if (_receivedParts[partToProcess] != FilePartState.DOWNLOADING)
             {
-                Logger.WriteLog("We are not waiting this part!", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, "We are not waiting this part!");
                 return MethodResult.SUCCES;
             }
 
@@ -193,19 +193,19 @@ namespace Modeel.Model
                             OnDownloadDone();
                         }
 
-                        Logger.WriteLog($"Part No.{partToProcess} was written at position {position}.", LoggerInfo.fileTransfering);
+                        Logger.WriteLog(LogLevel.Debug, $"Part No.{partToProcess} was written at position {position}.");
                         return MethodResult.SUCCES;
                     }
                     catch (IOException)
                     {
                         if (retryCount < maxRetries - 1)
                         {
-                            Logger.WriteLog($"Failed to write Part No.{partToProcess}. Retrying in {retryDelayMs}ms...", LoggerInfo.warning);
+                            Logger.WriteLog(LogLevel.Warning, $"Failed to write Part No.{partToProcess}. Retrying in {retryDelayMs}ms...");
                             Thread.Sleep(retryDelayMs);
                         }
                         else
                         {
-                            Logger.WriteLog($"Failed to write Part No.{partToProcess}. Max retries exceeded.", LoggerInfo.warning);
+                            Logger.WriteLog(LogLevel.Warning, $"Failed to write Part No.{partToProcess}. Max retries exceeded.");
                         }
                     }
                 }
@@ -238,12 +238,12 @@ namespace Modeel.Model
 
         private void OnDownloadDone()
         {
-            Logger.WriteLog("File downloading done!", LoggerInfo.fileTransfering);
+            Logger.WriteLog(LogLevel.Debug, "File downloading done!");
             // Change extension of file to default
             if (File.Exists(_fileNameDownloading) && !File.Exists(_fileName))
             {
                 Thread.Sleep(100);
-                Logger.WriteLog($"Changeing extension of downloading file from .tmp to: {Path.GetExtension(_fileName)}!", LoggerInfo.fileTransfering);
+                Logger.WriteLog(LogLevel.Debug, $"Changeing extension of downloading file from .tmp to: {Path.GetExtension(_fileName)}!");
                 File.Move(_fileNameDownloading, _fileName);
             }
             DownloadingStatusFileController.DownloadDone(_fileNameDownloadingStatus);

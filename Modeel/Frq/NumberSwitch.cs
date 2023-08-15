@@ -26,12 +26,12 @@ namespace Modeel.Frq
          {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendFormat("{0}, {1}, {2}, {3}", num, action.Target, action.Method, ex.Message);
-            Logger.WriteLog($"{ex.Message}; {stringBuilder}", LoggerInfo.exception);
+            Logger.WriteLog(LogLevel.Error, $"{ex.Message}; {stringBuilder}");
             return this;
          }
          catch (Exception ex2)
          {
-            Logger.WriteLog(ex2.Message, LoggerInfo.exception);
+            Logger.WriteLog(LogLevel.Error, ex2.Message);
             return this;
          }
       }
@@ -46,13 +46,13 @@ namespace Modeel.Frq
          {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendFormat("{0} {1}", num, ex.Message);
-            Logger.WriteLog($"{ex.Message}; {stringBuilder}", LoggerInfo.exception);
+            Logger.WriteLog(LogLevel.Error, $"{ex.Message}; {stringBuilder}");
          }
          catch (Exception ex2)
          {
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.AppendFormat("{0} {1}", num, ex2.Message);
-            Logger.WriteLog($"{ex2.Message}; {stringBuilder2}", LoggerInfo.exception);
+            Logger.WriteLog(LogLevel.Debug, $"{ex2.Message}; {stringBuilder2}");
             throw new NotImplementedException(stringBuilder2.ToString());
          }
       }

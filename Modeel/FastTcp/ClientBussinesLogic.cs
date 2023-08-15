@@ -20,12 +20,6 @@ namespace Modeel.FastTcp
 
         #region Properties
 
-        
-
-
-
-
-
         public TypeOfClientSocket Type { get; }
         public string Address => _address.ToString();
         public Guid Id { get; }
@@ -220,14 +214,14 @@ namespace Modeel.FastTcp
                 }
                 else
                 {
-                    Logger.WriteLog("Connection attempt timed out.");
+                    Logger.WriteLog(LogLevel.Debug, "Connection attempt timed out.");
                     AutoConnect = true;
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Logger.WriteLog($"Failed to connect to server: {ex.Message}");
+                Logger.WriteLog(LogLevel.Error, $"Failed to connect to server: {ex.Message}");
 
                 // Set IsConnecting to false to indicate that the client is not connecting
                 IsConnecting = false;
@@ -264,7 +258,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog($"Failed to disconnect from server: {ex.Message}");
+                Logger.WriteLog(LogLevel.Error, $"Failed to disconnect from server: {ex.Message}");
                 return false;
             }
         }
@@ -307,7 +301,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog($"Failed to start receiving data: {ex.Message}", LoggerInfo.exception);
+                Logger.WriteLog(LogLevel.Error, $"Failed to start receiving data: {ex.Message}");
                 Disconnect();
             }
         }
@@ -408,7 +402,7 @@ namespace Modeel.FastTcp
             //_gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
 
             //Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]: {message}", LoggerInfo.socketMessage);
-            Logger.WriteLog($"Tcp client obtained a message[{buffer.Length}]", LoggerInfo.socketMessage);
+            Logger.WriteLog(LogLevel.Debug, $"Tcp client obtained a message[{buffer.Length}]");
         }
 
         #endregion PrivateMethods
@@ -501,7 +495,7 @@ namespace Modeel.FastTcp
             }
             catch (Exception ex)
             {
-                Logger.WriteLog($"Failed to receive data from server: {ex.Message}", LoggerInfo.exception);
+                Logger.WriteLog(LogLevel.Error, $"Failed to receive data from server: {ex.Message}");
                 Disconnect();
             }
         }

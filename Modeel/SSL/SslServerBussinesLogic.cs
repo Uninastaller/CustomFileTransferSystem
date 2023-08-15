@@ -1,5 +1,4 @@
-﻿using Modeel.FastTcp;
-using Modeel.Frq;
+﻿using Modeel.Frq;
 using Modeel.Log;
 using Modeel.Messages;
 using Modeel.Model;
@@ -7,9 +6,7 @@ using Modeel.Model.Enums;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
@@ -85,11 +82,11 @@ namespace Modeel.SSL
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
                 _clients.Add(sessionId, client);
-                Logger.WriteLog($"Client: {client}, connected to server ", LoggerInfo.sslServer);
+                Logger.WriteLog(LogLevel.Debug, $"Client: {client}, connected to server");
             }
             else if (socketState == SocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
             {
-                Logger.WriteLog($"Client: {_clients[sessionId]}, disconnected from server ", LoggerInfo.sslServer);
+                Logger.WriteLog(LogLevel.Debug, $"Client: {_clients[sessionId]}, disconnected from server");
                 _clients.Remove(sessionId);
             }
         }
@@ -116,7 +113,7 @@ namespace Modeel.SSL
 
         private void OnReceiveMessage(SslSession sesion, string message)
         {
-            Logger.WriteLog($"Ssl server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);            
+            Logger.WriteLog(LogLevel.Debug, $"Ssl server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}");
         }
 
         /// <summary>
@@ -127,36 +124,36 @@ namespace Modeel.SSL
         /// <param name="fileSize"></param>
         private void OnClientFileRequest(SslSession session, string filePath, long fileSize)
         {
-         Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
+            Logger.WriteLog(LogLevel.Debug, $"Request was received for file: {filePath} with size: {fileSize}");
 
-         string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
-         if (uploadingDirectory != null)
-         {
-            if (!Directory.Exists(uploadingDirectory))
+            string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+            if (uploadingDirectory != null)
             {
-               Directory.CreateDirectory(uploadingDirectory);
+                if (!Directory.Exists(uploadingDirectory))
+                {
+                    Directory.CreateDirectory(uploadingDirectory);
+                }
+
+                filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
+
+                if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslServerSession serverSession)
+                {
+                    //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    MessageBoxResult result = MessageBoxResult.Yes;
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        ResourceInformer.GenerateAccept(session);
+                        serverSession.RequestAccepted = true;
+                        serverSession.FilePathOfAcceptedfileRequest = filePath;
+                        return;
+                    }
+                }
             }
 
-            filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
-
-            if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslServerSession serverSession)
-            {
-               //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
-               MessageBoxResult result = MessageBoxResult.Yes;
-               if (result == MessageBoxResult.Yes)
-               {
-                  ResourceInformer.GenerateAccept(session);
-                  serverSession.RequestAccepted = true;
-                  serverSession.FilePathOfAcceptedfileRequest = filePath;
-                  return;
-               }
-            }
-         }
-
-         ResourceInformer.GenerateReject(session);
-         session.Disconnect();
-         session.Dispose();
-      }
+            ResourceInformer.GenerateReject(session);
+            session.Disconnect();
+            session.Dispose();
+        }
 
         #endregion EventHandler
 
@@ -182,7 +179,7 @@ namespace Modeel.SSL
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog($"Ssl server caught an error with code {error}", LoggerInfo.tcpServer);
+            Logger.WriteLog(LogLevel.Error, $"Ssl server caught an error with code {error}");
         }
 
         private void OnClientDisconnected(SslSession session)

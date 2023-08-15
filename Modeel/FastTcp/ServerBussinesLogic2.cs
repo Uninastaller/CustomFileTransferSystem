@@ -81,11 +81,11 @@ namespace Modeel.FastTcp
          if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
          {
             _clients.Add(sessionId, client);
-            Logger.WriteLog($"Client: {client}, connected to server ", LoggerInfo.tcpServer);
+            Logger.WriteLog(LogLevel.Debug, $"Client: {client}, connected to server");
          }
          else if (socketState == SocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
          {
-            Logger.WriteLog($"Client: {_clients[sessionId]}, disconnected from server ", LoggerInfo.tcpServer);
+            Logger.WriteLog(LogLevel.Debug, $"Client: {_clients[sessionId]}, disconnected from server");
             _clients.Remove(sessionId);
          }
       }
@@ -112,7 +112,7 @@ namespace Modeel.FastTcp
 
       private void OnReceiveMessage(TcpSession sesion, string message)
       {
-         Logger.WriteLog($"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
+         Logger.WriteLog(LogLevel.Debug, $"Tcp server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}");
          //Logger.WriteLog($"Tcp server obtained a message, from: {sesion.Socket.RemoteEndPoint}", LoggerInfo.socketMessage);
       }
 
@@ -124,7 +124,7 @@ namespace Modeel.FastTcp
       /// <param name="fileSize"></param>
       private void OnClientFileRequest(TcpSession session, string filePath, long fileSize)
       {
-         Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
+         Logger.WriteLog(LogLevel.Debug, $"Request was received for file: {filePath} with size: {fileSize}");
 
          string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
          if (uploadingDirectory != null)
@@ -179,7 +179,7 @@ namespace Modeel.FastTcp
 
       protected override void OnError(SocketError error)
       {
-         Logger.WriteLog($"Tcp server caught an error with code {error}", LoggerInfo.tcpServer);
+         Logger.WriteLog(LogLevel.Error, $"Tcp server caught an error with code {error}");
       }
 
       private void OnClientDisconnected(TcpSession session)

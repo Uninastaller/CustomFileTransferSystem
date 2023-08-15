@@ -72,7 +72,7 @@ public class P2pMasterClass : IP2pMasterClass
         }
         _servers.Clear();
 
-        Logger.WriteLog("All connections was closed!", LoggerInfo.P2PSSL);
+        Logger.WriteLog(LogLevel.Debug, "All connections was closed!");
     }
 
 }

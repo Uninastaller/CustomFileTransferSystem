@@ -60,7 +60,7 @@ namespace Modeel
                 listener.Start();
                 var port = ((IPEndPoint)listener.LocalEndpoint).Port;
                 listener.Stop();
-                Logger.WriteLog($"Random free port generated: {port}", LoggerInfo.P2PSSL);
+                Logger.WriteLog(LogLevel.Debug, $"Random free port generated: {port}");
                 return port;
             }
         }
@@ -270,114 +270,141 @@ namespace Modeel
 
         private void btnP2pListen_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (!IsPortFree(P2pPort))
+            if (sender is Button button)
             {
-                Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2PSSL);
+                Logger.WriteLog(LogLevel.Debug, button.Name);
 
-                // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                if (!IsPortFree(P2pPort))
+                {
+                    Logger.WriteLog(LogLevel.Info, $"Port: {P2pPort} is not free!");
 
-                return;
+                    // just for testing create on another free port
+                    _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+
+                    return;
+                }
+                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
             }
-            _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnect_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _p2PMasterClass.CreateNewClient(new SslClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
+            if (sender is Button button)
+            {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
+                _p2PMasterClass.CreateNewClient(new SslClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
+            }
         }
 
         private void btnStopServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalServerSocket server)
+            if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 server.Stop();
             }
         }
 
         private void btnStartServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalServerSocket server)
+            if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 server.Start();
             }
         }
 
         private void btnRestartServer_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalServerSocket server)
+            if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 server.Restart();
             }
         }
 
         private void btnDisposeServer_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalServerSocket server)
+            if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 server.Dispose();
             }
         }
 
         private void btnDisconnectFromServer_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalClientSocket client)
+            if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 client.Disconnect();
             }
         }
 
         private void btnDisconnectAndStop_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalClientSocket client)
+            if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 client.DisconnectAndStop();
             }
         }
 
         private void btnConnectAsyncToServer_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalClientSocket client)
+            if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 client.ConnectAsync();
             }
         }
 
         private void btnDisposeClient_Click(object sender, RoutedEventArgs e)
         {
-            Button? b = sender as Button;
-            if (b?.Tag is IUniversalClientSocket client)
+            if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
                 client.Dispose();
             }            
         }
 
         private async void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsPortFree(P2pPort))
+            if (sender is Button button)
             {
-                Logger.WriteLog($"Port: {P2pPort} is not free!", LoggerInfo.P2P);
-                // just for testing create on another free port
-                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
-                //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
-                return;
+                Logger.WriteLog(LogLevel.Debug, button.Name);
+
+                if (!IsPortFree(P2pPort))
+                {
+                    Logger.WriteLog(LogLevel.Info, $"Port: {P2pPort} is not free!");
+                    // just for testing create on another free port
+                    _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                    //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                    return;
+                }
+                _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+                //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
             }
-            _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
-            //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
         }
 
         private void btnP2pConnectFast_Click(object sender, RoutedEventArgs e)
         {
-            //_p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
-            _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(IPAddress.Parse("127.0.0.1"), P2pPort, this));
+            if (sender is Button button)
+            {
+                Logger.WriteLog(LogLevel.Debug, button.Name);
 
+                //_p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
+                _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(IPAddress.Parse("127.0.0.1"), P2pPort, this));
+            }
         }
 
         #endregion EventHandlers

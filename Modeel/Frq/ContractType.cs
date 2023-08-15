@@ -56,7 +56,7 @@ namespace Modeel.Frq
             }
             else
             {
-               Logger.WriteLog($"Already exists ContractId:{msgId} Type:{t.FullName}", LoggerInfo.warning);
+               Logger.WriteLog(LogLevel.Warning, $"Already exists ContractId:{msgId} Type:{t.FullName}");
             }
          }
       }

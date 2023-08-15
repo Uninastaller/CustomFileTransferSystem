@@ -50,7 +50,7 @@ namespace Modeel.Model
         public void SetLastPartSize(int size)
         {
             _partSize = size;
-            Logger.WriteLog($"SWITCH, setting part size for last part, size is now: {_partSize}");
+            Logger.WriteLog(LogLevel.Warning, $"Setting part size for last part, size is now: {_partSize}");
         }
 
         public void SetCaching(int partSize, Action<byte[], long, long> cachingAction)
@@ -75,7 +75,7 @@ namespace Modeel.Model
             }
             else
             {
-                Logger.WriteLog($"Warning: Handler for flag '{flag}' is already registered.", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Warning: Handler for flag '{flag}' is already registered.");
             }
         }
 
@@ -143,7 +143,7 @@ namespace Modeel.Model
             // Check if message is long enought to have flag
             if (size < 3)
             {
-                Logger.WriteLog($"Warning, received message with too few bytes, size: {size}", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Warning, received message with too few bytes, size: {size}");
                 _onNonRegisteredAction?.Invoke(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
             }
             // Try found action by message flag

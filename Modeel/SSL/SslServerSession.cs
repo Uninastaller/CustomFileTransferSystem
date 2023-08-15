@@ -40,7 +40,8 @@ namespace Modeel.SSL
 
         public SslServerSession(SslServer server) : base(server)
         {
-            Logger.WriteLog($"Guid: {Id}, Starting");
+            Logger.WriteLog(LogLevel.Info, $"Guid: {Id}, Starting");
+
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
             _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
@@ -77,7 +78,7 @@ namespace Modeel.SSL
 
         protected override void OnHandshaked()
         {
-            Console.WriteLine($"SSL session with Id {Id} handshaked!");
+            Logger.WriteLog(LogLevel.Info, $"Ssl session with Id {Id} handshaked!");
 
             //// Send invite message
             //string message = "Hello from SSL server!";
@@ -87,7 +88,7 @@ namespace Modeel.SSL
         protected override void OnDisconnected()
         {
             OnClientDisconnected();
-            Console.WriteLine($"SSL session with Id {Id} disconnected!");
+            Logger.WriteLog(LogLevel.Info, $"Ssl session with Id {Id} disconnected!");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -100,7 +101,7 @@ namespace Modeel.SSL
 
         protected override void OnError(SocketError error)
         {
-            Console.WriteLine($"Chat SSL session caught an error with code {error}");
+            Logger.WriteLog(LogLevel.Error, $"Ssl session caught an error with code {error}");
         }
 
         #endregion ProtectedMethods
@@ -119,7 +120,7 @@ namespace Modeel.SSL
         private void OnNonRegistredMessage(string message)
         {
             this.Server.FindSession(this.Id).Disconnect();
-            Logger.WriteLog($"Warning: Non registered message received, disconnecting client!", LoggerInfo.warning);
+            Logger.WriteLog(LogLevel.Warning, $"Warning: Non registered message received, disconnecting client!");
         }
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
@@ -134,7 +135,7 @@ namespace Modeel.SSL
             else
             {
                 this.Server.FindSession(this.Id).Disconnect();
-                Logger.WriteLog($"Warning: client is sending wrong formats of data, disconnecting!", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }
 
@@ -145,13 +146,13 @@ namespace Modeel.SSL
 
             if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazdy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
             {
-                Logger.WriteLog($"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!", LoggerInfo.fileTransfering);
+                Logger.WriteLog(LogLevel.Debug, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
                 ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
             }
             else
             {
                 this.Server.FindSession(this.Id).Disconnect();
-                Logger.WriteLog($"Warning: client is sending wrong formats of data, disconnecting!", LoggerInfo.warning);
+                Logger.WriteLog(LogLevel.Warning, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }
 
