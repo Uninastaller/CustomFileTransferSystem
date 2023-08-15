@@ -1,97 +1,130 @@
-﻿using System;
+﻿using Modeel.Frq;
+using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Windows;
 
 namespace Modeel.Log
 {
-    public static class Logger
-    {
-        private static readonly int sizeLimit = 1048576 * 10; // 1 MB
-        private static readonly string headerLine = "Time;Line;Filename;Thread;Method name;Message info;Message";
-        private static readonly string logDirectory = @"C:\Logs";
-        private static readonly object lockObject = new object();
-        private static bool newFile = false;
-        private static object zipLock = new object(); // Define a lock object
+   public static class Logger
+   {
+      private static readonly int sizeLimit = 1048576 * 1; // 1 MB
+      private static readonly string headerLine = "Time;Line;Filename;Thread;Method name;Message info;Message";
+      private static readonly string logDirectory = @"C:\Logs";
+      private static readonly object lockObject = new object();
 
-        public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
-        {
-            //if (loggerInfo.Equals(LoggerInfo.socketMessage)) return;
+      public static void StartApplication()
+      {
+         ZipExistingLogFile();
+         CreateNewLogFile();
+      }
 
+      private static void CreateNewLogFile()
+      {
+         try
+         {
             if (!Directory.Exists(logDirectory))
             {
-                Directory.CreateDirectory(logDirectory);
+               Directory.CreateDirectory(logDirectory);
             }
 
             string fileName = Path.Combine(logDirectory, "Active.csv");
 
-            if (!File.Exists(fileName))
-            {
-                newFile = true;
-            }
-
             lock (lockObject)
             {
-                using (StreamWriter writer = new StreamWriter(fileName, true))
-                {
-
-                    if (newFile)
-                    {
-                        writer.WriteLine(headerLine);
-                        newFile = false;
-                    }
-
-                    var line = string.Format("{0:HH:mm:ss:fff};{1};{2};{3};{4};{5};{6}",
-                        DateTime.Now,
-                        lineNumber,
-                        Path.GetFileName(callingFilePath),
-                        Thread.CurrentThread.Name,
-                        callingMethod,
-                        loggerInfo + msgName,
-                        message);
-                    writer.WriteLine(line);
-                }
+               using (StreamWriter writer = new StreamWriter(fileName, false)) // Pass 'false' to create a new file and overwrite if it already exists
+               {
+                  writer.WriteLine(headerLine);
+               }
             }
+         }
+         catch (Exception ex)
+         {
+            // Handle the exception by logging the error message or taking appropriate action.
+            // For example, you could log to a separate error log or silently ignore the error.
+         }
+      }
 
-            if (File.Exists(fileName) && new FileInfo(fileName).Length > sizeLimit)
+      private static void ZipExistingLogFile()
+      {
+         try
+         {
+            string existingFileName = Path.Combine(logDirectory, "Active.csv");
+
+            if (File.Exists(existingFileName))
             {
-                lock (zipLock) // Use a lock to ensure only one thread at a time can access this code block
-                {
-
-                    if (!File.Exists(fileName) || new FileInfo(fileName).Length < sizeLimit) return; // another thread may already created zip file
-
-                    string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
-
-                    DirectoryInfo directoryInfo = new DirectoryInfo(logDirectory);
-
-                    // Check if the user has read access to the directory
-                    bool hasReadAccess = (directoryInfo.Attributes & FileAttributes.ReadOnly) != FileAttributes.ReadOnly;
-
-                    // Check if the user has write access to the directory
-                    bool hasWriteAccess = (directoryInfo.Attributes & FileAttributes.ReadOnly) == 0;
-
-                    if (!hasReadAccess || !hasWriteAccess)
-                    {
-                        MessageBox.Show("Can not zip log files becouse of lack of permissions! Logs will be deleted!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        File.Delete(fileName);
-                        return;
-                    }
-
-                    using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
-                    {
-                        var entry = zip.CreateEntry(Path.GetFileName(fileName));
-                        using (var stream = entry.Open())
-                        using (var file = File.OpenRead(fileName))
-                        {
-                            file.CopyTo(stream);
-                        }
-                    }
-
-                    File.Delete(fileName);
-                }
+               lock (lockObject)
+               {
+                  string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+                  using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
+                  {
+                     var entry = zip.CreateEntry("Active.csv");
+                     using (var stream = entry.Open())
+                     using (var file = File.OpenRead(existingFileName))
+                     {
+                        file.CopyTo(stream);
+                     }
+                  }
+               }
             }
-        }
-    }
+         }
+         catch (Exception ex)
+         {
+            // Handle the exception by logging the error message or taking appropriate action.
+            // For example, you could log to a separate error log or silently ignore the error.
+         }
+      }
+
+      public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
+      {
+         string fileName = Path.Combine(logDirectory, "Active.csv");
+
+         if (!File.Exists(fileName))
+         {
+            CreateNewLogFile();
+         }
+
+         lock (lockObject)
+         {
+            using (StreamWriter writer = new StreamWriter(fileName, true))
+            {
+               var line = string.Format("{0:HH:mm:ss:fff};{1};{2};{3};{4};{5};{6}",
+                   DateTime.Now,
+                   lineNumber,
+                   Path.GetFileName(callingFilePath),
+                   Thread.CurrentThread.Name,
+                   callingMethod,
+                   loggerInfo + msgName,
+                   message);
+               writer.WriteLine(line);
+            }
+         }
+
+         if (File.Exists(fileName) && new FileInfo(fileName).Length > sizeLimit)
+         {
+            try
+            {
+               string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+               using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
+               {
+                  var entry = zip.CreateEntry(Path.GetFileName(fileName));
+                  using (var stream = entry.Open())
+                  using (var file = File.OpenRead(fileName))
+                  {
+                     file.CopyTo(stream);
+                  }
+               }
+               File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+               // Handle the exception by logging the error message or taking appropriate action.
+               // For example, you could log to a separate error log or silently ignore the error.
+            }
+         }
+      }
+
+   }
 }
