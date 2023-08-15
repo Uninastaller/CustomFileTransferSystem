@@ -1,5 +1,4 @@
-﻿using Modeel.Frq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
@@ -10,35 +9,93 @@ namespace Modeel.Log
 {
    public static class Logger
    {
-      private static readonly int sizeLimit = 1048576 * 1; // 1 MB
-      private static readonly string headerLine = "Time;Line;Filename;Thread;Method name;Message info;Message";
-      private static readonly string logDirectory = @"C:\Logs";
-      private static readonly object lockObject = new object();
+      private static readonly int sizeLimit = 0x100000 * 1; // 1 MB
+      private static readonly string _headerLine = "Time;Line;Filename;Thread;Method name;Level;Message";
+      private static readonly string _logFilePath = @"C:\Logs";
+      private static readonly string _logFilePathAndName = Path.Combine(_logFilePath, "Active.csv");
+      private static readonly object _lockObect = new object();
+
+      private static ConcurrentQueue<LogEntry> _concurrentQueue = new ConcurrentQueue<LogEntry>();
+      private static AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
+      private static Thread _workingThread;
+      private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
       public static void StartApplication()
       {
-         ZipExistingLogFile();
-         CreateNewLogFile();
+         lock (_lockObect)
+         {
+            ZipExistingLogFile();
+            CreateNewLogFile();
+         }
+         _workingThread = new Thread(() => HandleMessage(_cancellationTokenSource.Token));
+         _workingThread.Start();
+      }
+
+      public static void EndApplication()
+      {
+         _cancellationTokenSource.Cancel();
+         _workingThread.Join();
+      }
+
+      public static void WriteLog(string message, LogLevel logLevel)
+      {
+         _concurrentQueue.Enqueue(new LogEntry()
+         {
+            Message = message,
+            LogLevel = logLevel
+         });
+         _autoResetEvent.Set();
+      }
+
+      static void HandleMessage(CancellationToken cancellationToken)
+      {
+         Thread.CurrentThread.Name = $"{nameof(Logger)}_WorkerThread";
+
+         while (!cancellationToken.IsCancellationRequested)
+         {
+            int loopFlag = WaitHandle.WaitAny(new[] { _autoResetEvent, cancellationToken.WaitHandle }, 1000, false);                // TimeOut
+                                                                                                                                    // Check if Cancel has been signalized
+            if (loopFlag == 1)
+            {
+               while (!_concurrentQueue.IsEmpty)
+               {
+                  _concurrentQueue.TryDequeue(out LogEntry? _);
+               }
+               break;
+            }
+            else if (loopFlag == WaitHandle.WaitTimeout)
+            {
+               // Timeout occurred, continue looping.
+               continue;
+            }
+            else
+            {
+               if (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
+               {
+
+                  lock (_lockObect)
+                  {
+                     WriteLog_(logEntry.LogLevel, logEntry.Message);
+                  }
+               }
+            }
+         }
       }
 
       private static void CreateNewLogFile()
       {
          try
          {
-            if (!Directory.Exists(logDirectory))
+            if (!Directory.Exists(_logFilePath))
             {
-               Directory.CreateDirectory(logDirectory);
+               Directory.CreateDirectory(_logFilePath);
             }
 
-            string fileName = Path.Combine(logDirectory, "Active.csv");
-
-            lock (lockObject)
+            using (StreamWriter writer = new StreamWriter(_logFilePathAndName, false)) // Pass 'false' to create a new file and overwrite if it already exists
             {
-               using (StreamWriter writer = new StreamWriter(fileName, false)) // Pass 'false' to create a new file and overwrite if it already exists
-               {
-                  writer.WriteLine(headerLine);
-               }
+               writer.WriteLine(_headerLine);
             }
+
          }
          catch (Exception ex)
          {
@@ -51,21 +108,16 @@ namespace Modeel.Log
       {
          try
          {
-            string existingFileName = Path.Combine(logDirectory, "Active.csv");
-
-            if (File.Exists(existingFileName))
+            if (File.Exists(_logFilePathAndName))
             {
-               lock (lockObject)
+               string zipFileName = Path.Combine(_logFilePath, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+               using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
                {
-                  string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
-                  using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
+                  var entry = zip.CreateEntry("Active.csv");
+                  using (var stream = entry.Open())
+                  using (var file = File.OpenRead(_logFilePathAndName))
                   {
-                     var entry = zip.CreateEntry("Active.csv");
-                     using (var stream = entry.Open())
-                     using (var file = File.OpenRead(existingFileName))
-                     {
-                        file.CopyTo(stream);
-                     }
+                     file.CopyTo(stream);
                   }
                }
             }
@@ -77,46 +129,42 @@ namespace Modeel.Log
          }
       }
 
-      public static void WriteLog(string message = "", string loggerInfo = "", string? msgName = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
+      private static void WriteLog_(LogLevel logLevel, string message = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
       {
-         string fileName = Path.Combine(logDirectory, "Active.csv");
 
-         if (!File.Exists(fileName))
+         if (!File.Exists(_logFilePathAndName))
          {
             CreateNewLogFile();
          }
 
-         lock (lockObject)
+         using (StreamWriter writer = new StreamWriter(_logFilePathAndName, true))
          {
-            using (StreamWriter writer = new StreamWriter(fileName, true))
-            {
-               var line = string.Format("{0:HH:mm:ss:fff};{1};{2};{3};{4};{5};{6}",
-                   DateTime.Now,
-                   lineNumber,
-                   Path.GetFileName(callingFilePath),
-                   Thread.CurrentThread.Name,
-                   callingMethod,
-                   loggerInfo + msgName,
-                   message);
-               writer.WriteLine(line);
-            }
+            var line = string.Format("{0:HH:mm:ss:fff};{1};{2};{3};{4};{5};{6}",
+                DateTime.Now,
+                lineNumber,
+                Path.GetFileName(callingFilePath),
+                Thread.CurrentThread.Name,
+                callingMethod,
+                logLevel.ToString(),
+                message);
+            writer.WriteLine(line);
          }
 
-         if (File.Exists(fileName) && new FileInfo(fileName).Length > sizeLimit)
+         if (new FileInfo(_logFilePathAndName).Length > sizeLimit)
          {
             try
             {
-               string zipFileName = Path.Combine(logDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+               string zipFileName = Path.Combine(_logFilePath, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
                using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
                {
-                  var entry = zip.CreateEntry(Path.GetFileName(fileName));
+                  var entry = zip.CreateEntry(Path.GetFileName(_logFilePathAndName));
                   using (var stream = entry.Open())
-                  using (var file = File.OpenRead(fileName))
+                  using (var file = File.OpenRead(_logFilePathAndName))
                   {
                      file.CopyTo(stream);
                   }
                }
-               File.Delete(fileName);
+               File.Delete(_logFilePathAndName);
             }
             catch (Exception ex)
             {
