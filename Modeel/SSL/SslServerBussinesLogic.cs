@@ -127,26 +127,36 @@ namespace Modeel.SSL
         /// <param name="fileSize"></param>
         private void OnClientFileRequest(SslSession session, string filePath, long fileSize)
         {
-            filePath = $@"{ConfigurationManager.AppSettings["UploadingDirectory"]}\{Path.GetFileName(filePath)}";
-            Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
+         Logger.WriteLog($"Request was received for file: {filePath} with size: {fileSize}", LoggerInfo.socketMessage);
+
+         string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+         if (uploadingDirectory != null)
+         {
+            if (!Directory.Exists(uploadingDirectory))
+            {
+               Directory.CreateDirectory(uploadingDirectory);
+            }
+
+            filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
 
             if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslServerSession serverSession)
             {
-                //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                MessageBoxResult result = MessageBoxResult.Yes;
-                if (result == MessageBoxResult.Yes)
-                {
-                    ResourceInformer.GenerateAccept(session);
-                    serverSession.RequestAccepted = true;
-                    serverSession.FilePathOfAcceptedfileRequest = filePath;
-                    return;
-                }
+               //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+               MessageBoxResult result = MessageBoxResult.Yes;
+               if (result == MessageBoxResult.Yes)
+               {
+                  ResourceInformer.GenerateAccept(session);
+                  serverSession.RequestAccepted = true;
+                  serverSession.FilePathOfAcceptedfileRequest = filePath;
+                  return;
+               }
             }
+         }
 
-            ResourceInformer.GenerateReject(session);
-            session.Disconnect();
-            session.Dispose();
-        }
+         ResourceInformer.GenerateReject(session);
+         session.Disconnect();
+         session.Dispose();
+      }
 
         #endregion EventHandler
 
