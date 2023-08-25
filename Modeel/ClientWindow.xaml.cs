@@ -1,5 +1,5 @@
-﻿using Modeel.FastTcp;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.FastTcp;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
@@ -60,7 +60,7 @@ namespace Modeel
                 listener.Start();
                 var port = ((IPEndPoint)listener.LocalEndpoint).Port;
                 listener.Stop();
-                Logger.WriteLog(LogLevel.DEBUG, $"Random free port generated: {port}");
+                Log.WriteLog(LogLevel.DEBUG, $"Random free port generated: {port}");
                 return port;
             }
         }
@@ -264,7 +264,7 @@ namespace Modeel
 
         private void Timer_elapsed(object? sender, ElapsedEventArgs e)
         {
-            Logger.WriteLog(LogLevel.UPLOADING_SPEED_MBs, _p2PMasterClass.GetTotalUploadingSpeedOfAllRunningServersInMegaBytes().ToString());
+            Log.WriteLog(LogLevel.UPLOADING_SPEED_MBs, _p2PMasterClass.GetTotalUploadingSpeedOfAllRunningServersInMegaBytes().ToString());
             this.BaseMsgEnque(new RefreshTablesMessage());
         }
 
@@ -272,11 +272,11 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 if (!IsPortFree(P2pPort))
                 {
-                    Logger.WriteLog(LogLevel.INFO, $"Port: {P2pPort} is not free!");
+                    Log.WriteLog(LogLevel.INFO, $"Port: {P2pPort} is not free!");
 
                     // just for testing create on another free port
                     _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
@@ -291,7 +291,7 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 _p2PMasterClass.CreateNewClient(new SslClientBussinesLogic(_contextForP2pAsClient, P2pIpAddress, P2pPort, this));
             }
@@ -301,7 +301,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 server.Stop();
             }
@@ -311,7 +311,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 server.Start();
             }
@@ -321,7 +321,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 server.Restart();
             }
@@ -331,7 +331,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalServerSocket server)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 server.Dispose();
             }
@@ -341,7 +341,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.Disconnect();
             }
@@ -351,7 +351,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.DisconnectAndStop();
             }
@@ -361,7 +361,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.ConnectAsync();
             }
@@ -371,21 +371,21 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.Dispose();
-            }            
+            }
         }
 
         private async void btnP2pListenFast_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 if (!IsPortFree(P2pPort))
                 {
-                    Logger.WriteLog(LogLevel.INFO, $"Port: {P2pPort} is not free!");
+                    Log.WriteLog(LogLevel.INFO, $"Port: {P2pPort} is not free!");
                     // just for testing create on another free port
                     _p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
                     //_p2PMasterClass.CreateNewServer(new ServerBussinesLogic2(_localIpAddress ?? P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
@@ -400,7 +400,7 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 //_p2PMasterClass.CreateNewClient(new ClientBussinesLogic2(P2pIpAddress, P2pPort, this));
                 _p2PMasterClass.CreateNewClient(new ClientBussinesLogic(IPAddress.Parse("127.0.0.1"), P2pPort, this));

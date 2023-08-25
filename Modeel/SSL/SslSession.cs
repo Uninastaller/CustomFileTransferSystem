@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Modeel.Model;
+using System;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Modeel.Log;
-using Modeel.Model;
 using Buffer = Modeel.Model.Buffer;
 
 namespace Modeel.SSL

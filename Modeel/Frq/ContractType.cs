@@ -1,94 +1,92 @@
-﻿using System;
+﻿using Logger;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Modeel.Log;
 
 namespace Modeel.Frq
 {
     public class ContractType : IContractType
-   {
-      private SortedDictionary<int, Type> contractIdsMap = new SortedDictionary<int, Type>();
+    {
+        private SortedDictionary<int, Type> contractIdsMap = new SortedDictionary<int, Type>();
 
-      private SortedDictionary<string, int> contractTypesMap = new SortedDictionary<string, int>();
+        private SortedDictionary<string, int> contractTypesMap = new SortedDictionary<string, int>();
 
-      private static ContractType? contractType = null;
+        private static ContractType? contractType = null;
 
-      private static readonly object syncRoot = new object();
+        private static readonly object syncRoot = new object();
 
-      public Type GetContractType(int contractId)
-      {
-         lock (syncRoot)
-         {
-            return contractIdsMap[contractId];
-         }
-      }
-
-      public int GetContractId(Type contractType)
-      {
-         int value = -1;
-
-         if (contractType.FullName != null)
-         {
+        public Type GetContractType(int contractId)
+        {
             lock (syncRoot)
             {
-               contractTypesMap.TryGetValue(contractType.FullName, out value);
-               return value;
+                return contractIdsMap[contractId];
             }
-         }        
-         return value;
-      }
+        }
 
-      public ContractType()
-      {
-         //Add(MsgIds.TestMessage, typeof(NewClientConnectedMessage));
-      }
+        public int GetContractId(Type contractType)
+        {
+            int value = -1;
 
-      public void Add(int msgId, Type t)
-      {
-         lock (syncRoot)
-         {
-            if (!contractIdsMap.ContainsKey(msgId) && t.FullName != null)
+            if (contractType.FullName != null)
             {
-               contractIdsMap.Add(msgId, t);
-               contractTypesMap.Add(t.FullName, msgId);
+                lock (syncRoot)
+                {
+                    contractTypesMap.TryGetValue(contractType.FullName, out value);
+                    return value;
+                }
             }
-            else
-            {
-               Logger.WriteLog(LogLevel.WARNING, $"Already exists ContractId:{msgId} Type:{t.FullName}");
-            }
-         }
-      }
+            return value;
+        }
 
-      public static IContractType GetInstance()
-      {
-         if (contractType == null)
-         {
+        public ContractType()
+        {
+            //Add(MsgIds.TestMessage, typeof(NewClientConnectedMessage));
+        }
+
+        public void Add(int msgId, Type t)
+        {
             lock (syncRoot)
             {
-               if (contractType == null)
-               {
-                  contractType = new ContractType();
-               }
+                if (!contractIdsMap.ContainsKey(msgId) && t.FullName != null)
+                {
+                    contractIdsMap.Add(msgId, t);
+                    contractTypesMap.Add(t.FullName, msgId);
+                }
+                else
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Already exists ContractId:{msgId} Type:{t.FullName}");
+                }
             }
-         }
+        }
 
-         return contractType;
-      }
-
-      public override string ToString()
-      {
-         StringBuilder stringBuilder = new StringBuilder();
-         lock (syncRoot)
-         {
-            foreach (KeyValuePair<int, Type> item in contractIdsMap)
+        public static IContractType GetInstance()
+        {
+            if (contractType == null)
             {
-               stringBuilder.AppendFormat($"{item.Key}:{item.Value.FullName}\n");
+                lock (syncRoot)
+                {
+                    if (contractType == null)
+                    {
+                        contractType = new ContractType();
+                    }
+                }
             }
-         }
 
-         return stringBuilder.ToString();
-      }
-   }
+            return contractType;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            lock (syncRoot)
+            {
+                foreach (KeyValuePair<int, Type> item in contractIdsMap)
+                {
+                    stringBuilder.AppendFormat($"{item.Key}:{item.Value.FullName}\n");
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+    }
 }

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
+﻿using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
-namespace Modeel.Log
+namespace Logger
 {
-    public static class Logger
+    public static class Log
     {
         private static readonly int sizeLimit = 0x100000 * 10; // 1 MB
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
@@ -54,7 +51,7 @@ namespace Modeel.Log
 
         static void HandleMessage(CancellationToken cancellationToken)
         {
-            Thread.CurrentThread.Name = $"{nameof(Logger)}_WorkerThread";
+            Thread.CurrentThread.Name = $"{nameof(Log)}_WorkerThread";
 
             while (!cancellationToken.IsCancellationRequested)
             {

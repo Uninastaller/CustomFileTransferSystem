@@ -1,12 +1,9 @@
-﻿using Modeel.Frq;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.Frq;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -140,7 +137,7 @@ namespace Modeel.FastTcp
             if (_assignedFilePart == -1)
             {
                 State = ClientBussinesLogicState.NONE;
-                Logger.WriteLog(LogLevel.DEBUG, "File is completly transfered");
+                Log.WriteLog(LogLevel.DEBUG, "File is completly transfered");
                 this.Dispose();
                 return;
             }
@@ -158,7 +155,7 @@ namespace Modeel.FastTcp
                     break;
                 case MethodResult.ERROR:
                     State = ClientBussinesLogicState.REQUEST_ACCEPTED;
-                    Logger.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
+                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
                     break;
             }
         }
@@ -169,7 +166,7 @@ namespace Modeel.FastTcp
             if (_assignedFilePart == -1)
             {
                 State = ClientBussinesLogicState.NONE;
-                Logger.WriteLog(LogLevel.DEBUG, "File is completly transfered");
+                Log.WriteLog(LogLevel.DEBUG, "File is completly transfered");
                 this.Dispose();
                 return;
             }
@@ -187,7 +184,7 @@ namespace Modeel.FastTcp
                     break;
                 case MethodResult.ERROR:
                     State = ClientBussinesLogicState.REQUEST_ACCEPTED;
-                    Logger.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
+                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
                     break;
             }
         }
@@ -225,11 +222,11 @@ namespace Modeel.FastTcp
 
         private void OnRejectHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Reject was received [CLIENT]: {Address}:{Port}");
+            Log.WriteLog(LogLevel.DEBUG, $"Reject was received [CLIENT]: {Address}:{Port}");
 
             if (State == ClientBussinesLogicState.REQUEST_SENDED)
             {
-                Logger.WriteLog(LogLevel.DEBUG, "Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
+                Log.WriteLog(LogLevel.DEBUG, "Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
                 MessageBox.Show("Request for file was rejected!");
                 this.Dispose();
             }
@@ -237,11 +234,11 @@ namespace Modeel.FastTcp
 
         private void OnAcceptHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Accept was received [CLIENT]: {Address}:{Port}");
+            Log.WriteLog(LogLevel.DEBUG, $"Accept was received [CLIENT]: {Address}:{Port}");
 
             if (State == ClientBussinesLogicState.REQUEST_SENDED)
             {
-                Logger.WriteLog(LogLevel.DEBUG, $"Request for file was accepted! [CLIENT]: {Address}:{Port}");
+                Log.WriteLog(LogLevel.DEBUG, $"Request for file was accepted! [CLIENT]: {Address}:{Port}");
 
                 // First request for file part
                 RequestFilePart();
@@ -250,14 +247,14 @@ namespace Modeel.FastTcp
 
         private void OnFilePartHandler(byte[] buffer, long offset, long size)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"File part was received [CLIENT]: {Address}:{Port}");
+            Log.WriteLog(LogLevel.DEBUG, $"File part was received [CLIENT]: {Address}:{Port}");
 
             if (State == ClientBussinesLogicState.WAITING_FOR_FILE_PART)
             {
                 RequestFilePartAsync();
 
                 long partNumber = BitConverter.ToInt64(buffer, (int)offset + _flagBytesCount);
-                Logger.WriteLog(LogLevel.DEBUG, $"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}");
+                Log.WriteLog(LogLevel.DEBUG, $"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}");
                 if (_fileReceiver.WriteToFile(partNumber, buffer, (int)offset + _flagBytesCount + sizeof(long), (int)size - _flagBytesCount - sizeof(long)) == MethodResult.ERROR)
                 {
 
@@ -272,13 +269,13 @@ namespace Modeel.FastTcp
             if (_typeOfSession == TypeOfSession.TOR_CONTROL_SESSION)
             {
                 _gui.BaseMsgEnque(new MessageReceiveMessage() { Message = message });
-                Logger.WriteLog(LogLevel.DEBUG, $"Tor cotroller obtained a message[{message.Length}]: {message}");
+                Log.WriteLog(LogLevel.DEBUG, $"Tor cotroller obtained a message[{message.Length}]: {message}");
             }
             else
             {
                 this.Disconnect();
-                Logger.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}");
-            }            
+                Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}");
+            }
         }
 
         #endregion EventHandler
@@ -287,7 +284,7 @@ namespace Modeel.FastTcp
 
         protected override void Dispose(bool disposingManagedResources)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Tcp client with Id {Id} is being disposed");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client with Id {Id} is being disposed");
 
             _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
             TransferReceiveRate = 0;
@@ -298,7 +295,7 @@ namespace Modeel.FastTcp
 
         protected override void OnConnected()
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Tcp client connected a new session with Id {Id}");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client connected a new session with Id {Id}");
 
             if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
             {
@@ -311,7 +308,7 @@ namespace Modeel.FastTcp
 
         protected override void OnDisconnected()
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Tcp client disconnected from session with Id: {Id}");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client disconnected from session with Id: {Id}");
 
             if (_assignedFilePart != -1)
             {
@@ -338,7 +335,7 @@ namespace Modeel.FastTcp
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog(LogLevel.ERROR, $"Tcp client caught an error with code {error}");
+            Log.WriteLog(LogLevel.ERROR, $"Tcp client caught an error with code {error}");
         }
 
         #endregion OverridedMethods             

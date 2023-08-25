@@ -1,12 +1,7 @@
-﻿using Modeel.Log;
+﻿using Logger;
 using Modeel.Model.Enums;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 
 namespace Modeel.Model
 {
@@ -84,14 +79,14 @@ namespace Modeel.Model
         {
             if (!File.Exists(fileNameDownloadingStatus))
             {
-                Logger.WriteLog(LogLevel.ERROR, "File does not exist.");
+                Log.WriteLog(LogLevel.ERROR, "File does not exist.");
                 return null;
             }
 
             string[] lines = File.ReadAllLines(fileNameDownloadingStatus);
             if (lines.Length < 5)
             {
-                Logger.WriteLog(LogLevel.ERROR, "Invalid file format.");
+                Log.WriteLog(LogLevel.ERROR, "Invalid file format.");
                 return null;
             }
 

@@ -1,17 +1,14 @@
-﻿using Modeel.Frq;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.Frq;
 using Modeel.Model;
 using Modeel.Model.Enums;
-using Modeel.SSL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Timers;
-using System.Windows;
 using Timer = System.Timers.Timer;
 
 namespace Modeel.FastTcp
@@ -175,7 +172,7 @@ namespace Modeel.FastTcp
 
             string message = Encoding.UTF8.GetString(receivedData);
 
-            Logger.WriteLog(LogLevel.DEBUG, $"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp server obtained a message: {message}, from: {client.Client.RemoteEndPoint}");
         }
 
         private void Test1BigFile(System.Net.Sockets.TcpClient client)

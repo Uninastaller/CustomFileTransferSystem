@@ -1,8 +1,7 @@
-﻿using Modeel.Frq;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.Frq;
 using Modeel.Messages;
 using Modeel.Model;
-using System;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,7 +42,7 @@ namespace Modeel
 
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 OpenServerWindow();
             }
@@ -65,7 +64,7 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 OpenClientWindow();
             }

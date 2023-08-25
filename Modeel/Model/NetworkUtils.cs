@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using Logger;
+using System;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net.Http;
-using Modeel.Log;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace Modeel.Model
 {
@@ -22,7 +19,7 @@ namespace Modeel.Model
                     return ip;
                 }
             }
-            Logger.WriteLog(LogLevel.ERROR, "No network adapters with an IPv4 address in the system!");
+            Log.WriteLog(LogLevel.ERROR, "No network adapters with an IPv4 address in the system!");
             return null;
         }
 
@@ -42,7 +39,7 @@ namespace Modeel.Model
             catch (Exception ex)
             {
                 // Handle any exceptions that might occur during the request
-                Logger.WriteLog(LogLevel.ERROR, $"Error while fetching public IP address: {ex.Message}");
+                Log.WriteLog(LogLevel.ERROR, $"Error while fetching public IP address: {ex.Message}");
                 return null;
             }
         }

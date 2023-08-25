@@ -1,11 +1,10 @@
-﻿using Modeel.Frq;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.Frq;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.P2P;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 public class P2pMasterClass : IP2pMasterClass
@@ -105,7 +104,7 @@ public class P2pMasterClass : IP2pMasterClass
         }
         _servers.Clear();
 
-        Logger.WriteLog(LogLevel.DEBUG, "All connections was closed!");
+        Log.WriteLog(LogLevel.DEBUG, "All connections was closed!");
     }
 
 }

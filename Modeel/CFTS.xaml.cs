@@ -1,5 +1,5 @@
-﻿using Modeel.FastTcp;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.FastTcp;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
@@ -184,7 +184,7 @@ namespace Modeel
 
         private void Timer_elapsed(object? sender, ElapsedEventArgs e)
         {
-            Logger.WriteLog(LogLevel.DOWNLOADING_SPEED_MBs, _p2PMasterClass.GetTotalDownloadingSpeedOfAllRunningClientsInMegaBytes().ToString());
+            Log.WriteLog(LogLevel.DOWNLOADING_SPEED_MBs, _p2PMasterClass.GetTotalDownloadingSpeedOfAllRunningClientsInMegaBytes().ToString());
             this.BaseMsgEnque(new RefreshTablesMessage());
         }
 
@@ -209,7 +209,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is RequestModelObject requestModel && requestModel.Clients.Any(client => client.UseThisClient == true))
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 //int megabyte = 0x100000;
                 //int filePartSize = megabyte;
@@ -274,22 +274,22 @@ namespace Modeel
                         }
                         else
                         {
-                            Logger.WriteLog(LogLevel.WARNING, "Saved Status File has different last part size, starting downloading from beginning");
+                            Log.WriteLog(LogLevel.WARNING, "Saved Status File has different last part size, starting downloading from beginning");
                         }
                     }
                     else
                     {
-                        Logger.WriteLog(LogLevel.WARNING, "Saved Status File has different total file part count, starting downloading from beginning");
+                        Log.WriteLog(LogLevel.WARNING, "Saved Status File has different total file part count, starting downloading from beginning");
                     }
                 }
                 else
                 {
-                    Logger.WriteLog(LogLevel.WARNING, "Saved Status File has different file size, starting downloading from beginning");
+                    Log.WriteLog(LogLevel.WARNING, "Saved Status File has different file size, starting downloading from beginning");
                 }
             }
             else
             {
-                Logger.WriteLog(LogLevel.WARNING, "Saved Status File is Invalid, starting downloading from beginning");
+                Log.WriteLog(LogLevel.WARNING, "Saved Status File is Invalid, starting downloading from beginning");
             }
             int megabyte = 0x100000;
             int filePartSize = megabyte;
@@ -300,7 +300,7 @@ namespace Modeel
         {
             if (sender is Button button)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 DataGridRow row = DataGridRow.GetRowContainingElement(button);
                 if (row != null)
@@ -321,7 +321,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
                 client.Disconnect();
 
             }
@@ -331,7 +331,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.DisconnectAndStop();
             }
@@ -341,7 +341,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.ConnectAsync();
             }
@@ -351,7 +351,7 @@ namespace Modeel
         {
             if (sender is Button button && button.Tag is IUniversalClientSocket client)
             {
-                Logger.WriteLog(LogLevel.DEBUG, button.Name);
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
 
                 client.Dispose();
             }

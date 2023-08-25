@@ -1,5 +1,5 @@
-﻿using Modeel.Frq;
-using Modeel.Log;
+﻿using Logger;
+using Modeel.Frq;
 using Modeel.Messages;
 using Modeel.Model;
 using Modeel.Model.Enums;
@@ -82,11 +82,11 @@ namespace Modeel.SSL
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
                 _clients.Add(sessionId, client);
-                Logger.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
+                Log.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
             }
             else if (socketState == SocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
             {
-                Logger.WriteLog(LogLevel.DEBUG, $"Client: {_clients[sessionId]}, disconnected from server");
+                Log.WriteLog(LogLevel.DEBUG, $"Client: {_clients[sessionId]}, disconnected from server");
                 _clients.Remove(sessionId);
             }
         }
@@ -113,7 +113,7 @@ namespace Modeel.SSL
 
         private void OnReceiveMessage(SslSession sesion, string message)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}");
+            Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a message: {message}, from: {sesion.Socket.RemoteEndPoint}");
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Modeel.SSL
         /// <param name="fileSize"></param>
         private void OnClientFileRequest(SslSession session, string filePath, long fileSize)
         {
-            Logger.WriteLog(LogLevel.DEBUG, $"Request was received for file: {filePath} with size: {fileSize}");
+            Log.WriteLog(LogLevel.DEBUG, $"Request was received for file: {filePath} with size: {fileSize}");
 
             string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
             if (uploadingDirectory != null)
@@ -179,7 +179,7 @@ namespace Modeel.SSL
 
         protected override void OnError(SocketError error)
         {
-            Logger.WriteLog(LogLevel.ERROR, $"Ssl server caught an error with code {error}");
+            Log.WriteLog(LogLevel.ERROR, $"Ssl server caught an error with code {error}");
         }
 
         private void OnClientDisconnected(SslSession session)
