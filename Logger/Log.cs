@@ -1,24 +1,40 @@
 ﻿using System.Collections.Concurrent;
+using System.Configuration;
 using System.IO.Compression;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Logger
 {
     public static class Log
     {
-        private static readonly int sizeLimit = 0x100000 * 10; // 1 MB
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
         private static readonly string _logFilePath = @"C:\Logs";
         private static readonly string _logFilePathAndName = Path.Combine(_logFilePath, "Active.csv");
         private static readonly object _lockObect = new object();
+        private static readonly int _megaByte = 0x100000;
 
         private static ConcurrentQueue<LogEntry> _concurrentQueue = new ConcurrentQueue<LogEntry>();
         private static AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
-        private static Thread _workingThread;
+        private static Thread? _workingThread;
         private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        private static FileSystemWatcher? _configWatcher;
+
+        private static readonly string _configPath = Assembly.GetExecutingAssembly().Location;
+
+        #region Config
+
+        private static bool _useAsynchronousLogging = true;
+        private static int _sizeLimitInMB = 10;
+
+        #endregion Config
 
         public static void StartApplication()
         {
+
+            LoadSettingsFromConfig();
+
             lock (_lockObect)
             {
                 ZipExistingLogFile();
@@ -26,27 +42,71 @@ namespace Logger
             }
             _workingThread = new Thread(() => HandleMessage(_cancellationTokenSource.Token));
             _workingThread.Start();
+
+
+            string? configDirectory = Path.GetDirectoryName(_configPath);
+            if (!string.IsNullOrEmpty(configDirectory))
+            {
+                _configWatcher = new FileSystemWatcher(configDirectory, Path.GetFileName(_configPath + ".config"));
+                _configWatcher.NotifyFilter = NotifyFilters.LastWrite;
+                _configWatcher.Changed += OnConfigFileChange;
+                _configWatcher.EnableRaisingEvents = true;
+            }
+        }
+
+        private static void OnConfigFileChange(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                Log.WriteLog(LogLevel.INFO, "Config Changed");
+
+                Thread.Sleep(100);
+
+                LoadSettingsFromConfig();
+            }
+        }
+
+        private static void LoadSettingsFromConfig()
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(_configPath);
+            bool.TryParse(config.AppSettings.Settings["UseAsynchronousLogging"].Value, out _useAsynchronousLogging);
+            int.TryParse(config.AppSettings.Settings["SizeLimitInMB"].Value, out _sizeLimitInMB);
         }
 
         public static void EndApplication()
         {
+            if (_configWatcher != null)
+            {
+                _configWatcher.Changed -= OnConfigFileChange;
+            }
             _cancellationTokenSource.Cancel();
-            _workingThread.Join();
+            _workingThread?.Join();
         }
 
         public static void WriteLog(LogLevel logLevel, string message = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
         {
-            _concurrentQueue.Enqueue(new LogEntry()
+            if (_useAsynchronousLogging)
             {
-                Message = message,
-                LogLevel = logLevel,
-                LineNumber = lineNumber,
-                CallingFilePath = callingFilePath,
-                CallingMethod = callingMethod,
-                ThreadName = Thread.CurrentThread.Name ?? string.Empty,
-                DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
-            }); ;
-            _autoResetEvent.Set();
+                _concurrentQueue.Enqueue(new LogEntry()
+                {
+                    Message = message,
+                    LogLevel = logLevel,
+                    LineNumber = lineNumber,
+                    CallingFilePath = callingFilePath,
+                    CallingMethod = callingMethod,
+                    ThreadName = Thread.CurrentThread.Name ?? string.Empty,
+                    DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
+                }); ;
+                _autoResetEvent.Set();
+            }
+            else
+            {
+                lock (_lockObect)
+                {
+                    WriteLog_(logLevel, message, lineNumber, callingFilePath, callingMethod, Thread.CurrentThread.Name ?? string.Empty, DateTime.Now.ToString("HH:mm:ss:fff"));
+                }
+            }
+
         }
 
         static void HandleMessage(CancellationToken cancellationToken)
@@ -164,7 +224,7 @@ namespace Logger
                 writer.WriteLine(line);
             }
 
-            if (new FileInfo(_logFilePathAndName).Length > sizeLimit)
+            if (new FileInfo(_logFilePathAndName).Length > _megaByte * _sizeLimitInMB)
             {
                 try
                 {

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modeel", "Modeel\Modeel.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{681E9A0E-1595-4608-A4A5-8EC60486C90E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{681E9A0E-1595-4608-A4A5-8EC60486C90E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{681E9A0E-1595-4608-A4A5-8EC60486C90E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{681E9A0E-1595-4608-A4A5-8EC60486C90E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{681E9A0E-1595-4608-A4A5-8EC60486C90E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
