@@ -26,6 +26,7 @@ namespace Logger
         #region Config
 
         private static bool _useAsynchronousLogging = true;
+        private static bool _enableLogging = true;
         private static int _sizeLimitInMB = 10;
 
         #endregion Config
@@ -70,6 +71,7 @@ namespace Logger
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(_configPath);
             bool.TryParse(config.AppSettings.Settings["UseAsynchronousLogging"].Value, out _useAsynchronousLogging);
+            bool.TryParse(config.AppSettings.Settings["EnableLogging"].Value, out _enableLogging);
             int.TryParse(config.AppSettings.Settings["SizeLimitInMB"].Value, out _sizeLimitInMB);
         }
 
@@ -85,28 +87,30 @@ namespace Logger
 
         public static void WriteLog(LogLevel logLevel, string message = "", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string callingFilePath = "", [CallerMemberName] string callingMethod = "")
         {
-            if (_useAsynchronousLogging)
+            if (_enableLogging)
             {
-                _concurrentQueue.Enqueue(new LogEntry()
+                if (_useAsynchronousLogging)
                 {
-                    Message = message,
-                    LogLevel = logLevel,
-                    LineNumber = lineNumber,
-                    CallingFilePath = callingFilePath,
-                    CallingMethod = callingMethod,
-                    ThreadName = Thread.CurrentThread.Name ?? string.Empty,
-                    DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
-                }); ;
-                _autoResetEvent.Set();
-            }
-            else
-            {
-                lock (_lockObect)
+                    _concurrentQueue.Enqueue(new LogEntry()
+                    {
+                        Message = message,
+                        LogLevel = logLevel,
+                        LineNumber = lineNumber,
+                        CallingFilePath = callingFilePath,
+                        CallingMethod = callingMethod,
+                        ThreadName = Thread.CurrentThread.Name ?? string.Empty,
+                        DateTime = DateTime.Now.ToString("HH:mm:ss:fff")
+                    }); ;
+                    _autoResetEvent.Set();
+                }
+                else
                 {
-                    WriteLog_(logLevel, message, lineNumber, callingFilePath, callingMethod, Thread.CurrentThread.Name ?? string.Empty, DateTime.Now.ToString("HH:mm:ss:fff"));
+                    lock (_lockObect)
+                    {
+                        WriteLog_(logLevel, message, lineNumber, callingFilePath, callingMethod, Thread.CurrentThread.Name ?? string.Empty, DateTime.Now.ToString("HH:mm:ss:fff"));
+                    }
                 }
             }
-
         }
 
         static void HandleMessage(CancellationToken cancellationToken)
