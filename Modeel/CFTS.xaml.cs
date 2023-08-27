@@ -18,6 +18,8 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using STUN;
+using STUN.Attributes;
 
 namespace Modeel
 {
@@ -84,6 +86,42 @@ namespace Modeel
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += Timer_elapsed;
             _timer.Start();
+
+
+
+
+            //test();
+
+
+        }
+
+        private void test()
+        {
+            string stunServerHostname = "stun.schlund.de"; // Replace with the actual STUN server's hostname
+            int stunServerPort = 3478;
+
+            // Resolve the STUN server's IP address using DNS
+            IPAddress[] stunServerIPAddresses = Dns.GetHostAddresses(stunServerHostname);
+            if (stunServerIPAddresses.Length == 0)
+            {
+                throw new Exception("Failed to resolve STUN server hostname");
+            }
+
+            // Select the first resolved IP address
+            IPAddress stunServerIPAddress = stunServerIPAddresses[0];
+
+            IPEndPoint stunEndPoint = new IPEndPoint(stunServerIPAddress, stunServerPort);
+
+
+            STUNClient.ReceiveTimeout = 500;
+            var queryResult = STUNClient.Query(stunEndPoint, STUNQueryType.ExactNAT, true);
+
+            if (queryResult.QueryError != STUNQueryError.Success)
+                throw new Exception("Query Error: " + queryResult.QueryError.ToString());
+
+            Console.WriteLine("PublicEndPoint: {0}", queryResult.PublicEndPoint);
+            Console.WriteLine("LocalEndPoint: {0}", queryResult.LocalEndPoint);
+            Console.WriteLine("NAT Type: {0}", queryResult.NATType);
         }
 
         #endregion Ctor
