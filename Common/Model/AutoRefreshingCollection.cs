@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Threading;
 
-namespace Modeel.Model
+namespace Common.Model
 {
     public class AutoRefreshingCollection<T> : IList<T>, INotifyCollectionChanged
     {

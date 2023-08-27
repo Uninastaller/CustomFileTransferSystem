@@ -4,7 +4,6 @@ using Common.Model;
 using Common.ThreadMessages;
 using Logger;
 using Modeel.FastTcp;
-using Modeel.P2P;
 using Modeel.SSL;
 using STUN;
 using System;

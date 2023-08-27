@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Modeel.P2P
+namespace Common.Interface
 {
     public interface IP2pMasterClass
     {
