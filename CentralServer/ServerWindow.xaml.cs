@@ -1,6 +1,6 @@
 ﻿using Common.Model;
 using Common.ThreadMessages;
-using Modeel.SSL;
+using SslTcpSession;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Net;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Modeel
+namespace CentralServer
 {
     /// <summary>
     /// Interaction logic for ServerWindow.xaml

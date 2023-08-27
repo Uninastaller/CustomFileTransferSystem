@@ -1,19 +1,18 @@
 ﻿using Common.Interface;
 using Common.Model;
 using System;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Buffer = Common.Model.Buffer;
 
-namespace Modeel.SSL
+namespace TcpSession
 {
     /// <summary>
-    /// SSL session is used to read and write data from the connected SSL client
+    /// TCP session is used to read and write data from the connected TCP client
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslSession : BaseSession, IDisposable, ISession
+    public class TcpSession : BaseSession, IDisposable, ISession
     {
 
         public string IpAndPort => Socket.RemoteEndPoint?.ToString() ?? string.Empty;
@@ -21,8 +20,8 @@ namespace Modeel.SSL
         /// <summary>
         /// Initialize the session with a given server
         /// </summary>
-        /// <param name="server">SSL server</param>
-        public SslSession(SslServer server)
+        /// <param name="server">TCP server</param>
+        public TcpSession(TcpServer server)
         {
             Id = Guid.NewGuid();
             Server = server;
@@ -38,7 +37,7 @@ namespace Modeel.SSL
         /// <summary>
         /// Server
         /// </summary>
-        public SslServer Server { get; }
+        public TcpServer Server { get; }
         /// <summary>
         /// Socket
         /// </summary>
@@ -81,17 +80,11 @@ namespace Modeel.SSL
         #region Connect/Disconnect session
 
         private bool _disconnecting;
-        private SslStream _sslStream;
-        private Guid? _sslStreamId;
 
         /// <summary>
         /// Is the session connected?
         /// </summary>
         public bool IsConnected { get; private set; }
-        /// <summary>
-        /// Is the session handshaked?
-        /// </summary>
-        public bool IsHandshaked { get; private set; }
 
         /// <summary>
         /// Connect the session
@@ -108,6 +101,12 @@ namespace Modeel.SSL
             _receiveBuffer = new Buffer();
             _sendBufferMain = new Buffer();
             _sendBufferFlush = new Buffer();
+
+            // Setup event args
+            _receiveEventArg = new SocketAsyncEventArgs();
+            _receiveEventArg.Completed += OnAsyncCompleted;
+            _sendEventArg = new SocketAsyncEventArgs();
+            _sendEventArg.Completed += OnAsyncCompleted;
 
             // Apply the option: keep alive
             if (Server.OptionKeepAlive)
@@ -142,32 +141,22 @@ namespace Modeel.SSL
             // Update the connected flag
             IsConnected = true;
 
+            // Try to receive something from the client
+            TryReceive();
+
+            // Check the socket disposed state: in some rare cases it might be disconnected while receiving!
+            if (IsSocketDisposed)
+                return;
+
             // Call the session connected handler
             OnConnected();
 
             // Call the session connected handler in the server
             Server.OnConnectedInternal(this);
 
-            try
-            {
-                // Create SSL stream
-                _sslStreamId = Guid.NewGuid();
-                _sslStream = (Server.Context.CertificateValidationCallback != null) ? new SslStream(new NetworkStream(Socket, false), false, Server.Context.CertificateValidationCallback) : new SslStream(new NetworkStream(Socket, false), false);
-
-                // Call the session handshaking handler
-                OnHandshaking();
-
-                // Call the session handshaking handler in the server
-                Server.OnHandshakingInternal(this);
-
-                // Begin the SSL handshake
-                _sslStream.BeginAuthenticateAsServer(Server.Context.Certificate, Server.Context.ClientCertificateRequired, Server.Context.Protocols, false, ProcessHandshake, _sslStreamId);
-            }
-            catch (Exception)
-            {
-                SendError(SocketError.NotConnected);
-                Disconnect();
-            }
+            // Call the empty send buffer handler
+            if (_sendBufferMain.IsEmpty)
+                OnEmpty();
         }
 
         /// <summary>
@@ -185,6 +174,10 @@ namespace Modeel.SSL
             // Update the disconnecting flag
             _disconnecting = true;
 
+            // Reset event args
+            _receiveEventArg.Completed -= OnAsyncCompleted;
+            _sendEventArg.Completed -= OnAsyncCompleted;
+
             // Call the session disconnecting handler
             OnDisconnecting();
 
@@ -193,17 +186,6 @@ namespace Modeel.SSL
 
             try
             {
-                try
-                {
-                    // Shutdown the SSL stream
-                    _sslStream.ShutdownAsync().Wait();
-                }
-                catch (Exception) { }
-
-                // Dispose the SSL stream & buffer
-                _sslStream.Dispose();
-                _sslStreamId = null;
-
                 try
                 {
                     // Shutdown the socket associated with the client
@@ -217,13 +199,14 @@ namespace Modeel.SSL
                 // Dispose the session socket
                 Socket.Dispose();
 
+                // Dispose event arguments
+                _receiveEventArg.Dispose();
+                _sendEventArg.Dispose();
+
                 // Update the session socket disposed flag
                 IsSocketDisposed = true;
             }
             catch (ObjectDisposedException) { }
-
-            // Update the handshaked flag
-            IsHandshaked = false;
 
             // Update the connected flag
             IsConnected = false;
@@ -252,16 +235,18 @@ namespace Modeel.SSL
 
         #endregion
 
-        #region Send/Recieve data
+        #region Send/Receive data
 
         // Receive buffer
         private bool _receiving;
         private Buffer _receiveBuffer;
+        private SocketAsyncEventArgs _receiveEventArg;
         // Send buffer
         private readonly object _sendLock = new object();
         private bool _sending;
         private Buffer _sendBufferMain;
         private Buffer _sendBufferFlush;
+        private SocketAsyncEventArgs _sendEventArg;
         private long _sendBufferFlushOffset;
 
         /// <summary>
@@ -287,48 +272,46 @@ namespace Modeel.SSL
         /// <returns>Size of sent data</returns>
         public virtual long Send(ReadOnlySpan<byte> buffer)
         {
-            if (!IsHandshaked)
+            if (!IsConnected)
                 return 0;
 
             if (buffer.IsEmpty)
                 return 0;
 
-            try
+            // Sent data to the client
+            long sent = Socket.Send(buffer, SocketFlags.None, out SocketError ec);
+            if (sent > 0)
             {
-                // Sent data to the client
-                _sslStream.Write(buffer);
-
-                long sent = buffer.Length;
-
                 // Update statistic
                 BytesSent += sent;
                 Interlocked.Add(ref Server._bytesSent, sent);
 
                 // Call the buffer sent handler
                 OnSent(sent, BytesPending + BytesSending);
+            }
 
-                return sent;
-            }
-            catch (Exception)
+            // Check for socket error
+            if (ec != SocketError.Success)
             {
-                SendError(SocketError.OperationAborted);
+                SendError(ec);
                 Disconnect();
-                return 0;
             }
+
+            return sent;
         }
 
         /// <summary>
         /// Send text to the client (synchronous)
         /// </summary>
         /// <param name="text">Text string to send</param>
-        /// <returns>Size of sent text</returns>
+        /// <returns>Size of sent data</returns>
         public virtual long Send(string text) => Send(Encoding.UTF8.GetBytes(text));
 
         /// <summary>
         /// Send text to the client (synchronous)
         /// </summary>
         /// <param name="text">Text to send as a span of characters</param>
-        /// <returns>Size of sent text</returns>
+        /// <returns>Size of sent data</returns>
         public virtual long Send(ReadOnlySpan<char> text) => Send(Encoding.UTF8.GetBytes(text.ToArray()));
 
         /// <summary>
@@ -354,7 +337,7 @@ namespace Modeel.SSL
         /// <returns>'true' if the data was successfully sent, 'false' if the session is not connected</returns>
         public virtual bool SendAsync(ReadOnlySpan<byte> buffer)
         {
-            if (!IsHandshaked)
+            if (!IsConnected)
                 return false;
 
             if (buffer.IsEmpty)
@@ -418,34 +401,32 @@ namespace Modeel.SSL
         /// <returns>Size of received data</returns>
         public virtual long Receive(byte[] buffer, long offset, long size)
         {
-            if (!IsHandshaked)
+            if (!IsConnected)
                 return 0;
 
             if (size == 0)
                 return 0;
 
-            try
+            // Receive data from the client
+            long received = Socket.Receive(buffer, (int)offset, (int)size, SocketFlags.None, out SocketError ec);
+            if (received > 0)
             {
-                // Receive data from the client
-                long received = _sslStream.Read(buffer, (int)offset, (int)size);
-                if (received > 0)
-                {
-                    // Update statistic
-                    BytesReceived += received;
-                    Interlocked.Add(ref Server._bytesReceived, received);
+                // Update statistic
+                BytesReceived += received;
+                Interlocked.Add(ref Server._bytesReceived, received);
 
-                    // Call the buffer received handler
-                    OnReceived(buffer, 0, received);
-                }
-
-                return received;
+                // Call the buffer received handler
+                OnReceived(buffer, 0, received);
             }
-            catch (Exception)
+
+            // Check for socket error
+            if (ec != SocketError.Success)
             {
-                SendError(SocketError.OperationAborted);
+                SendError(ec);
                 Disconnect();
-                return 0;
             }
+
+            return received;
         }
 
         /// <summary>
@@ -477,23 +458,25 @@ namespace Modeel.SSL
             if (_receiving)
                 return;
 
-            if (!IsHandshaked)
+            if (!IsConnected)
                 return;
 
-            try
-            {
-                // Async receive with the receive handler
-                IAsyncResult result;
-                do
-                {
-                    if (!IsHandshaked)
-                        return;
+            bool process = true;
 
+            while (process)
+            {
+                process = false;
+
+                try
+                {
+                    // Async receive with the receive handler
                     _receiving = true;
-                    result = _sslStream.BeginRead(_receiveBuffer.Data, 0, (int)_receiveBuffer.Capacity, ProcessReceive, _sslStreamId);
-                } while (result.CompletedSynchronously);
+                    _receiveEventArg.SetBuffer(_receiveBuffer.Data, 0, (int)_receiveBuffer.Capacity);
+                    if (!Socket.ReceiveAsync(_receiveEventArg))
+                        process = ProcessReceive(_receiveEventArg);
+                }
+                catch (ObjectDisposedException) { }
             }
-            catch (ObjectDisposedException) { }
         }
 
         /// <summary>
@@ -501,51 +484,59 @@ namespace Modeel.SSL
         /// </summary>
         private void TrySend()
         {
-            if (!IsHandshaked)
+            if (!IsConnected)
                 return;
 
             bool empty = false;
+            bool process = true;
 
-            lock (_sendLock)
+            while (process)
             {
-                // Is previous socket send in progress?
-                if (_sendBufferFlush.IsEmpty)
+                process = false;
+
+                lock (_sendLock)
                 {
-                    // Swap flush and main buffers
-                    _sendBufferFlush = Interlocked.Exchange(ref _sendBufferMain, _sendBufferFlush);
-                    _sendBufferFlushOffset = 0;
-
-                    // Update statistic
-                    BytesPending = 0;
-                    BytesSending += _sendBufferFlush.Size;
-
-                    // Check if the flush buffer is empty
+                    // Is previous socket send in progress?
                     if (_sendBufferFlush.IsEmpty)
                     {
-                        // Need to call empty send buffer handler
-                        empty = true;
+                        // Swap flush and main buffers
+                        _sendBufferFlush = Interlocked.Exchange(ref _sendBufferMain, _sendBufferFlush);
+                        _sendBufferFlushOffset = 0;
 
-                        // End sending process
-                        _sending = false;
+                        // Update statistic
+                        BytesPending = 0;
+                        BytesSending += _sendBufferFlush.Size;
+
+                        // Check if the flush buffer is empty
+                        if (_sendBufferFlush.IsEmpty)
+                        {
+                            // Need to call empty send buffer handler
+                            empty = true;
+
+                            // End sending process
+                            _sending = false;
+                        }
                     }
+                    else
+                        return;
                 }
-                else
+
+                // Call the empty send buffer handler
+                if (empty)
+                {
+                    OnEmpty();
                     return;
-            }
+                }
 
-            // Call the empty send buffer handler
-            if (empty)
-            {
-                OnEmpty();
-                return;
+                try
+                {
+                    // Async write with the write handler
+                    _sendEventArg.SetBuffer(_sendBufferFlush.Data, (int)_sendBufferFlushOffset, (int)(_sendBufferFlush.Size - _sendBufferFlushOffset));
+                    if (!Socket.SendAsync(_sendEventArg))
+                        process = ProcessSend(_sendEventArg);
+                }
+                catch (ObjectDisposedException) { }
             }
-
-            try
-            {
-                // Async write with the write handler
-                _sslStream.BeginWrite(_sendBufferFlush.Data, (int)_sendBufferFlushOffset, (int)(_sendBufferFlush.Size - _sendBufferFlushOffset), ProcessSend, _sslStreamId);
-            }
-            catch (ObjectDisposedException) { }
         }
 
         /// <summary>
@@ -571,162 +562,126 @@ namespace Modeel.SSL
         #region IO processing
 
         /// <summary>
-        /// This method is invoked when an asynchronous handshake operation completes
+        /// This method is called whenever a receive or send operation is completed on a socket
         /// </summary>
-        private void ProcessHandshake(IAsyncResult result)
+        private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
         {
-            try
+            if (IsSocketDisposed)
+                return;
+
+            // Determine which type of operation just completed and call the associated handler
+            switch (e.LastOperation)
             {
-                if (IsHandshaked)
-                    return;
-
-                // Validate SSL stream Id
-                var sslStreamId = result.AsyncState as Guid?;
-                if (_sslStreamId != sslStreamId)
-                    return;
-
-                // End the SSL handshake
-                _sslStream.EndAuthenticateAsServer(result);
-
-                // Update the handshaked flag
-                IsHandshaked = true;
-
-                // Try to receive something from the client
-                TryReceive();
-
-                // Check the socket disposed state: in some rare cases it might be disconnected while receiving!
-                if (IsSocketDisposed)
-                    return;
-
-                // Call the session handshaked handler
-                OnHandshaked();
-
-                // Call the session handshaked handler in the server
-                Server.OnHandshakedInternal(this);
-
-                // Call the empty send buffer handler
-                if (_sendBufferMain.IsEmpty)
-                    OnEmpty();
+                case SocketAsyncOperation.Receive:
+                    if (ProcessReceive(e))
+                        TryReceive();
+                    break;
+                case SocketAsyncOperation.Send:
+                    if (ProcessSend(e))
+                        TrySend();
+                    break;
+                default:
+                    throw new ArgumentException("The last operation completed on the socket was not a receive or send");
             }
-            catch (Exception)
-            {
-                SendError(SocketError.NotConnected);
-                Disconnect();
-            }
+
         }
 
         /// <summary>
         /// This method is invoked when an asynchronous receive operation completes
         /// </summary>
-        private void ProcessReceive(IAsyncResult result)
+        private bool ProcessReceive(SocketAsyncEventArgs e)
         {
-            //Logger.WriteLog("ProcessReceived Completed", LoggerInfo.P2PSSL);
-            try
+            if (!IsConnected)
+                return false;
+
+            long size = e.BytesTransferred;
+
+            // Received some data from the client
+            if (size > 0)
             {
-                if (!IsHandshaked)
-                    return;
+                // Update statistic
+                BytesReceived += size;
+                Interlocked.Add(ref Server._bytesReceived, size);
 
-                // Validate SSL stream Id
-                var sslStreamId = result.AsyncState as Guid?;
-                if (_sslStreamId != sslStreamId)
-                    return;
+                // Call the buffer received handler
+                OnReceived(_receiveBuffer.Data, 0, size);
 
-                // End the SSL read
-                long size = _sslStream.EndRead(result);
-
-                // Received some data from the client
-                if (size > 0)
+                // If the receive buffer is full increase its size
+                if (_receiveBuffer.Capacity == size)
                 {
-                    // Update statistic
-                    BytesReceived += size;
-                    Interlocked.Add(ref Server._bytesReceived, size);
-
-                    // Call the buffer received handler
-                    OnReceived(_receiveBuffer.Data, 0, size);
-
-                    // If the receive buffer is full increase its size
-                    if (_receiveBuffer.Capacity == size)
+                    // Check the receive buffer limit
+                    if (((2 * size) > OptionReceiveBufferLimit) && (OptionReceiveBufferLimit > 0))
                     {
-                        // Check the receive buffer limit
-                        if (((2 * size) > OptionReceiveBufferLimit) && (OptionReceiveBufferLimit > 0))
-                        {
-                            SendError(SocketError.NoBufferSpaceAvailable);
-                            Disconnect();
-                            return;
-                        }
-
-                        _receiveBuffer.Reserve(2 * size);
+                        SendError(SocketError.NoBufferSpaceAvailable);
+                        Disconnect();
+                        return false;
                     }
+
+                    _receiveBuffer.Reserve(2 * size);
                 }
+            }
 
-                _receiving = false;
+            _receiving = false;
 
+            // Try to receive again if the session is valid
+            if (e.SocketError == SocketError.Success)
+            {
                 // If zero is returned from a read operation, the remote end has closed the connection
                 if (size > 0)
-                {
-                    if (!result.CompletedSynchronously)
-                        TryReceive();
-                }
+                    return true;
                 else
                     Disconnect();
             }
-            catch (Exception)
+            else
             {
-                SendError(SocketError.OperationAborted);
+                SendError(e.SocketError);
                 Disconnect();
             }
+
+            return false;
         }
 
         /// <summary>
         /// This method is invoked when an asynchronous send operation completes
         /// </summary>
-        private void ProcessSend(IAsyncResult result)
+        private bool ProcessSend(SocketAsyncEventArgs e)
         {
-            try
+            if (!IsConnected)
+                return false;
+
+            long size = e.BytesTransferred;
+
+            // Send some data to the client
+            if (size > 0)
             {
-                // Validate SSL stream Id
-                var sslStreamId = result.AsyncState as Guid?;
-                if (_sslStreamId != sslStreamId)
-                    return;
+                // Update statistic
+                BytesSending -= size;
+                BytesSent += size;
+                Interlocked.Add(ref Server._bytesSent, size);
 
-                if (!IsHandshaked)
-                    return;
+                // Increase the flush buffer offset
+                _sendBufferFlushOffset += size;
 
-                // End the SSL write
-                _sslStream.EndWrite(result);
-
-                long size = _sendBufferFlush.Size;
-
-                // Send some data to the client
-                if (size > 0)
+                // Successfully send the whole flush buffer
+                if (_sendBufferFlushOffset == _sendBufferFlush.Size)
                 {
-                    // Update statistic
-                    BytesSending -= size;
-                    BytesSent += size;
-                    Interlocked.Add(ref Server._bytesSent, size);
-
-                    // Increase the flush buffer offset
-                    _sendBufferFlushOffset += size;
-
-                    // Successfully send the whole flush buffer
-                    if (_sendBufferFlushOffset == _sendBufferFlush.Size)
-                    {
-                        // Clear the flush buffer
-                        _sendBufferFlush.Clear();
-                        _sendBufferFlushOffset = 0;
-                    }
-
-                    // Call the buffer sent handler
-                    OnSent(size, BytesPending + BytesSending);
+                    // Clear the flush buffer
+                    _sendBufferFlush.Clear();
+                    _sendBufferFlushOffset = 0;
                 }
 
-                // Try to send again if the session is valid
-                TrySend();
+                // Call the buffer sent handler
+                OnSent(size, BytesPending + BytesSending);
             }
-            catch (Exception)
+
+            // Try to send again if the session is valid
+            if (e.SocketError == SocketError.Success)
+                return true;
+            else
             {
-                SendError(SocketError.OperationAborted);
+                SendError(e.SocketError);
                 Disconnect();
+                return false;
             }
         }
 
@@ -742,14 +697,6 @@ namespace Modeel.SSL
         /// Handle client connected notification
         /// </summary>
         protected virtual void OnConnected() { }
-        /// <summary>
-        /// Handle client handshaking notification
-        /// </summary>
-        protected virtual void OnHandshaking() { }
-        /// <summary>
-        /// Handle client handshaked notification
-        /// </summary>
-        protected virtual void OnHandshaked() { }
         /// <summary>
         /// Handle client disconnecting notification
         /// </summary>

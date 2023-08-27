@@ -13,9 +13,9 @@ using System.Timers;
 using System.Windows;
 using Timer = System.Timers.Timer;
 
-namespace Modeel.FastTcp
+namespace TcpSession
 {
-    internal class ServerBussinesLogic2 : TcpServer, IUniversalServerSocket
+    public class ServerBussinesLogic2 : TcpServer, IUniversalServerSocket
     {
 
         #region Properties

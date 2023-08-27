@@ -3,8 +3,7 @@ using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
 using Logger;
-using Modeel.FastTcp;
-using Modeel.SSL;
+using SslTcpSession;
 using STUN;
 using System;
 using System.Collections.Generic;
@@ -19,6 +18,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using TcpSession;
 
 namespace Modeel
 {

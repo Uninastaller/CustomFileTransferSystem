@@ -2,13 +2,13 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
-using Modeel.FastTcp;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
 using System.Windows.Media;
+using TcpSession;
 
 namespace Modeel
 {

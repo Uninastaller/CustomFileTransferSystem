@@ -11,7 +11,7 @@ using System.Text;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace Modeel.FastTcp
+namespace TcpSession
 {
     public class ServerBussinesLogic : IUniversalServerSocket
     {

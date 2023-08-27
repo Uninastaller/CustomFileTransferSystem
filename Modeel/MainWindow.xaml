@@ -30,7 +30,6 @@
             <RowDefinition Height="20"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Button x:Name="btServerWindow" Content="Server" Click="btServerWindow_Click" Grid.Row="1" Grid.Column="1"></Button>
         <Button x:Name="btClientWindow" Content="Client" Click="btClientWindow_Click" Grid.Row="2" Grid.Column="1"></Button>
 
     </Grid>

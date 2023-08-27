@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace Modeel.FastTcp
+namespace TcpSession
 {
-    internal class ClientBussinesLogic : IUniversalClientSocket, IDisposable
+    public class ClientBussinesLogic : IUniversalClientSocket, IDisposable
     {
 
         #region Properties

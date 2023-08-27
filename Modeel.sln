@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CentralServer", "CentralSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{9CAEDF21-BF4D-4F91-A9D6-292D0347D2EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SslTcpSession", "SslTcpSession\SslTcpSession.csproj", "{52BF3DEF-9E21-4FE5-BCE2-9A6D05225D62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpSession", "TcpSession\TcpSession.csproj", "{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{9CAEDF21-BF4D-4F91-A9D6-292D0347D2EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CAEDF21-BF4D-4F91-A9D6-292D0347D2EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CAEDF21-BF4D-4F91-A9D6-292D0347D2EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52BF3DEF-9E21-4FE5-BCE2-9A6D05225D62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52BF3DEF-9E21-4FE5-BCE2-9A6D05225D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52BF3DEF-9E21-4FE5-BCE2-9A6D05225D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52BF3DEF-9E21-4FE5-BCE2-9A6D05225D62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

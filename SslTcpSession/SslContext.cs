@@ -2,7 +2,7 @@
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Modeel.SSL
+namespace SslTcpSession
 {
    /// <summary>
    /// SSL context

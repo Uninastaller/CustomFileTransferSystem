@@ -14,7 +14,7 @@ using System.Windows;
 using Timer = System.Timers.Timer;
 
 
-namespace Modeel.SSL
+namespace SslTcpSession
 {
     public class SslServerBussinesLogic : SslServer, IUniversalServerSocket
     {

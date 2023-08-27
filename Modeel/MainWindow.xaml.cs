@@ -14,7 +14,7 @@ namespace Modeel
     public partial class MainWindow : BaseWindowForWPF
     {
 
-        private IWindowEnqueuer? _serverWindow;
+        //private IWindowEnqueuer? _serverWindow;
         private IWindowEnqueuer? _clientWindow;
         //private MemoryLeakTestFormDefault? _form;
 
@@ -32,33 +32,33 @@ namespace Modeel
             //_ = BaseWindowForWPF.CreateWindow<TorOnionInterfaceWindow>();
         }
 
-        private void btServerWindow_Click(object sender, RoutedEventArgs e)
-        {
-            //_form = null;
-            //_clientWindow = null;
-            //GC.Collect();
-            //GC.WaitForPendingFinalizers();
-            //GC.Collect();
+        //private void btServerWindow_Click(object sender, RoutedEventArgs e)
+        //{
+        //    //_form = null;
+        //    //_clientWindow = null;
+        //    //GC.Collect();
+        //    //GC.WaitForPendingFinalizers();
+        //    //GC.Collect();
 
-            if (sender is Button button)
-            {
-                Log.WriteLog(LogLevel.DEBUG, button.Name);
+        //    if (sender is Button button)
+        //    {
+        //        Log.WriteLog(LogLevel.DEBUG, button.Name);
 
-                OpenServerWindow();
-            }
-        }
+        //        OpenServerWindow();
+        //    }
+        //}
 
-        private void OpenServerWindow()
-        {
-            if (_serverWindow == null || !_serverWindow.IsOpen())
-            {
-                _serverWindow = BaseWindowForWPF.CreateWindow<ServerWindow>();
-            }
-            else
-            {
-                _serverWindow.BaseMsgEnque(new WindowStateSetMessage());
-            }
-        }
+        //private void OpenServerWindow()
+        //{
+        //    if (_serverWindow == null || !_serverWindow.IsOpen())
+        //    {
+        //        _serverWindow = BaseWindowForWPF.CreateWindow<ServerWindow>();
+        //    }
+        //    else
+        //    {
+        //        _serverWindow.BaseMsgEnque(new WindowStateSetMessage());
+        //    }
+        //}
 
         private void btClientWindow_Click(object sender, RoutedEventArgs e)
         {

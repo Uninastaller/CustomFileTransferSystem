@@ -5,7 +5,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Modeel.FastTcp
+namespace TcpSession
 {
     public class TcpServerSession : TcpSession
     {

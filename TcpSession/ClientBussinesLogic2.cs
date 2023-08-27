@@ -13,9 +13,9 @@ using System.Windows;
 using Timer = System.Timers.Timer;
 
 
-namespace Modeel.SSL
+namespace TcpSession
 {
-    public class SslClientBussinesLogic : SslClient, IUniversalClientSocket, ISession
+    public class ClientBussinesLogic2 : TcpClient, IUniversalClientSocket, ISession
     {
 
         #region Properties
@@ -70,21 +70,22 @@ namespace Modeel.SSL
 
         #region Ctor
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING)
-            : this(context, address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, typeOfSession: typeOfSession)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, string fileName, long fileSize, FileReceiver fileReceiver, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING)
+            : this(address, port, gui, optionReceiveBufferSize: optionReceiveBufferSize, optionSendBufferSize: optionSendBufferSize, typeOfSession: typeOfSession)
         {
+
             _requestingFileName = fileName;
             _requestingFileSize = fileSize;
             _fileReceiver = fileReceiver;
 
-            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler);
+            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler); // nezabudni presunut do dolneho konstruktora
 
             State = ClientBussinesLogicState.REQUESTING_FILE;
         }
 
-        public SslClientBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize)
+        public ClientBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 8192, int optionSendBufferSize = 8192, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(address, port, optionReceiveBufferSize, optionSendBufferSize)
         {
-            Type = TypeOfClientSocket.TCP_CLIENT_SSL;
+            Type = TypeOfClientSocket.TCP_CLIENT;
 
             _typeOfSession = typeOfSession;
 
@@ -100,6 +101,8 @@ namespace Modeel.SSL
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
+
+
         }
 
         #endregion Ctor
@@ -210,6 +213,7 @@ namespace Modeel.SSL
                     RequestFilePart();
                 }
 
+
             TransferSendRate = BytesSent - _secondOldBytesSent;
             TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
             _secondOldBytesSent = BytesSent;
@@ -280,10 +284,9 @@ namespace Modeel.SSL
 
         protected override void Dispose(bool disposingManagedResources)
         {
-            Log.WriteLog(LogLevel.DEBUG, $"Ssl client with Id {Id} is being disposed");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client with Id {Id} is being disposed");
 
             _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
-
             TransferReceiveRate = 0;
             TransferSendRate = 0;
             DisconnectAndStop();
@@ -292,7 +295,7 @@ namespace Modeel.SSL
 
         protected override void OnConnected()
         {
-            Log.WriteLog(LogLevel.DEBUG, $"Ssl client connected a new session with Id {Id}");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client connected a new session with Id {Id}");
 
             if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
             {
@@ -303,15 +306,9 @@ namespace Modeel.SSL
             _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, TypeOfSession = _typeOfSession });
         }
 
-        protected override void OnHandshaked()
-        {
-            Log.WriteLog(LogLevel.DEBUG, $"Ssl client handshaked a new session with Id {Id}");
-            //SendAsync("Hello from SSL client!");
-        }
-
         protected override void OnDisconnected()
         {
-            Log.WriteLog(LogLevel.DEBUG, $"Ssl client disconnected from session with Id: {Id}");
+            Log.WriteLog(LogLevel.DEBUG, $"Tcp client disconnected from session with Id: {Id}");
 
             if (_assignedFilePart != -1)
             {
@@ -327,19 +324,18 @@ namespace Modeel.SSL
                 ConnectAsync();
 
             _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
+
+            State = ClientBussinesLogicState.NONE;
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             _flagSwitch.Switch(buffer, offset, size);
-            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            ////Logger.WriteLog($"Ssl client obtained a message[{size}]: {message}", LoggerInfo.socketMessage);
-            //Logger.WriteLog($"Ssl client obtained a message[{size}]", LoggerInfo.socketMessage);
         }
 
         protected override void OnError(SocketError error)
         {
-            Log.WriteLog(LogLevel.ERROR, $"Ssl client caught an error with code {error}");
+            Log.WriteLog(LogLevel.ERROR, $"Tcp client caught an error with code {error}");
         }
 
         #endregion OverridedMethods             

@@ -5,7 +5,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Modeel.SSL
+namespace SslTcpSession
 {
     class SslServerSession : SslSession
     {
