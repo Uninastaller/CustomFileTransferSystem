@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Logger;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -13,5 +14,16 @@ namespace CentralServer
     /// </summary>
     public partial class App : Application
     {
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            Log.StartApplication();
+            Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
+        }
+
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
+            Log.EndApplication();
+        }
     }
 }

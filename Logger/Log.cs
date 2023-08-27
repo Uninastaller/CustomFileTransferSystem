@@ -9,8 +9,7 @@ namespace Logger
     public static class Log
     {
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
-        private static readonly string _logFilePath = @"C:\Logs";
-        private static readonly string _logFilePathAndName = Path.Combine(_logFilePath, "Active.csv");
+        //private static readonly string _logFilePath = @"C:\Logs";
         private static readonly object _lockObect = new object();
         private static readonly int _megaByte = 0x100000;
 
@@ -28,8 +27,11 @@ namespace Logger
         private static bool _useAsynchronousLogging = true;
         private static bool _enableLogging = true;
         private static int _sizeLimitInMB = 10;
+        private static string _loggingDirectory = Path.Combine(@"C:\Logs\", System.AppDomain.CurrentDomain.FriendlyName);
 
         #endregion Config
+
+        private static string _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
 
         public static void StartApplication()
         {
@@ -73,6 +75,9 @@ namespace Logger
             bool.TryParse(config.AppSettings.Settings["UseAsynchronousLogging"].Value, out _useAsynchronousLogging);
             bool.TryParse(config.AppSettings.Settings["EnableLogging"].Value, out _enableLogging);
             int.TryParse(config.AppSettings.Settings["SizeLimitInMB"].Value, out _sizeLimitInMB);
+
+            _loggingDirectory = Path.Combine(config.AppSettings.Settings["LoggingDirectory"].Value, System.AppDomain.CurrentDomain.FriendlyName);
+            _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
         }
 
         public static void EndApplication()
@@ -147,15 +152,6 @@ namespace Logger
                             }
                         }
                     }
-
-                    //if (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
-                    //{
-
-                    //    lock (_lockObect)
-                    //    {
-                    //        WriteLog_(logEntry.LogLevel, logEntry.Message, logEntry.LineNumber, logEntry.CallingFilePath, logEntry.CallingMethod, logEntry.ThreadName, logEntry.DateTime);
-                    //    }
-                    //}
                 }
             }
         }
@@ -164,9 +160,9 @@ namespace Logger
         {
             try
             {
-                if (!Directory.Exists(_logFilePath))
+                if (!Directory.Exists(_loggingDirectory))
                 {
-                    Directory.CreateDirectory(_logFilePath);
+                    Directory.CreateDirectory(_loggingDirectory);
                 }
 
                 using (StreamWriter writer = new StreamWriter(_logFilePathAndName, false)) // Pass 'false' to create a new file and overwrite if it already exists
@@ -188,7 +184,7 @@ namespace Logger
             {
                 if (File.Exists(_logFilePathAndName))
                 {
-                    string zipFileName = Path.Combine(_logFilePath, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+                    string zipFileName = Path.Combine(_loggingDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
                     using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
                     {
                         var entry = zip.CreateEntry("Active.csv");
@@ -232,7 +228,7 @@ namespace Logger
             {
                 try
                 {
-                    string zipFileName = Path.Combine(_logFilePath, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+                    string zipFileName = Path.Combine(_loggingDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
                     using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
                     {
                         var entry = zip.CreateEntry(Path.GetFileName(_logFilePathAndName));
