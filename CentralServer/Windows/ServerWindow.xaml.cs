@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
-namespace CentralServer
+namespace CentralServer.Windows
 {
     /// <summary>
     /// Interaction logic for ServerWindow.xaml
@@ -39,6 +40,9 @@ namespace CentralServer
 
         internal void Init()
         {
+
+            tbTitle.Text = $"ESTE NEVIEM [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
+
             msgSwitch
              .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
              .Case(contract.GetContractId(typeof(ClientStateChangeMessage)), (ClientStateChangeMessage x) => ClientStateChangeMessageHandler(x));
@@ -61,7 +65,7 @@ namespace CentralServer
 
         private void RefreshClientsView()
         {
-            lvConnectedClients.ItemsSource = _clients.Values.ToList();
+            //lvConnectedClients.ItemsSource = _clients.Values.ToList();
         }
 
         private void Window_closedEvent(object? sender, EventArgs e)
@@ -69,6 +73,16 @@ namespace CentralServer
             Closed -= Window_closedEvent;
             _serverBussinesLogic.Stop();
             _serverBussinesLogic.Dispose();
+        }
+
+        private void Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void btnClose_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

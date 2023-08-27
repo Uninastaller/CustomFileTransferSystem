@@ -39,7 +39,7 @@ namespace SslTcpSession
 
         private IWindowEnqueuer? _gui;
         /// <summary>
-        /// value: IpAddress
+        /// value: RemoteEndPoint
         /// </summary>
         private Dictionary<Guid, string>? _clients = new Dictionary<Guid, string>();
 

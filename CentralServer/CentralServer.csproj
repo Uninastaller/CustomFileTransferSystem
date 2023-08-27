@@ -8,13 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Close_Default.png" />
+    <None Remove="Images\Close_MouseOver.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Logger\Logger.csproj" />
     <ProjectReference Include="..\SslTcpSession\SslTcpSession.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Windows\" />
+    <Resource Include="Images\Close_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Close_MouseOver.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
