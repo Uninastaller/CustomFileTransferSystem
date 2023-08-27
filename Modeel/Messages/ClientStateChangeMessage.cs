@@ -1,4 +1,5 @@
-﻿using Modeel.Frq;
+﻿using Common.Model;
+using Modeel.Frq;
 using System;
 using System.Collections.Generic;
 

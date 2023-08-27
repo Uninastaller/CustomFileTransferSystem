@@ -1,7 +1,7 @@
-﻿using Logger;
-using Modeel.Frq;
-using Modeel.Messages;
-using Modeel.Model;
+﻿using Common.Interface;
+using Common.Model;
+using Common.ThreadMessages;
+using Logger;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;

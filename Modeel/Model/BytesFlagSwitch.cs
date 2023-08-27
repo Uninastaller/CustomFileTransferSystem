@@ -1,5 +1,5 @@
-﻿using Logger;
-using Modeel.Model.Enums;
+﻿using Common.Enum;
+using Logger;
 using System;
 using System.Collections.Generic;
 using System.Linq;

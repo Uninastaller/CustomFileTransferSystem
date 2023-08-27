@@ -1,8 +1,9 @@
-﻿using Logger;
+﻿using Common.Enum;
+using Common.Interface;
+using Common.Model;
+using Common.ThreadMessages;
+using Logger;
 using Modeel.FastTcp;
-using Modeel.Messages;
-using Modeel.Model;
-using Modeel.Model.Enums;
 using Modeel.P2P;
 using Modeel.SSL;
 using System;

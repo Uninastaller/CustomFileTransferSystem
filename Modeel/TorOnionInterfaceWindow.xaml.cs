@@ -1,7 +1,8 @@
-﻿using Modeel.FastTcp;
-using Modeel.Messages;
-using Modeel.Model;
-using Modeel.Model.Enums;
+﻿using Common.Enum;
+using Common.Interface;
+using Common.Model;
+using Common.ThreadMessages;
+using Modeel.FastTcp;
 using System;
 using System.Diagnostics;
 using System.IO;

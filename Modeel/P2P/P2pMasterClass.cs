@@ -1,7 +1,6 @@
-﻿using Logger;
-using Modeel.Frq;
-using Modeel.Messages;
-using Modeel.Model;
+﻿using Common.Interface;
+using Common.ThreadMessages;
+using Logger;
 using Modeel.P2P;
 using System;
 using System.Collections.Generic;

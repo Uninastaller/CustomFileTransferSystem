@@ -1,12 +1,12 @@
-﻿using Logger;
-using Modeel.Frq;
+﻿using Common.Interface;
+using Logger;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace Modeel.Model
+namespace Common.Model
 {
     public abstract class BaseWindowForWPF : Window, IWindowEnqueuer
     {

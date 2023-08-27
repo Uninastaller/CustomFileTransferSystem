@@ -1,6 +1,6 @@
-﻿using Logger;
-using Modeel.Model;
-using Modeel.Model.Enums;
+﻿using Common.Enum;
+using Common.Model;
+using Logger;
 using System;
 using System.Net.Sockets;
 using System.Text;

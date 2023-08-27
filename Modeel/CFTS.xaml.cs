@@ -1,10 +1,12 @@
-﻿using Logger;
+﻿using Common.Enum;
+using Common.Interface;
+using Common.Model;
+using Common.ThreadMessages;
+using Logger;
 using Modeel.FastTcp;
-using Modeel.Messages;
-using Modeel.Model;
-using Modeel.Model.Enums;
 using Modeel.P2P;
 using Modeel.SSL;
+using STUN;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,8 +20,6 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using STUN;
-using STUN.Attributes;
 
 namespace Modeel
 {
@@ -182,17 +182,17 @@ namespace Modeel
             RequestModelObject request2 = new RequestModelObject();
             request2.FilePath = Settings.Default.File2Name;
             request2.FileSize = Settings.Default.File2Size;
-            request2.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File2IpAddress1, Port = Settings.Default.File2Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL });
+            request2.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File2IpAddress1, Port = Settings.Default.File2Port1, TypeOfSocket = TypeOfClientSocket.TCP_CLIENT_SSL });
 
             RequestModelObject request3 = new RequestModelObject();
             request3.FilePath = Settings.Default.File3Name;
             request3.FileSize = Settings.Default.File3Size;
-            request3.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File3IpAddress1, Port = Settings.Default.File3Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT });
+            request3.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File3IpAddress1, Port = Settings.Default.File3Port1, TypeOfSocket = TypeOfClientSocket.TCP_CLIENT });
 
             RequestModelObject request4 = new RequestModelObject();
             request4.FilePath = Settings.Default.File4Name;
             request4.FileSize = Settings.Default.File4Size;
-            request4.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File4IpAddress1, Port = Settings.Default.File4Port1, TypeOfSocket = Model.Enums.TypeOfClientSocket.TCP_CLIENT });
+            request4.Clients.Add(new BaseClient() { IpAddress = Settings.Default.File4IpAddress1, Port = Settings.Default.File4Port1, TypeOfSocket = TypeOfClientSocket.TCP_CLIENT });
 
             _requestModels.Add(request4);
             _requestModels.Add(request);
@@ -267,13 +267,13 @@ namespace Modeel
                     {
                         if (baseClient.UseThisClient && IPAddress.TryParse(baseClient.IpAddress, out IPAddress? iPAddress))
                         {
-                            if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT)
+                            if (baseClient.TypeOfSocket == TypeOfClientSocket.TCP_CLIENT)
                             {
                                 IUniversalClientSocket socket = new ClientBussinesLogic2(iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, fileReceiver.PartSize * 2, fileReceiver.PartSize * 2);
                                 downloadModelObject.Clients.Add(socket);
                                 _p2PMasterClass.CreateNewClient(socket);
                             }
-                            else if (baseClient.TypeOfSocket == Model.Enums.TypeOfClientSocket.TCP_CLIENT_SSL)
+                            else if (baseClient.TypeOfSocket == TypeOfClientSocket.TCP_CLIENT_SSL)
                             {
                                 IUniversalClientSocket socket = new SslClientBussinesLogic(_contextForP2pAsClient, iPAddress, baseClient.Port, this, requestModel.FilePath, requestModel.FileSize, fileReceiver, (int)fileReceiver.PartSize * 2, (int)fileReceiver.PartSize * 2);
                                 downloadModelObject.Clients.Add(socket);

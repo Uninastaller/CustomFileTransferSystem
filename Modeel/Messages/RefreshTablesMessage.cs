@@ -1,6 +1,4 @@
-﻿using Modeel.Frq;
-using System;
-using System.Collections.Generic;
+﻿using Common.Model;
 
 namespace Modeel.Messages
 {

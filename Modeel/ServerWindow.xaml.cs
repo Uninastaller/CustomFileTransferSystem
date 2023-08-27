@@ -1,5 +1,5 @@
-﻿using Modeel.Messages;
-using Modeel.Model;
+﻿using Common.Model;
+using Common.ThreadMessages;
 using Modeel.SSL;
 using System;
 using System.Collections.Generic;
