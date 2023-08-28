@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Title="ServerWindow"
         Height="450"
-        Width="1100"
+        Width="1200"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -116,31 +116,18 @@
                           x:Name="dtgClients"
                           d:ItemsSource="{d:SampleData ItemCount=4}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Number}"/>
-                        <DataGridTextColumn Header="Name" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding MicrophoneName}"/>
-                        <DataGridCheckBoxColumn Header="Pluged" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Plugged}"/>
-                        <DataGridCheckBoxColumn Header="Enabled" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Enabled}"/>
-                        <DataGridCheckBoxColumn Header="Muted" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Muted}"/>
+                        <DataGridTextColumn Header="#" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding SessionGuid}"/>
+                        <DataGridTextColumn Header="IpAddress:Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding RemoteEndpoint}"/>
+                        <DataGridTextColumn Header="SessionState" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding ServerSessionState}"/>
+                        
+                        <!--<DataGridCheckBoxColumn Header="Pluged" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Plugged}"/>-->
+                       
 
                         <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <Button Content="Mute" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnMute">
-
-                                        </Button>
-
-                                        <Button Content="Unmute" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnUnmute">
-
-                                        </Button>
-
-                                        <Button Content="Disable" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnDisable">
-
-                                        </Button>
-
-                                        <Button Content="Enable" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnEnable">
-
-                                        </Button>
+                                        <Button Content="Disconnect" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnDisconnect" Click="btnDisconnect_Click"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

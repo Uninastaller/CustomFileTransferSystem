@@ -14,6 +14,19 @@ namespace TcpSession
 
         public bool RequestAccepted { get; set; } = false;
         public string FilePathOfAcceptedfileRequest { get; set; } = string.Empty;
+        public ServerSessionState ServerSessionState
+        {
+            get => _serverSessionState;
+
+            set
+            {
+                if (value != _serverSessionState)
+                {
+                    _serverSessionState = value;
+                    ServerSessionStateChange?.Invoke(this, value);
+                }
+            }
+        }
 
         #endregion Properties
 
@@ -25,7 +38,7 @@ namespace TcpSession
 
         #region PrivateFields
 
-
+        private ServerSessionState _serverSessionState = ServerSessionState.NONE;
 
         #endregion PrivateFields
 
@@ -109,8 +122,12 @@ namespace TcpSession
         public delegate void ClientFileRequestHandler(TcpSession sender, string filePath, long fileSize);
         public event ClientFileRequestHandler? ClientFileRequest;
 
+        public delegate void ServerSessionStateChangeEventHandler(TcpSession sender, ServerSessionState serverSessionState);
+        public event ServerSessionStateChangeEventHandler? ServerSessionStateChange;
+
         private void OnNonRegistredMessage(string message)
         {
+            ServerSessionState = ServerSessionState.NONE;
             this.Server.FindSession(this.Id).Disconnect();
             Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
         }
@@ -123,6 +140,7 @@ namespace TcpSession
             if (long.TryParse(messageParts[2], out long fileSize))
             {
                 OnClientFileRequest(messageParts[1], fileSize);
+                ServerSessionState = ServerSessionState.FILE_REQUEST;
             }
             else
             {
@@ -140,6 +158,7 @@ namespace TcpSession
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
                 ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
+                ServerSessionState = ServerSessionState.FILE_PART_REQUEST;
             }
             else
             {

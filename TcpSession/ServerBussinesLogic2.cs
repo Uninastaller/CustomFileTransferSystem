@@ -41,7 +41,7 @@ namespace TcpSession
         /// <summary>
         /// value: IpAddress
         /// </summary>
-        private Dictionary<Guid, string>? _clients = new Dictionary<Guid, string>();
+        private Dictionary<Guid, ServerClientsModel>? _clients = new Dictionary<Guid, ServerClientsModel>();
 
         private Timer? _timer;
         private ulong _timerCounter;
@@ -74,19 +74,23 @@ namespace TcpSession
 
         #region PrivateMethods
 
-        private void ClientStateChange(SocketState socketState, string? client, Guid sessionId)
+        private void ClientStateChange(SocketState socketState, string? client, Guid sessionId, ServerSessionState serverSessionState = ServerSessionState.NONE)
         {
             if (_clients == null) return;
 
             if (socketState == SocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
-                _clients.Add(sessionId, client);
+                _clients.Add(sessionId, new ServerClientsModel() { SessionGuid = sessionId, RemoteEndpoint = client, ServerSessionState = serverSessionState });
                 Log.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
             }
             else if (socketState == SocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Client: {_clients[sessionId]}, disconnected from server");
                 _clients.Remove(sessionId);
+            }
+            else if (socketState == SocketState.INNER_STATE_CHANGE && _clients.ContainsKey(sessionId))
+            {
+                _clients[sessionId].ServerSessionState = serverSessionState;
             }
         }
 
@@ -155,6 +159,14 @@ namespace TcpSession
             session.Dispose();
         }
 
+        private void OnServerSessionStateChange(TcpSession session, ServerSessionState serverSessionState)
+        {
+            //Log.WriteLog(LogLevel.DEBUG, $"OnServerSessionStateChange: {serverSessionState}, on: {sesion.Socket.RemoteEndPoint}");
+            ClientStateChange(SocketState.INNER_STATE_CHANGE, null, session.Id, serverSessionState);
+            if (_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+        }
+
         #endregion EventHandler
 
         #region OverridedMethods
@@ -170,6 +182,7 @@ namespace TcpSession
                 _timer.Dispose();
                 _timer = null;
             }
+            _clients?.Clear();
             _clients = null;
             _timer = null;
             _gui = null;
@@ -189,6 +202,7 @@ namespace TcpSession
                 serverSession.ReceiveMessage -= OnReceiveMessage;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
                 serverSession.ClientFileRequest -= OnClientFileRequest;
+                serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
             }
 
             ClientStateChange(SocketState.DISCONNECTED, null, session.Id);
@@ -203,6 +217,7 @@ namespace TcpSession
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
                 serverSession.ClientFileRequest += OnClientFileRequest;
+                serverSession.ServerSessionStateChange += OnServerSessionStateChange;
             }
 
             ClientStateChange(SocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

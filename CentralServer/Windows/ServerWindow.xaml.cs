@@ -1,5 +1,7 @@
-﻿using Common.Model;
+﻿using Common.Interface;
+using Common.Model;
 using Common.ThreadMessages;
+using Logger;
 using SslTcpSession;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Windows.Controls;
 
 namespace CentralServer.Windows
 {
@@ -22,7 +25,7 @@ namespace CentralServer.Windows
         private readonly int _serverPort = 8080;
         private readonly IPAddress _ipAddress = IPAddress.Loopback;
         private readonly string _certificateName = "MyTestCertificateServer.pfx";
-        private Dictionary<Guid, string> _clients = new Dictionary<Guid, string>();
+        private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
 
         public ServerWindow()
         {
@@ -60,12 +63,13 @@ namespace CentralServer.Windows
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
         {
             _clients = message.Clients;
-            RefreshClientsView();
+            RefreshClientsDatagrid();
         }
 
-        private void RefreshClientsView()
+        private void RefreshClientsDatagrid()
         {
-            //lvConnectedClients.ItemsSource = _clients.Values.ToList();
+            dtgClients.ItemsSource = null;
+            dtgClients.ItemsSource = _clients.Values.ToList();
         }
 
         private void Window_closedEvent(object? sender, EventArgs e)
@@ -77,12 +81,22 @@ namespace CentralServer.Windows
 
         private void Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+
             this.DragMove();
         }
 
         private void btnClose_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void btnDisconnect_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is ServerClientsModel serverClientsModel)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                _serverBussinesLogic.FindSession(serverClientsModel.SessionGuid).Disconnect();
+            }
         }
     }
 }

@@ -2,7 +2,8 @@
 {
     public enum SocketState
     {
-        CONNECTED = 0,
-        DISCONNECTED = 1,
+        CONNECTED,
+        DISCONNECTED,
+        INNER_STATE_CHANGE
     }
 }

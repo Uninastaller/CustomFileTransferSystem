@@ -10,7 +10,7 @@ namespace Common.ThreadMessages
         {
         }
 
-        public Dictionary<Guid, string> Clients { get; set; } = new Dictionary<Guid, string>();
+        public Dictionary<Guid, ServerClientsModel> Clients { get; set; } = new Dictionary<Guid, ServerClientsModel>();
 
     }
 }
