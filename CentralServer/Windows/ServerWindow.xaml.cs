@@ -35,10 +35,10 @@ namespace CentralServer.Windows
                 switch (value)
                 {
                     case ServerSocketState.STARTED:
-                        elpServerStatus.Fill = new SolidColorBrush(Colors.DarkGreen);
+                        elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
                         break;
                     case ServerSocketState.STOPPED:
-                        elpServerStatus.Fill = new SolidColorBrush(Colors.DarkRed);
+                        elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
                         break;
                     default:
                         break;

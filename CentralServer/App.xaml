@@ -81,13 +81,13 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <SolidColorBrush x:Key="Button.Static.Background1" Color="#FFDDDDDD"/>
+        <SolidColorBrush x:Key="Button.Static.Background1" Color="#741b0c"/>
         <SolidColorBrush x:Key="Button.Static.Border1" Color="#FF707070"/>
-        <SolidColorBrush x:Key="Button.MouseOver.Background1" Color="#FFBEE6FD"/>
+        <SolidColorBrush x:Key="Button.MouseOver.Background1" Color="#793020"/>
         <SolidColorBrush x:Key="Button.MouseOver.Border1" Color="#FF3C7FB1"/>
-        <SolidColorBrush x:Key="Button.Pressed.Background1" Color="#FFC4E5F6"/>
+        <SolidColorBrush x:Key="Button.Pressed.Background1" Color="#5e2e23"/>
         <SolidColorBrush x:Key="Button.Pressed.Border1" Color="#FF2C628B"/>
-        <SolidColorBrush x:Key="Button.Disabled.Background1" Color="#FFF4F4F4"/>
+        <SolidColorBrush x:Key="Button.Disabled.Background1" Color="#272727"/>
         <SolidColorBrush x:Key="Button.Disabled.Border1" Color="#FFADB2B5"/>
         <SolidColorBrush x:Key="Button.Disabled.Foreground1" Color="#FF838383"/>
         <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
@@ -99,6 +99,8 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Padding" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -247,11 +249,12 @@
         <!--#region DataGridButtonStyle-->
         
         <Style x:Key="DataGridButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#5fc889"/>
-            <Setter Property="BorderBrush" Value="#33b38f"/>
-            <Setter Property="Foreground" Value="#FF534C4C"/>
+            <Setter Property="Background" Value="#741b0c"/>
+            <Setter Property="BorderBrush" Value="#150702"/>
+            <Setter Property="Foreground" Value="#150702"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -263,10 +266,10 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#33b38f"/>
+                    <Setter Property="Background" Value="#793020"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#07727f"/>
+                    <Setter Property="Background" Value="#94301d"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -289,6 +292,17 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
+            <Style.Triggers>
+
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="#150702"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </Trigger>
+
+            
+            </Style.Triggers>
+
         </Style>
 
         <!--#endregion DataGridCellStyle1-->
@@ -298,7 +312,7 @@
         <Style x:Key="DataGridColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#FF534C4C" />
+            <Setter Property="Foreground" Value="#150702" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Margin" Value="15,0,15,10" />
             <Setter Property="Template">
@@ -321,8 +335,9 @@
         <!--#region DataGridRowStyle1-->
 
         <Style x:Key="DataGridRowStyle1" TargetType="{x:Type DataGridRow}">
-            <Setter Property="Background" Value="#8cdb7f"/>
+            <Setter Property="Background" Value="#7e3020"/>
             <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="Foreground" Value="#150702" />
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
             <Setter Property="ValidationErrorTemplate">
@@ -355,13 +370,13 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#009e90"/>
-                    <Setter Property="Foreground" Value="#ffffff"/>
+                    <Setter Property="Background" Value="#94301d"/>
+                    <Setter Property="Foreground" Value="#150702"/>
                 </Trigger>
 
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#009e90"/>
-                    <Setter Property="Foreground" Value="#ffffff"/>
+                    <Setter Property="Background" Value="#94301d"/>
+                    <Setter Property="Foreground" Value="#150702"/>
                 </Trigger>
 
                 <MultiTrigger>
@@ -369,7 +384,7 @@
                         <Condition Property="IsSelected" Value="True"/>
                         <Condition Property="Selector.IsSelectionActive" Value="False"/>
                     </MultiTrigger.Conditions>
-                    <Setter Property="Background" Value="#dfdfdf" />
+                    <Setter Property="Background" Value="#793020" />
                 </MultiTrigger>
             </Style.Triggers>
         </Style>
