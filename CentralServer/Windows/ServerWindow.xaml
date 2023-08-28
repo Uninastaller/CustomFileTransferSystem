@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Title="ServerWindow"
         Height="450"
-        Width="1050"
+        Width="1100"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -61,19 +61,15 @@
 
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <!--<GradientStop Color="#332926" Offset=".0"/>
-                        <GradientStop Color="#642f22" Offset=".5"/>
-                        <GradientStop Color="#272727" Offset="1"/>-->
                         <GradientStop Color="#3e2b26" Offset="0"/>
                         <GradientStop Color="#332926" Offset=".33"/>
                         <GradientStop Color="#642f22" Offset=".66"/>
                         <GradientStop Color="#272727" Offset="1"/>
-
                     </LinearGradientBrush>
                 </Grid.Background>
 
                 <TextBlock x:Name="tbTitle" Grid.Row="1" Grid.Column="1"
-                           Text="ESTE NEVIEM"
+                           Text="Custom File Transfer System"
                            FontFamily="Arial"
                            FontSize="40"
                            FontWeight="Bold"

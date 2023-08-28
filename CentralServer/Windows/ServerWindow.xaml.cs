@@ -59,7 +59,7 @@ namespace CentralServer.Windows
         private IUniversalServerSocket _serverBussinesLogic;
 
         private readonly int _serverPort = 8080;
-        private readonly IPAddress _ipAddress = IPAddress.Loopback;
+        private readonly IPAddress _serverIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
         private readonly string _certificateName = "MyTestCertificateServer.pfx";
         private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
         private ServerSocketState _centralServersocketState = ServerSocketState.STOPPED;
@@ -86,7 +86,7 @@ namespace CentralServer.Windows
             Closed += Window_closedEvent;
 
             SslContext sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
-            _serverBussinesLogic = new SslServerBussinesLogic(sslContext, _ipAddress, _serverPort, this);
+            _serverBussinesLogic = new SslServerBussinesLogic(sslContext, _serverIpAddress, _serverPort, this, 0x2000, 0x2000);
         }
 
         #endregion Ctor
@@ -102,7 +102,9 @@ namespace CentralServer.Windows
         private void Init()
         {
 
-            tbTitle.Text = $"ESTE NEVIEM [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
+            tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
+            tbServerIpAddressVariable.Text = _serverIpAddress.ToString();
+            tbServerPortVariable.Text = _serverPort.ToString();
 
             msgSwitch
              .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
