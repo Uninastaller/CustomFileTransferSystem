@@ -303,7 +303,7 @@ namespace TcpSession
                 RequestFile();
             }
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, TypeOfSession = _typeOfSession });
+            _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { SocketState = ClientSocketState.CONNECTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnDisconnected()
@@ -323,7 +323,7 @@ namespace TcpSession
             if (!_stop)
                 ConnectAsync();
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
+            _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { SocketState = ClientSocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
 
             State = ClientBussinesLogicState.NONE;
         }

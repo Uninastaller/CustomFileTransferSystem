@@ -103,7 +103,7 @@ namespace Modeel
         {
             InitializeComponent();
             contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
-            contract.Add(MsgIds.SocketStateChangeMessage, typeof(SocketStateChangeMessage));
+            contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
             contract.Add(MsgIds.P2pClietsUpdateMessage, typeof(P2pClietsUpdateMessage));
             contract.Add(MsgIds.P2pServersUpdateMessage, typeof(P2pServersUpdateMessage));
             contract.Add(MsgIds.RefreshTablesMessage, typeof(RefreshTablesMessage));
@@ -138,7 +138,7 @@ namespace Modeel
         {
             msgSwitch
              .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
-             .Case(contract.GetContractId(typeof(SocketStateChangeMessage)), (SocketStateChangeMessage x) => SocketStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(P2pClietsUpdateMessage)), (P2pClietsUpdateMessage x) => P2pClietsUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(P2pServersUpdateMessage)), (P2pServersUpdateMessage x) => P2pServersUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
@@ -195,15 +195,15 @@ namespace Modeel
             }
         }
 
-        private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
+        private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
             if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
             {
-                if (message.SocketState == SocketState.CONNECTED)
+                if (message.SocketState == ClientSocketState.CONNECTED)
                 {
                     rtgServerStatus.Fill = new SolidColorBrush(Colors.Green);
                 }
-                else if (message.SocketState == SocketState.DISCONNECTED)
+                else if (message.SocketState == ClientSocketState.DISCONNECTED)
                 {
                     rtgServerStatus.Fill = new SolidColorBrush(Colors.Red);
                 }

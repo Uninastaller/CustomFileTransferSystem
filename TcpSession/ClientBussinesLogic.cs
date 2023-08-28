@@ -59,7 +59,7 @@ namespace TcpSession
                 if (value != _isConnected)
                 {
                     _isConnected = value;
-                    _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = value ? SocketState.CONNECTED : SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
+                    _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { SocketState = value ? ClientSocketState.CONNECTED : ClientSocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
                 }
             }
         }

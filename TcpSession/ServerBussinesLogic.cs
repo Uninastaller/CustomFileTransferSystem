@@ -297,6 +297,11 @@ namespace TcpSession
             stream.BeginRead(buffer, 0, buffer.Length, ReceiveMessageCallback, state);
         }
 
+        public void DisconnectSession(Guid sessionId)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion EventHandler
 
         #region OverridedMethods

@@ -33,7 +33,7 @@ namespace Modeel
         {
             InitializeComponent();
             contract.Add(MsgIds.MessageReceiveMessage, typeof(MessageReceiveMessage));
-            contract.Add(MsgIds.SocketStateChangeMessage, typeof(SocketStateChangeMessage));
+            contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
 
             Init();
 
@@ -57,7 +57,7 @@ namespace Modeel
         {
             msgSwitch
              .Case(contract.GetContractId(typeof(MessageReceiveMessage)), (MessageReceiveMessage x) => MessageReceiveMessageHandler(x.Message))
-             .Case(contract.GetContractId(typeof(SocketStateChangeMessage)), (SocketStateChangeMessage x) => SocketStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
              ;
         }
 
@@ -67,11 +67,11 @@ namespace Modeel
             tbkTextForControlSocket.ScrollToEnd();
         }
 
-        private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
+        private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
             if (message.TypeOfSession == TypeOfSession.TOR_CONTROL_SESSION)
             {
-                if (message.SocketState == SocketState.CONNECTED)
+                if (message.SocketState == ClientSocketState.CONNECTED)
                 {
                     rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
                     SendStringToControlSocket("AUTHENTICATE ");
@@ -81,7 +81,7 @@ namespace Modeel
                     SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
 
                 }
-                else if (message.SocketState == SocketState.DISCONNECTED)
+                else if (message.SocketState == ClientSocketState.DISCONNECTED)
                 {
                     rtgControlSocketState.Fill = new SolidColorBrush(Colors.Red);
                 }

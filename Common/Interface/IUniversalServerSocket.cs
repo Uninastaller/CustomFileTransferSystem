@@ -25,5 +25,6 @@ namespace Common.Interface
         public void Dispose();
         public bool Restart();
         public bool Start();
+        public void DisconnectSession(Guid sessionId);
     }
 }

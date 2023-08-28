@@ -63,7 +63,7 @@ namespace Modeel
         public CFTS()
         {
             InitializeComponent();
-            contract.Add(MsgIds.SocketStateChangeMessage, typeof(SocketStateChangeMessage));
+            contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
             contract.Add(MsgIds.P2pClietsUpdateMessage, typeof(P2pClietsUpdateMessage));
             contract.Add(MsgIds.RefreshTablesMessage, typeof(RefreshTablesMessage));
 
@@ -128,7 +128,7 @@ namespace Modeel
         internal void Init()
         {
             msgSwitch
-             .Case(contract.GetContractId(typeof(SocketStateChangeMessage)), (SocketStateChangeMessage x) => SocketStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(P2pClietsUpdateMessage)), (P2pClietsUpdateMessage x) => P2pClietsUpdateMessageHandler(x))
              .Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
              .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
@@ -204,7 +204,7 @@ namespace Modeel
             //_p2pClients = message.Clients;
         }
 
-        private void SocketStateChangeMessageHandler(SocketStateChangeMessage message)
+        private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
 
         }

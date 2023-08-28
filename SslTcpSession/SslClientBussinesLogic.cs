@@ -300,7 +300,7 @@ namespace SslTcpSession
                 RequestFile();
             }
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.CONNECTED, TypeOfSession = _typeOfSession });
+            _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { SocketState = ClientSocketState.CONNECTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnHandshaked()
@@ -326,7 +326,7 @@ namespace SslTcpSession
             if (!_stop)
                 ConnectAsync();
 
-            _gui.BaseMsgEnque(new SocketStateChangeMessage() { SocketState = SocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
+            _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { SocketState = ClientSocketState.DISCONNECTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)

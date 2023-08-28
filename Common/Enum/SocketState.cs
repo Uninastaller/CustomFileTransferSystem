@@ -1,6 +1,6 @@
 ﻿namespace Common.Enum
 {
-    public enum SocketState
+    public enum ClientSocketState
     {
         CONNECTED,
         DISCONNECTED,

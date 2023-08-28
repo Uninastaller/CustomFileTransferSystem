@@ -423,10 +423,10 @@ namespace SslTcpSession
         /// </summary>
         /// <param name="id">Session Id</param>
         /// <returns>Session with a given Id or null if the session it not connected</returns>
-        public SslSession FindSession(Guid id)
+        public SslSession? FindSession(Guid id)
         {
             // Try to find the required session
-            return Sessions.TryGetValue(id, out SslSession result) ? result : null;
+            return Sessions.TryGetValue(id, out SslSession? result) ? result : null;
         }
 
         /// <summary>
