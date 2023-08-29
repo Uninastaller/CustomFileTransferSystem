@@ -16,6 +16,24 @@
         ResizeMode="CanResizeWithGrip">
 
     <Border CornerRadius="32" BorderThickness="10" BorderBrush="#442b25" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Grid>
+
+            <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                VerticalAlignment="Top" HorizontalAlignment="Right"
+                Height="20" Width="20"
+                Margin="0,0,15,0">
+                <Button.Background>
+                    <ImageBrush ImageSource="pack://application:,,,/Images/Close_Default.png" Stretch="None"/>
+                </Button.Background>
+            </Button>
+
+            <Label Content="Central Server" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"
+               Height="24"
+               Margin="0,0,5,0"
+               FontFamily="Consolas"
+               Foreground="Gray"
+               FontWeight="Bold"/>
+        
         <Border CornerRadius="15" BorderThickness="20">
             <Border.BorderBrush>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -150,10 +168,10 @@
                 </DataGrid>
                 
 
-                <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="13" Grid.Row="0"
+                <!--<Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="13" Grid.Row="0"
                         Grid.ColumnSpan="2" Grid.RowSpan="2"
                         Height="36" Width="36"
-                        Margin="-10,-25,0,0">
+                        Margin="-10,-45,0,0">
                     <Button.Background>
                         <ImageBrush ImageSource="pack://application:,,,/Images/Close_Default.png" Stretch="None"/>
                     </Button.Background>
@@ -165,11 +183,12 @@
                        Margin="-80,0,-13,-13"
                        FontFamily="Consolas"
                        Foreground="Gray"
-                       FontWeight="Bold"/>
+                       FontWeight="Bold"/>-->
 
             </Grid>
 
-        </Border>
+            </Border>
+        </Grid>
     </Border>
     
     

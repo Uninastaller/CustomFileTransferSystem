@@ -269,10 +269,11 @@
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="5" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="5" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -313,7 +314,6 @@
                     <Setter Property="Foreground" Value="#150702"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                 </Trigger>
-
             
             </Style.Triggers>
 
