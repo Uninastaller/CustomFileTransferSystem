@@ -89,9 +89,18 @@ namespace SslTcpSession
             _typeOfSession = typeOfSession;
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-            _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
-            _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
-            _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
+
+            if (typeOfSession == TypeOfSession.DOWNLOADING)
+            {
+                _flagSwitch.Register(SocketMessageFlag.REJECT, OnRejectHandler);
+                _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
+                _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
+            }
+            else if (typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
+            {
+                _flagSwitch.Register(SocketMessageFlag.UPLOADING_FILES_REQUEST, OnUploadFilesRequest);
+            }
+
 
             ConnectAsync();
 
@@ -188,7 +197,7 @@ namespace SslTcpSession
 
         private void RequestFile()
         {
-            if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+            if (FlagMessagesGenerator.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
                 State = ClientBussinesLogicState.REQUEST_SENDED;
         }
 
@@ -226,6 +235,13 @@ namespace SslTcpSession
                 MessageBox.Show("Request for file was rejected!");
                 this.Dispose();
             }
+        }
+
+        private void OnUploadFilesRequest(byte[] buffer, long offset, long size)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Upload files request received [CLIENT]: {Address}:{Port}");
+
+            ResourceInformer.CreateJsonFiles(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, @"C:\Diplomovka\Upload");
         }
 
         private void OnAcceptHandler(byte[] buffer, long offset, long size)

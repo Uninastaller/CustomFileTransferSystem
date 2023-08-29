@@ -149,7 +149,7 @@ namespace TcpSession
                     MessageBoxResult result = MessageBoxResult.Yes;
                     if (result == MessageBoxResult.Yes)
                     {
-                        ResourceInformer.GenerateAccept(session);
+                        FlagMessagesGenerator.GenerateAccept(session);
                         serverSession.RequestAccepted = true;
                         serverSession.FilePathOfAcceptedfileRequest = filePath;
                         return;
@@ -157,7 +157,7 @@ namespace TcpSession
                 }
             }
 
-            ResourceInformer.GenerateReject(session);
+            FlagMessagesGenerator.GenerateReject(session);
             session.Disconnect();
             session.Dispose();
         }

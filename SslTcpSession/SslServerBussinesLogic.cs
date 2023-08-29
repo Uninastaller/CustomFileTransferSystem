@@ -49,13 +49,16 @@ namespace SslTcpSession
         private long _secondOldBytesSent;
         private long _secondOldBytesReceived;
 
+        private TypeOfSession _typeOfSession;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
+        public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
             Type = TypeOfServerSocket.TCP_SERVER_SSL;
+            _typeOfSession = typeOfSession;
 
             _gui = gui;
             Start();
@@ -63,6 +66,7 @@ namespace SslTcpSession
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
+            _typeOfSession = typeOfSession;
         }
 
         #endregion Ctor
@@ -149,7 +153,7 @@ namespace SslTcpSession
                     MessageBoxResult result = MessageBoxResult.Yes;
                     if (result == MessageBoxResult.Yes)
                     {
-                        ResourceInformer.GenerateAccept(session);
+                        FlagMessagesGenerator.GenerateAccept(session);
                         serverSession.RequestAccepted = true;
                         serverSession.FilePathOfAcceptedfileRequest = filePath;
                         return;
@@ -157,7 +161,7 @@ namespace SslTcpSession
                 }
             }
 
-            ResourceInformer.GenerateReject(session);
+            FlagMessagesGenerator.GenerateReject(session);
             session.Disconnect();
             session.Dispose();
         }
@@ -191,7 +195,7 @@ namespace SslTcpSession
             _gui = null;
         }
 
-        protected override SslSession CreateSession() { return new SslServerSession(this); }
+        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslServerSession(this); }
 
         protected override void OnError(SocketError error)
         {
@@ -221,6 +225,11 @@ namespace SslTcpSession
                 serverSession.ClientDisconnected += OnClientDisconnected;
                 serverSession.ClientFileRequest += OnClientFileRequest;
                 serverSession.ServerSessionStateChange += OnServerSessionStateChange;
+            }
+            else if (session is SslCentralServerSession centralServerSession)
+            {
+                centralServerSession.ClientDisconnected += OnClientDisconnected;
+                centralServerSession.ServerSessionStateChange += OnServerSessionStateChange;
             }
 
             ClientStateChange(ClientSocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);

@@ -3,7 +3,6 @@ using Common.Model;
 using Logger;
 using System;
 using System.Net.Sockets;
-using System.Text;
 
 namespace TcpSession
 {
@@ -128,41 +127,35 @@ namespace TcpSession
         private void OnNonRegistredMessage(string message)
         {
             ServerSessionState = ServerSessionState.NONE;
-            this.Server.FindSession(this.Id).Disconnect();
+            this.Server?.FindSession(this.Id)?.Disconnect();
             Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
         }
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
         {
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
-
-            if (long.TryParse(messageParts[2], out long fileSize))
+            if (FlagMessageEvaluator.EvaluateRequestFile(buffer, offset, size, out string fileName, out Int64 fileSize))
             {
-                OnClientFileRequest(messageParts[1], fileSize);
+                OnClientFileRequest(fileName, fileSize);
                 ServerSessionState = ServerSessionState.FILE_REQUEST;
             }
             else
             {
-                this.Server.FindSession(this.Id).Disconnect();
+                this.Server?.FindSession(this.Id)?.Disconnect();
                 Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }
 
         private void OnRequestFilePartHandler(byte[] buffer, long offset, long size)
         {
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
-
-            if (long.TryParse(messageParts[1], out long filePartNumber) && int.TryParse(messageParts[2], out int partSize) && RequestAccepted) // ak by som sa rozhodol ze nie kazdy part ma rovnaku velkost, musi sa poslat aj zaciatok partu
+            if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePart(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
-                ResourceInformer.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
+                FlagMessagesGenerator.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
                 ServerSessionState = ServerSessionState.FILE_PART_REQUEST;
             }
             else
             {
-                this.Server.FindSession(this.Id).Disconnect();
+                this.Server?.FindSession(this.Id)?.Disconnect();
                 Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
             }
         }

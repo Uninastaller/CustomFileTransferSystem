@@ -100,7 +100,7 @@ namespace Common.Model
             _lastPartSize = lastPartSize;
             NumberOfDownloadedParts = _receivedParts.Where(part => part == FilePartState.DOWNLOADED).Count();
             _fileNameDownloading = Path.ChangeExtension(_fileName, ".tmp");
-            _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, ".cfts");
+            _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, DownloadingStatusFileController.downloadingStatusFileControllerFileExtension);
 
             _downloadingTime.Start();
 
@@ -119,7 +119,7 @@ namespace Common.Model
             _fileSize = fileSize;
             _fileName = fileName;
             _fileNameDownloading = Path.ChangeExtension(_fileName, ".tmp");
-            _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, ".cfts");
+            _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, DownloadingStatusFileController.downloadingStatusFileControllerFileExtension);
             _totalParts = CalculateTotalPartsCount(fileSize, partSize);
             _receivedParts = new FilePartState[_totalParts];
             _lastPartSize = CalculateLastPartSize(fileSize, partSize);
@@ -154,7 +154,7 @@ namespace Common.Model
 
         public MethodResult GenerateRequestForFilePart(ISession session, long filePart)
         {
-            return ResourceInformer.GenerateRequestForFilePart(filePart, _partSize, session);
+            return FlagMessagesGenerator.GenerateRequestForFilePart(filePart, _partSize, session);
         }
 
         public MethodResult WriteToFile(long partToProcess, byte[] filePart, int offset, int length)

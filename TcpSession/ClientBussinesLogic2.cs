@@ -191,7 +191,7 @@ namespace TcpSession
 
         private void RequestFile()
         {
-            if (ResourceInformer.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+            if (FlagMessagesGenerator.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
                 State = ClientBussinesLogicState.REQUEST_SENDED;
         }
 

@@ -15,7 +15,7 @@ namespace Common.Model
 
         #region PublicFields
 
-
+        public const string downloadingStatusFileControllerFileExtension = ".cftsx";
 
         #endregion PublicFields
 

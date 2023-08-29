@@ -295,7 +295,7 @@ namespace Modeel
         /// <returns></returns>
         private FileReceiver GetFileReceiver(string downloadingFile, long fileSize)
         {
-            string downloadingStatusFile = Path.ChangeExtension(downloadingFile, ".cfts");
+            string downloadingStatusFile = Path.ChangeExtension(downloadingFile, DownloadingStatusFileController.downloadingStatusFileControllerFileExtension);
 
             if (DownloadingStatusFileController.CheckForValidStatusFile(downloadingStatusFile))
             {

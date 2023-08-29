@@ -22,6 +22,8 @@ namespace Common.Enum
         [StringValue("b.C")]
         FILE_PART,
 
+        [StringValue("b.D")]
+        UPLOADING_FILES_REQUEST,
 
 
 

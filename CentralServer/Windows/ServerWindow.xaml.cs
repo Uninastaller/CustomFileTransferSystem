@@ -86,7 +86,7 @@ namespace CentralServer.Windows
             Closed += Window_closedEvent;
 
             SslContext sslContext = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateName), ""));
-            _serverBussinesLogic = new SslServerBussinesLogic(sslContext, _serverIpAddress, _serverPort, this, 0x2000, 0x2000);
+            _serverBussinesLogic = new SslServerBussinesLogic(sslContext, _serverIpAddress, _serverPort, this, 0x2000, 0x2000, typeOfSession: TypeOfSession.SESSION_WITH_CENTRAL_SERVER);
         }
 
         #endregion Ctor
