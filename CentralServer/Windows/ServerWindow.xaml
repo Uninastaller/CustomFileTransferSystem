@@ -23,7 +23,7 @@
                 Height="20" Width="20"
                 Margin="0,0,15,0">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/Images/Close_Default.png" Stretch="None"/>
+                    <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Close_Default.png" Stretch="None"/>
                 </Button.Background>
             </Button>
 
@@ -32,7 +32,7 @@
                 Height="20" Width="20"
                 Margin="0,0,40,0">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/Images/Maximize_Default.png" Stretch="None"/>
+                    <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Maximize_Default.png" Stretch="None"/>
                 </Button.Background>
             </Button>
 
@@ -41,7 +41,7 @@
                 Height="20" Width="20"
                 Margin="0,0,65,0">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/Images/Minimize_Default.png" Stretch="None"/>
+                    <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Minimize_Default.png" Stretch="None"/>
                 </Button.Background>
             </Button>
 

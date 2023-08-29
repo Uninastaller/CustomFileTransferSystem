@@ -1,11 +1,9 @@
-﻿<Application x:Class="CentralServer.App"
+﻿<Application x:Class="Client.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:CentralServer"
-             StartupUri="Windows/ServerWindow.xaml"
-             Startup="Application_Startup"
-             Exit="Application_Exit">
-
+             xmlns:local="clr-namespace:Client"
+             StartupUri="Windows/MainWindow.xaml">
+    
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,4 +11,5 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
+    
 </Application>
