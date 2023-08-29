@@ -166,6 +166,24 @@ namespace CentralServer.Windows
             this.Close();
         }
 
+
+        private void btnMinimize_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            this.WindowState = System.Windows.WindowState.Minimized;
+        }
+
+        private void btnMaximize_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (this.WindowState == System.Windows.WindowState.Maximized)
+            {
+                this.WindowState = System.Windows.WindowState.Normal; // Restore window size
+            }
+            else
+            {
+                this.WindowState = System.Windows.WindowState.Maximized; // Maximize window
+            }
+        }
+
         private void btnDisconnect_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is ServerClientsModel serverClientsModel)

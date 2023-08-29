@@ -9,10 +9,11 @@
 
   <ItemGroup>
     <None Remove="Images\Close_Default.png" />
-    <None Remove="Images\Close_Default2.png" />
     <None Remove="Images\Close_MouseOver.png" />
-    <None Remove="Images\Close_MouseOver2.png" />
-    <None Remove="Images\Close_MouseOver3.png" />
+    <None Remove="Images\Maximize_Default.png" />
+    <None Remove="Images\Maximize_MouseOver.png" />
+    <None Remove="Images\Minimize_Default.png" />
+    <None Remove="Images\Minimize_MouseOver.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,13 +29,16 @@
     <Resource Include="Images\Close_MouseOver.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\Close_MouseOver3.png">
+    <Resource Include="Images\Maximize_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\Close_Default2.png">
+    <Resource Include="Images\Maximize_MouseOver.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\Close_MouseOver2.png">
+    <Resource Include="Images\Minimize_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Minimize_MouseOver.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
