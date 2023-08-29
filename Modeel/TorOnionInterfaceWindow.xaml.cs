@@ -71,7 +71,7 @@ namespace Modeel
         {
             if (message.TypeOfSession == TypeOfSession.TOR_CONTROL_SESSION)
             {
-                if (message.SocketState == ClientSocketState.CONNECTED)
+                if (message.ClientSocketState == ClientSocketState.CONNECTED)
                 {
                     rtgControlSocketState.Fill = new SolidColorBrush(Colors.Green);
                     SendStringToControlSocket("AUTHENTICATE ");
@@ -81,7 +81,7 @@ namespace Modeel
                     SendStringToControlSocket("SETEVENTS CIRC STREAM DEBUG INFO NOTICE WARN ERR");
 
                 }
-                else if (message.SocketState == ClientSocketState.DISCONNECTED)
+                else if (message.ClientSocketState == ClientSocketState.DISCONNECTED)
                 {
                     rtgControlSocketState.Fill = new SolidColorBrush(Colors.Red);
                 }

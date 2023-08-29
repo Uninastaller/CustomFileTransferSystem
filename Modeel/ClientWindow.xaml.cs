@@ -199,11 +199,11 @@ namespace Modeel
         {
             if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
             {
-                if (message.SocketState == ClientSocketState.CONNECTED)
+                if (message.ClientSocketState == ClientSocketState.CONNECTED)
                 {
                     rtgServerStatus.Fill = new SolidColorBrush(Colors.Green);
                 }
-                else if (message.SocketState == ClientSocketState.DISCONNECTED)
+                else if (message.ClientSocketState == ClientSocketState.DISCONNECTED)
                 {
                     rtgServerStatus.Fill = new SolidColorBrush(Colors.Red);
                 }

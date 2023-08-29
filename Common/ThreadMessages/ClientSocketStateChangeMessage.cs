@@ -10,6 +10,6 @@ namespace Common.ThreadMessages
         }
 
         public TypeOfSession TypeOfSession { get; set; }
-        public ClientSocketState SocketState { get; set; }
+        public ClientSocketState ClientSocketState { get; set; }
     }
 }

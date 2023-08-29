@@ -30,7 +30,7 @@ namespace CentralServer.Windows
             set
             {
                 _centralServersocketState = value;
-                Log.WriteLog(LogLevel.INFO, "Central Server Socekt State Change To " + value);
+                Log.WriteLog(LogLevel.INFO, "Central Server Socket State Change To " + value);
 
                 switch (value)
                 {
