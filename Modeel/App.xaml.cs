@@ -1,4 +1,5 @@
-﻿using Logger;
+﻿using ConfigManager;
+using Logger;
 using System.Windows;
 
 namespace Modeel
@@ -10,12 +11,14 @@ namespace Modeel
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            MyConfigManager.StartApplication();
             Log.StartApplication();
             Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
+            MyConfigManager.EndApplication();
             Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
             Log.EndApplication();
         }

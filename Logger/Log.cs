@@ -1,7 +1,6 @@
 ﻿using ConfigManager;
 using System;
 using System.Collections.Concurrent;
-using System.Configuration;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -13,7 +12,6 @@ namespace Logger
     public static class Log
     {
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
-        //private static readonly string _logFilePath = @"C:\Logs";
         private static readonly object _lockObect = new object();
         private static readonly int _megaByte = 0x100000;
 
@@ -22,20 +20,19 @@ namespace Logger
         private static Thread? _workingThread;
         private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        private static FileSystemWatcher? _configWatcher;
 
         private static readonly string _configPath = Assembly.GetExecutingAssembly().Location;
 
         #region Config
 
-        private static bool _useAsynchronousLogging = true;
-        private static bool _enableLogging = true;
-        private static int _sizeLimitInMB = 10;
-        private static string _loggingDirectory = Path.Combine(@"C:\Logs\", System.AppDomain.CurrentDomain.FriendlyName);
+        private static bool _useAsynchronousLogging = false;
+        private static bool _enableLogging = false;
+        private static int _sizeLimitInMB = 0;
+        private static string _loggingDirectory = string.Empty;
 
         #endregion Config
 
-        private static string _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
+        private static string _logFilePathAndName = string.Empty;
 
         public static void StartApplication()
         {
@@ -51,46 +48,27 @@ namespace Logger
             _workingThread.IsBackground = true;
             _workingThread.Start();
 
-
-            string? configDirectory = Path.GetDirectoryName(_configPath);
-            if (!string.IsNullOrEmpty(configDirectory))
-            {
-                _configWatcher = new FileSystemWatcher(configDirectory, Path.GetFileName(_configPath + ".config"));
-                _configWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                _configWatcher.Changed += OnConfigFileChange;
-                _configWatcher.EnableRaisingEvents = true;
-            }
+            MyConfigManager.ConfigChanged += OnConfigFileChange;
         }
 
-        private static void OnConfigFileChange(object sender, FileSystemEventArgs e)
+        private static void OnConfigFileChange(object? sender, EventArgs e)
         {
-            if (e.ChangeType == WatcherChangeTypes.Changed)
-            {
-                Log.WriteLog(LogLevel.INFO, "Config Changed");
-
-                Thread.Sleep(100); // Give the file some time to be completely written
-
-                LoadSettingsFromConfig();
-            }
+            Log.WriteLog(LogLevel.INFO, "Config Changed");
+            LoadSettingsFromConfig();
         }
 
         private static void LoadSettingsFromConfig()
         {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(_configPath);
-            bool.TryParse(config.AppSettings.Settings["UseAsynchronousLogging"].Value, out _useAsynchronousLogging);
-            bool.TryParse(config.AppSettings.Settings["EnableLogging"].Value, out _enableLogging);
-            int.TryParse(config.AppSettings.Settings["SizeLimitInMB"].Value, out _sizeLimitInMB);
-
-            _loggingDirectory = Path.Combine(config.AppSettings.Settings["LoggingDirectory"].Value, System.AppDomain.CurrentDomain.FriendlyName);
+            MyConfigManager.TryGetConfigValue<bool>("UseAsynchronousLogging", out _useAsynchronousLogging);
+            MyConfigManager.TryGetConfigValue<bool>("EnableLogging", out _enableLogging);
+            MyConfigManager.TryGetConfigValue<Int32>("SizeLimitInMB", out _sizeLimitInMB);
+            _loggingDirectory = Path.Combine(MyConfigManager.GetConfigValue("LoggingDirectory"), System.AppDomain.CurrentDomain.FriendlyName);
             _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
         }
 
         public static void EndApplication()
         {
-            if (_configWatcher != null)
-            {
-                _configWatcher.Changed -= OnConfigFileChange;
-            }
+            MyConfigManager.ConfigChanged -= OnConfigFileChange;
             _cancellationTokenSource.Cancel();
             _workingThread?.Join();
         }

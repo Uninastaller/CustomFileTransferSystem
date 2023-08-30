@@ -17,8 +17,8 @@ namespace Client
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            Log.StartApplication();
             MyConfigManager.StartApplication();
+            Log.StartApplication();
             Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
         }
 
