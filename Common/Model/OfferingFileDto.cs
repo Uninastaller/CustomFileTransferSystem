@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Common.Model
 {
-    public class FileInfoDto
+    public class OfferingFileDto
     {
         public string FileName { get; set; } = string.Empty;
         public long FileSize { get; set; }

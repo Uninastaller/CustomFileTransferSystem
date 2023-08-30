@@ -25,9 +25,9 @@ namespace Logger
 
         #region Config
 
-        private static bool _useAsynchronousLogging = false;
-        private static bool _enableLogging = false;
-        private static int _sizeLimitInMB = 0;
+        private static bool _useAsynchronousLogging = true;
+        private static bool _enableLogging = true;
+        private static int _sizeLimitInMB = 10;
         private static string _loggingDirectory = string.Empty;
 
         #endregion Config
@@ -59,9 +59,21 @@ namespace Logger
 
         private static void LoadSettingsFromConfig()
         {
-            MyConfigManager.TryGetConfigValue<bool>("UseAsynchronousLogging", out _useAsynchronousLogging);
-            MyConfigManager.TryGetConfigValue<bool>("EnableLogging", out _enableLogging);
-            MyConfigManager.TryGetConfigValue<Int32>("SizeLimitInMB", out _sizeLimitInMB);
+            if (MyConfigManager.TryGetConfigValue<bool>("UseAsynchronousLogging", out bool useAsynchronousLogging))
+            {
+                _useAsynchronousLogging = useAsynchronousLogging;
+            }
+
+            if (MyConfigManager.TryGetConfigValue<bool>("EnableLogging", out bool enableLogging))
+            {
+                _enableLogging = enableLogging;
+            }
+
+            if (MyConfigManager.TryGetConfigValue<Int32>("SizeLimitInMB", out Int32 sizeLimitInMB))
+            {
+                _sizeLimitInMB = sizeLimitInMB;
+            }
+
             _loggingDirectory = Path.Combine(MyConfigManager.GetConfigValue("LoggingDirectory"), System.AppDomain.CurrentDomain.FriendlyName);
             _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
         }

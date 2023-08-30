@@ -99,7 +99,7 @@ namespace SslTcpSession
          }
          else if (typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
          {
-            _flagSwitch.Register(SocketMessageFlag.UPLOADING_FILES_REQUEST, OnUploadFilesRequest);
+            _flagSwitch.Register(SocketMessageFlag.OFFERING_FILES_REQUEST, OnOfferingFilesRequest);
          }
 
 
@@ -238,11 +238,11 @@ namespace SslTcpSession
          }
       }
 
-      private void OnUploadFilesRequest(byte[] buffer, long offset, long size)
+      private void OnOfferingFilesRequest(byte[] buffer, long offset, long size)
       {
          Log.WriteLog(LogLevel.DEBUG, $"Upload files request received [CLIENT]: {Address}:{Port}");
 
-         ResourceInformer.CreateJsonFiles(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, MyConfigManager.GetConfigValue("UploadingDirectory"));
+         Task.Run(() => ResourceInformer.OnUploadFileRequest(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, this));
       }
 
       private void OnAcceptHandler(byte[] buffer, long offset, long size)

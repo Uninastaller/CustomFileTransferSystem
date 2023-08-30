@@ -138,9 +138,9 @@ namespace Common.Model
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResult GenerateUploadingFilesRequest(ISession session)
+        public static MethodResult GenerateOfferingFilesRequest(ISession session)
         {
-            byte[] request = GenerateMessage(SocketMessageFlag.UPLOADING_FILES_REQUEST);
+            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILES_REQUEST);
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
@@ -149,6 +149,22 @@ namespace Common.Model
             else
             {
                 Log.WriteLog(LogLevel.WARNING, $"Unable to send accept to client: {session.IpAndPort}");
+            }
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
+        public static MethodResult GenerateOfferingFile(string offeringFileDtoJson, ISession session)
+        {
+            // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
+            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILE, new object[] { offeringFileDtoJson });
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file was generated, to central server");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file, to central server");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }

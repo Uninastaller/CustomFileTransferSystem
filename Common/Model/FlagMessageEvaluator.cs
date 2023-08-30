@@ -1,9 +1,8 @@
-﻿using Common.Enum;
+﻿using Logger;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Model
 {
@@ -67,6 +66,28 @@ namespace Common.Model
             }
             filePartNumber = 0;
             partSize = 0;
+            return false;
+        }
+
+        public static bool EvaluateOfferingFile(byte[] buffer, long offset, long size, [MaybeNullWhen(false)] out OfferingFileDto? offeringFileDto)
+        {
+            // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+            if (messageParts.Length == 2)
+            {
+                try
+                {
+                    offeringFileDto = JsonConvert.DeserializeObject<OfferingFileDto>(messageParts[1]);
+                    Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and validated!");
+                    return true;
+                }
+                catch (JsonException ex)
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and but not valid! " + ex.Message);
+                }
+            }
+            offeringFileDto = null;
             return false;
         }
 

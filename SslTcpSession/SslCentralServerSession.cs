@@ -54,7 +54,7 @@ namespace SslTcpSession
             Log.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-            _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
+            _flagSwitch.Register(SocketMessageFlag.OFFERING_FILE, OnOfferingFileHandler);
         }
 
         #endregion Ctor
@@ -87,7 +87,7 @@ namespace SslTcpSession
             await Task.Delay(100);
 
             // Staf to do after 200ms => waiting without blocking thread
-            while (FlagMessagesGenerator.GenerateUploadingFilesRequest(this) == MethodResult.ERROR && maxRepeatCounter-- >= 0)
+            while (FlagMessagesGenerator.GenerateOfferingFilesRequest(this) == MethodResult.ERROR && maxRepeatCounter-- >= 0)
             {
                 await Task.Delay(200);
             }
@@ -127,25 +127,16 @@ namespace SslTcpSession
         private void OnNonRegistredMessage(string message)
         {
             ServerSessionState = ServerSessionState.NONE;
-            this.Server.FindSession(this.Id).Disconnect();
+            this.Server?.FindSession(this.Id)?.Disconnect();
             Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
         }
 
-        private void OnRequestFileHandler(byte[] buffer, long offset, long size)
+        private void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
-            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            //string[] messageParts = message.Split(ResourceInformer.messageConnector, StringSplitOptions.None);
+            if(FlagMessageEvaluator.EvaluateOfferingFile(buffer, offset, size, out OfferingFileDto? offeringFileDto))
+            {
 
-            //if (long.TryParse(messageParts[2], out long fileSize))
-            //{
-            //    OnClientFileRequest(messageParts[1], fileSize);
-            //    ServerSessionState = ServerSessionState.FILE_REQUEST;
-            //}
-            //else
-            //{
-            //    this.Server.FindSession(this.Id).Disconnect();
-            //    Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
-            //}
+            }
         }
 
 
@@ -157,11 +148,6 @@ namespace SslTcpSession
 
         #endregion OverridedMethods
 
-
-        //protected override void OnConnected()
-        //{
-        //    Console.WriteLine($"SSL session with Id {Id} connected!");
-        //}
     }
 }
 

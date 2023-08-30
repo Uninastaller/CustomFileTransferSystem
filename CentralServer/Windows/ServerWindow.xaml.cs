@@ -2,6 +2,7 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
+using ConfigManager;
 using Logger;
 using SslTcpSession;
 using System;
@@ -58,7 +59,7 @@ namespace CentralServer.Windows
 
         private IUniversalServerSocket _serverBussinesLogic;
 
-        private readonly int _serverPort = 8080;
+        private readonly int _serverPort = 34258;
         private readonly IPAddress _serverIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
         private readonly string _certificateName = "MyTestCertificateServer.pfx";
         private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
@@ -80,6 +81,11 @@ namespace CentralServer.Windows
             contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
             contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientStateChangeMessage));
             contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
+
+            if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 serverPort))
+            {
+                _serverPort = serverPort;
+            }            
 
             Init();
 

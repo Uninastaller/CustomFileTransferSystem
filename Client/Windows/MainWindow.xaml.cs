@@ -2,6 +2,7 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
+using ConfigManager;
 using Logger;
 using SslTcpSession;
 using System;
@@ -58,7 +59,7 @@ namespace Client.Windows
         private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
         private SslContext? _contextForCentralServerConnect;
         private IPAddress _centralServerIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
-        private int _centralServerPort = 8080;
+        private int _centralServerPort = 34258;
         private ClientSocketState _connectionWithCentralServerSocketState = ClientSocketState.DISCONNECTED;
 
         #endregion PrivateFields
@@ -76,6 +77,11 @@ namespace Client.Windows
             InitializeComponent();
 
             contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
+
+            if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 centralServerPort))
+            {
+                _centralServerPort = centralServerPort;
+            }
 
             Init();
         }

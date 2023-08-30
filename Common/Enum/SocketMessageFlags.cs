@@ -12,6 +12,11 @@ namespace Common.Enum
         [StringValue("a.B")]
         FILE_PART_REQUEST,
 
+        [StringValue("a.C")]
+        OFFERING_FILE,
+
+
+
         // Server => Client
         [StringValue("b.A")]
         REJECT,
@@ -23,7 +28,7 @@ namespace Common.Enum
         FILE_PART,
 
         [StringValue("b.D")]
-        UPLOADING_FILES_REQUEST,
+        OFFERING_FILES_REQUEST,
 
 
 
