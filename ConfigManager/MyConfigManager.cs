@@ -25,7 +25,6 @@ namespace ConfigManager
 
       private static FileSystemWatcher? _configWatcher;
       private static ConcurrentDictionary<string, string> _configValues = new ConcurrentDictionary<string, string>();
-      //private static string _configPath = Assembly.GetExecutingAssembly().Location;
       private static string _configPath = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath;
       private static string? _configDirectory = Path.GetDirectoryName(_configPath);
 
@@ -125,7 +124,6 @@ namespace ConfigManager
       {
          if (!string.IsNullOrEmpty(_configDirectory))
          {
-            //_configWatcher = new FileSystemWatcher(_configDirectory, Path.GetFileName(_configPath + ".config"));
             _configWatcher = new FileSystemWatcher(_configDirectory, Path.GetFileName(_configPath));
             _configWatcher.NotifyFilter = NotifyFilters.LastWrite;
             _configWatcher.Changed += OnConfigFileChange;

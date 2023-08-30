@@ -5,8 +5,6 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modeel", "Modeel\Modeel.csproj", "{105880BA-903E-4CBE-903D-2552F478F35B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logger", "Logger\Logger.csproj", "{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CentralServer", "CentralServer\CentralServer.csproj", "{1887D3B8-9B06-4F52-B075-6D429575A5AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{9CAEDF21-BF4D-4F91-A9D6-292D0347D2EE}"
@@ -15,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SslTcpSession", "SslTcpSess
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TcpSession", "TcpSession\TcpSession.csproj", "{4AA1C6BF-0AA7-489D-93C2-0A19E7875D83}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{290899BA-355C-474B-B8C6-AB36A0736C3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{290899BA-355C-474B-B8C6-AB36A0736C3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigManager", "ConfigManager\ConfigManager.csproj", "{06046CF5-C172-4519-95AB-EAA6F0FABFFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigManager", "ConfigManager\ConfigManager.csproj", "{06046CF5-C172-4519-95AB-EAA6F0FABFFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{E2B5684B-5DAB-4436-A7F1-4691821B92DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,6 @@ Global
 		{105880BA-903E-4CBE-903D-2552F478F35B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{105880BA-903E-4CBE-903D-2552F478F35B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{105880BA-903E-4CBE-903D-2552F478F35B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F13FBCDA-1A14-46CE-8602-C64AAFD1231D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1887D3B8-9B06-4F52-B075-6D429575A5AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1887D3B8-9B06-4F52-B075-6D429575A5AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1887D3B8-9B06-4F52-B075-6D429575A5AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,6 +53,10 @@ Global
 		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2B5684B-5DAB-4436-A7F1-4691821B92DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2B5684B-5DAB-4436-A7F1-4691821B92DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2B5684B-5DAB-4436-A7F1-4691821B92DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2B5684B-5DAB-4436-A7F1-4691821B92DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
