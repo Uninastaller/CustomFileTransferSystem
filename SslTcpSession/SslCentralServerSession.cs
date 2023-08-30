@@ -76,13 +76,10 @@ namespace SslTcpSession
 
         #region ProtectedMethods
 
-        protected override void OnHandshaked()
+        protected async override void OnHandshaked()
         {
             Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} handshaked!");
-        }
 
-        protected override async void OnConnected()
-        {
             int maxRepeatCounter = 3;
             await Task.Delay(100);
 

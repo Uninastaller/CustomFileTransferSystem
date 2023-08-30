@@ -144,11 +144,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Accept was generated to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file request was generated to client: {session.IpAndPort}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send accept to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file request to client: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
