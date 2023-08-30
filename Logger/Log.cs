@@ -44,6 +44,7 @@ namespace Logger
                 CreateNewLogFile();
             }
             _workingThread = new Thread(() => HandleMessage(_cancellationTokenSource.Token));
+            _workingThread.IsBackground = true;
             _workingThread.Start();
 
 
@@ -63,7 +64,7 @@ namespace Logger
             {
                 Log.WriteLog(LogLevel.INFO, "Config Changed");
 
-                Thread.Sleep(100);
+                Thread.Sleep(100); // Give the file some time to be completely written
 
                 LoadSettingsFromConfig();
             }

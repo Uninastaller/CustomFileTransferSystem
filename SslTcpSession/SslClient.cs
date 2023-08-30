@@ -997,6 +997,7 @@ namespace SslTcpSession
                         // Check the receive buffer limit
                         if (((2 * size) > OptionReceiveBufferLimit) && (OptionReceiveBufferLimit > 0))
                         {
+
                             SendError(SocketError.NoBufferSpaceAvailable);
                             DisconnectAsync();
                             return;

@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TcpSession", "TcpSession\Tc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{290899BA-355C-474B-B8C6-AB36A0736C3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigManager", "ConfigManager\ConfigManager.csproj", "{06046CF5-C172-4519-95AB-EAA6F0FABFFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{290899BA-355C-474B-B8C6-AB36A0736C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{290899BA-355C-474B-B8C6-AB36A0736C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{290899BA-355C-474B-B8C6-AB36A0736C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06046CF5-C172-4519-95AB-EAA6F0FABFFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

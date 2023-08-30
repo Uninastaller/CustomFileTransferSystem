@@ -2,6 +2,7 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
+using ConfigManager;
 using Logger;
 using System;
 using System.Net;
@@ -240,6 +241,8 @@ namespace SslTcpSession
         private void OnUploadFilesRequest(byte[] buffer, long offset, long size)
         {
             Log.WriteLog(LogLevel.DEBUG, $"Upload files request received [CLIENT]: {Address}:{Port}");
+
+            var a = MyConfigManager.GetConfigValue("UploadingDirectory");
 
             ResourceInformer.CreateJsonFiles(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, @"C:\Diplomovka\Upload");
         }

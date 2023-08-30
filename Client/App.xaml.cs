@@ -1,4 +1,5 @@
-﻿using Logger;
+﻿using ConfigManager;
+using Logger;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -17,11 +18,13 @@ namespace Client
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             Log.StartApplication();
+            MyConfigManager.StartApplication();
             Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
+            MyConfigManager.EndApplication();
             Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
             Log.EndApplication();
         }
