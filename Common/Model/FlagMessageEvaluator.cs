@@ -1,7 +1,8 @@
-﻿using Logger;
+﻿using Common.Enum;
+using Logger;
 using Newtonsoft.Json;
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Common.Model
@@ -69,26 +70,36 @@ namespace Common.Model
             return false;
         }
 
-        public static bool EvaluateOfferingFile(byte[] buffer, long offset, long size, [MaybeNullWhen(false)] out OfferingFileDto? offeringFileDto)
+        public static bool EvaluateOfferingFile(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto)
         {
+
+            offeringFileDto = new List<OfferingFileDto?>();
+            bool succes = false;
+
             // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
-            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
-            if (messageParts.Length == 2)
+            string messageBlock = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+
+            string[] messages = messageBlock.Split(new string[] { SocketMessageFlag.END_OF_MESSAGE.GetStringValue() }, StringSplitOptions.None);
+
+            foreach (string message in messages)
             {
-                try
+                string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+
+                if (messageParts.Length == 3)
                 {
-                    offeringFileDto = JsonConvert.DeserializeObject<OfferingFileDto>(messageParts[1]);
-                    Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and validated!");
-                    return true;
-                }
-                catch (JsonException ex)
-                {
-                    Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and but not valid! " + ex.Message);
+                    try
+                    {
+                        offeringFileDto.Add(JsonConvert.DeserializeObject<OfferingFileDto>(messageParts[1]));
+                        Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and validated!");
+                        succes = true;
+                    }
+                    catch (JsonException ex)
+                    {
+                        Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and but not valid! " + ex.Message);
+                    }
                 }
             }
-            offeringFileDto = null;
-            return false;
+            return succes;
         }
 
         #endregion PublicMethods

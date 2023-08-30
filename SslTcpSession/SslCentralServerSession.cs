@@ -2,6 +2,7 @@
 using Common.Model;
 using Logger;
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -130,7 +131,7 @@ namespace SslTcpSession
 
         private void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
-            if(FlagMessageEvaluator.EvaluateOfferingFile(buffer, offset, size, out OfferingFileDto? offeringFileDto))
+            if(FlagMessageEvaluator.EvaluateOfferingFile(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto))
             {
 
             }

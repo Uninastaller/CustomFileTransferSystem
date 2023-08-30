@@ -155,8 +155,8 @@ namespace Common.Model
 
         public static MethodResult GenerateOfferingFile(string offeringFileDtoJson, ISession session)
         {
-            // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
-            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILE, new object[] { offeringFileDtoJson });
+            // Message has 3 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT, END_OF_MESSAGE
+            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILE, new object[] { offeringFileDtoJson, SocketMessageFlag.END_OF_MESSAGE.GetStringValue() });
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
