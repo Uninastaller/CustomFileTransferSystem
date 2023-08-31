@@ -92,7 +92,7 @@ namespace SslTcpSession
                if (!File.Exists(offeringFileWithStorePath)) // File is new
                {
                   Log.WriteLog(LogLevel.INFO, $"{offeringFileWithStorePath} is new offering file, saving");
-                  await File.WriteAllTextAsync(offeringFileWithStorePath, JsonConvert.SerializeObject(offeringFileDto, Formatting.Indented));
+                  await File.WriteAllTextAsync(offeringFileWithStorePath, offeringFileDto.GetJson());
                }
                else // File already exist
                {
@@ -101,7 +101,7 @@ namespace SslTcpSession
                   try
                   {
                      // Attempt to parse the JSON string
-                     OfferingFileDto? existingOfferingFileDto = JsonConvert.DeserializeObject<OfferingFileDto>(existingFileContent);
+                     OfferingFileDto? existingOfferingFileDto = OfferingFileDto.ToObjectFromJson(existingFileContent);
 
                      if (existingOfferingFileDto != null)
                      {
@@ -109,7 +109,7 @@ namespace SslTcpSession
                         existingOfferingFileDto.MergeWithAnotherOfferingFileDto(offeringFileDto);
 
                         // Saving new file as json
-                        await File.WriteAllTextAsync(offeringFileWithStorePath, JsonConvert.SerializeObject(existingOfferingFileDto, Formatting.Indented));
+                        await File.WriteAllTextAsync(offeringFileWithStorePath, existingOfferingFileDto.GetJson());
                      }
                   }
                   catch (JsonException ex)

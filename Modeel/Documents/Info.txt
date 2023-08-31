@@ -35,7 +35,12 @@ https://en.wikipedia.org/wiki/SOCKS
 GETINFO stream-status
 
 
-
+Bud urobime dictionary a pri prace so suborom bude vlozeny nazov suboru a lock k nemu ako value, alebo ideme do sql
+https://www.youtube.com/watch?v=ayp3tHEkRc0
+https://sqlitebrowser.org/dl/
+https://www.connectionstrings.com/sqlite/
+https://sqliteonline.com/
+Integer in sqlite ma 8bytes(64bit) a long v c# tiez, takze ziaden problem pre long
 
 
 

@@ -89,7 +89,7 @@ namespace Common.Model
                 {
                     try
                     {
-                        offeringFileDto.Add(JsonConvert.DeserializeObject<OfferingFileDto>(messageParts[1]));
+                        offeringFileDto.Add(OfferingFileDto.ToObjectFromJson(messageParts[1]));
                         Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and validated!");
                         succes = true;
                     }

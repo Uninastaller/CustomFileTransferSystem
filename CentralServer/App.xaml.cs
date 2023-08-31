@@ -1,32 +1,30 @@
 ﻿using ConfigManager;
 using Logger;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace CentralServer
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
-    {
-        private void Application_Startup(object sender, StartupEventArgs e)
-        {
-            MyConfigManager.StartApplication();
-            Log.StartApplication();
-            Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
-        }
+   /// <summary>
+   /// Interaction logic for App.xaml
+   /// </summary>
+   public partial class App : Application
+   {
+      private void Application_Startup(object sender, StartupEventArgs e)
+      {
 
-        private void Application_Exit(object sender, ExitEventArgs e)
-        {
-            MyConfigManager.EndApplication();
-            Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
-            Log.EndApplication();
-        }
-    }
+         //SqliteDataAccess.InsertOrUpdateOfferingFileDto(new Common.Model.OfferingFileDto("127.0.0.1:12345") { FileName = "ccc", FileSize = 789});
+         //var a = SqliteDataAccess.GetAllOfferingFilesWithGrades();
+
+         MyConfigManager.StartApplication();
+         Log.StartApplication();
+         Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
+      }
+
+      private void Application_Exit(object sender, ExitEventArgs e)
+      {
+         MyConfigManager.EndApplication();
+         Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
+         Log.EndApplication();
+      }
+   }
 }

@@ -1,0 +1,51 @@
+﻿CREATE TABLE "OfferingFiles" (
+	"OfferingFileIdentificator"	TEXT NOT NULL UNIQUE,
+	"FileName"	TEXT NOT NULL,
+	"FileSize"	INTEGER NOT NULL,
+	PRIMARY KEY("OfferingFileIdentificator")
+);
+
+CREATE TABLE "EndpointsAndGrades" (
+    "Id"            INTEGER NOT NULL UNIQUE,
+    "OfferingFileId"    TEXT NOT NULL,
+    "Endpoint"      TEXT NOT NULL,
+    "Grade"         INTEGER NOT NULL,
+    PRIMARY KEY("Id"),
+    UNIQUE("OfferingFileId", "Endpoint"), -- Define unique constraint
+    FOREIGN KEY("OfferingFileId") REFERENCES "OfferingFiles"("OfferingFileIdentificator")
+);
+
+INSERT INTO "main"."OfferingFiles"
+("OfferingFileIdentificator", "FileName", "FileSize")
+VALUES ('ccc_789', 'ccc', 789);
+
+INSERT INTO "main"."OfferingFiles"
+("OfferingFileIdentificator", "FileName", "FileSize")
+VALUES ('ddd_101112', 'ddd', 101112);
+
+INSERT INTO "main"."EndpointsAndGrades"
+("OfferingFileId", "Endpoint", "Grade")
+VALUES ('ccc_789', '127.0.0.1:1234', 2);
+
+INSERT INTO "main"."EndpointsAndGrades"
+("OfferingFileId", "Endpoint", "Grade")
+VALUES ('ddd_101112', '10.31.3.25:4321', 0);
+
+INSERT INTO "main"."EndpointsAndGrades"
+("OfferingFileId", "Endpoint", "Grade")
+VALUES ('ccc_789', '196.168.0.120:4578', 3);
+
+SELECT o.OfferingFileIdentificator, o.FileName, o.FileSize, e.Endpoint, e.Grade
+            FROM OfferingFiles o
+            LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
+
+SELECT
+    o.OfferingFileIdentificator,
+    o.FileName,
+    o.FileSize,
+    CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, e.Grade) ELSE NULL END AS EndpointsAndGradesJson
+FROM OfferingFiles o
+LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
+GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize;
+
+INSERT OR REPLACE INTO EndpointsAndGrades (OfferingFileId, Endpoint, Grade) VALUES ("aaa_123", "127.0.0.1:12345", 0);

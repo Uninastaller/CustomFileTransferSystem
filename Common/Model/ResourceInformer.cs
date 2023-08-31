@@ -89,7 +89,7 @@ namespace Common.Model
                   try
                   {
                      // Attempt to parse the JSON string
-                     OfferingFileDto? offeringFileDto = JsonConvert.DeserializeObject<OfferingFileDto>(jsonString);
+                     OfferingFileDto? offeringFileDto = OfferingFileDto.ToObjectFromJson(jsonString);
 
                      // If parsing succeeds, the JSON is valid
                      Log.WriteLog(LogLevel.INFO, "Content is valid");
@@ -142,11 +142,60 @@ namespace Common.Model
             FileSize = fileInfo.Length,
          };
 
-         string json = JsonConvert.SerializeObject(offeringFileDto, Newtonsoft.Json.Formatting.Indented);
+         string json = offeringFileDto.GetJson();
          string jsonFileName = $"{Path.GetFileNameWithoutExtension(fileInfo.Name)}{offeringFilesJoint}{fileInfo.Length}{_cftsFileExtensions}";
          string jsonFilePath = Path.Combine(fileInfo.DirectoryName, _cftsDirectoryName, jsonFileName);
 
          File.WriteAllText(jsonFilePath, json);
+      }
+
+      public static async Task OnNewOfferingFileReceived(List<OfferingFileDto?> offeringFileDtos)
+      {
+         string offeringFilesStorePath = MyConfigManager.GetConfigValue("OfferingFilesStorePath");
+         if (!Directory.Exists(offeringFilesStorePath))
+         {
+            Directory.CreateDirectory(offeringFilesStorePath);
+         }
+
+         foreach (OfferingFileDto? offeringFileDto in offeringFileDtos)
+         {
+            if (offeringFileDto != null)
+            {
+
+               string fileName = offeringFileDto.FileName + offeringFilesJoint + offeringFileDto.FileSize;
+               string offeringFileWithStorePath = Path.Combine(offeringFilesStorePath, fileName);
+
+               if (!File.Exists(offeringFileWithStorePath)) // File is new
+               {
+                  Log.WriteLog(LogLevel.INFO, $"{offeringFileWithStorePath} is new offering file, saving");
+                  await File.WriteAllTextAsync(offeringFileWithStorePath, JsonConvert.SerializeObject(offeringFileDto, Formatting.Indented));
+               }
+               else // File already exist
+               {
+                  Log.WriteLog(LogLevel.INFO, $"{offeringFileWithStorePath} if offering file that is already stored");
+                  string existingFileContent = await File.ReadAllTextAsync(offeringFileWithStorePath);
+                  try
+                  {
+                     // Attempt to parse the JSON string
+                     OfferingFileDto? existingOfferingFileDto = JsonConvert.DeserializeObject<OfferingFileDto>(existingFileContent);
+
+                     if (existingOfferingFileDto != null)
+                     {
+                        // Merging files
+                        existingOfferingFileDto.MergeWithAnotherOfferingFileDto(offeringFileDto);
+
+                        // Saving new file as json
+                        await File.WriteAllTextAsync(offeringFileWithStorePath, JsonConvert.SerializeObject(existingOfferingFileDto, Formatting.Indented));
+                     }
+                  }
+                  catch (JsonException ex)
+                  {
+                     // Parsing failed, so the JSON is not valid
+                     Log.WriteLog(LogLevel.WARNING, $"Existing offering file dto is corupted, name: {offeringFileWithStorePath}, will be replaced witch new one. {ex.Message}");
+                  }
+               }
+            }
+         }
       }
 
       #endregion PublicMethods
