@@ -4,27 +4,27 @@ using System.Windows;
 
 namespace CentralServer
 {
-   /// <summary>
-   /// Interaction logic for App.xaml
-   /// </summary>
-   public partial class App : Application
-   {
-      private void Application_Startup(object sender, StartupEventArgs e)
-      {
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
+    public partial class App : Application
+    {
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
 
-         //SqliteDataAccess.InsertOrUpdateOfferingFileDto(new Common.Model.OfferingFileDto("127.0.0.1:12345") { FileName = "ccc", FileSize = 789});
-         //var a = SqliteDataAccess.GetAllOfferingFilesWithGrades();
+            //await SqliteDataAccess.InsertOrUpdateOfferingFileDtoAsync(new Common.Model.OfferingFileDto("123:321") { FileName = "abcd", FileSize = 789 });
+            //var a = await SqliteDataAccess.GetAllOfferingFilesWithGradesAsync();
 
-         MyConfigManager.StartApplication();
-         Log.StartApplication();
-         Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
-      }
+            MyConfigManager.StartApplication();
+            Log.StartApplication();
+            Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
+        }
 
-      private void Application_Exit(object sender, ExitEventArgs e)
-      {
-         MyConfigManager.EndApplication();
-         Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
-         Log.EndApplication();
-      }
-   }
+        private void Application_Exit(object sender, ExitEventArgs e)
+        {
+            MyConfigManager.EndApplication();
+            Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
+            Log.EndApplication();
+        }
+    }
 }
