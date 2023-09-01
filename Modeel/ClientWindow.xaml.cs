@@ -52,11 +52,11 @@ namespace Modeel
 
         #region Properties
 
-        public static int GetRandomFreePort
+        public int GetRandomFreePort
         {
             get
             {
-                var listener = new TcpListener(IPAddress.Loopback, 0);
+                var listener = new TcpListener(P2pIpAddress, 0);
                 listener.Start();
                 var port = ((IPEndPoint)listener.LocalEndpoint).Port;
                 listener.Stop();
@@ -219,13 +219,13 @@ namespace Modeel
             Activate();
         }
 
-        private static bool IsPortFree(int port)
+        private bool IsPortFree(int port)
         {
             bool isFree = true;
 
             try
             {
-                var listener = new TcpListener(IPAddress.Loopback, port);
+                var listener = new TcpListener(P2pIpAddress, port);
                 listener.Start();
                 listener.Stop();
             }

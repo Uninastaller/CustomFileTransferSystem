@@ -46,7 +46,6 @@ namespace Common.Model
             }
         }
 
-        //public bool AllPartsAreDownloaded => !_receivedParts.Any(part => part != FilePartState.DOWNLOADED);
         public bool AllPartsAreDownloaded => NumberOfDownloadedParts == TotalParts;
 
         #endregion Properties
@@ -168,10 +167,10 @@ namespace Common.Model
                 return MethodResult.SUCCES;
             }
 
-            long position;
+            long position = partToProcess * _partSize;
             lock (_lockObject)
             {
-                position = GetPositionToWrite(partToProcess);
+                //position = GetPositionToWrite(partToProcess);
 
                 int maxRetries = 4;
                 int retryDelayMs = 100;
@@ -182,7 +181,7 @@ namespace Common.Model
                     {
                         using (FileStream fileStream = new FileStream(_fileNameDownloading, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
                         {
-                            fileStream.Position = position * _partSize;
+                            fileStream.Position = position;
                             fileStream.Write(filePart, offset, length);
                         }
 
@@ -217,68 +216,6 @@ namespace Common.Model
             _receivedParts[partToProcess] = FilePartState.WAITING_FOR_ASSIGNMENT;
             return MethodResult.ERROR;
         }
-
-        //public async Task<MethodResult> WriteToFile(long partToProcess, byte[] filePart, int offset, int length)
-        //{
-        //    if (_receivedParts[partToProcess] != FilePartState.DOWNLOADING)
-        //    {
-        //        Log.WriteLog(LogLevel.WARNING, $"Received part: {partToProcess}, but this part is in state: {_receivedParts[partToProcess]}!");
-        //        return MethodResult.SUCCES;
-        //    }
-
-        //    long position;
-        //    await _semaphore.WaitAsync();
-        //    {
-        //        position = GetPositionToWrite(partToProcess);
-
-        //        int maxRetries = 4;
-        //        int retryDelayMs = 100;
-
-        //        for (int retryCount = 0; retryCount < maxRetries; retryCount++)
-        //        {
-        //            try
-        //            {
-        //                using (FileStream fileStream = new FileStream(_fileNameDownloading, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
-        //                {
-        //                    fileStream.Position = position * _partSize;
-        //                    await fileStream.WriteAsync(filePart, offset, length);
-        //                }
-
-        //                _receivedParts[partToProcess] = FilePartState.DOWNLOADED;
-        //                NumberOfDownloadedParts++;
-
-
-        //                DownloadingStatusFileController.NewPartDownloaded(_fileNameDownloadingStatus, partToProcess);
-
-        //                if (NoPartsForAsignmentLeft && AllPartsAreDownloaded)
-        //                {
-        //                    OnDownloadDone();
-        //                }
-
-        //                Log.WriteLog(LogLevel.DEBUG, $"Part No.{partToProcess} was written at position {position}.");
-        //                return MethodResult.SUCCES;
-        //            }
-        //            catch (IOException ex)
-        //            {
-        //                if (retryCount < maxRetries - 1)
-        //                {
-        //                    Log.WriteLog(LogLevel.WARNING, $"Failed to write Part No.{partToProcess}. Retrying in {retryDelayMs}ms... {ex.Message}");
-        //                    await Task.Delay(retryDelayMs);
-        //                }
-        //                else
-        //                {
-        //                    Log.WriteLog(LogLevel.WARNING, $"Failed to write Part No.{partToProcess}. Max retries exceeded. {ex.Message}");
-        //                }
-        //            }
-        //            finally
-        //            {
-        //                _semaphore.Release();
-        //            }
-        //        }
-        //    }
-        //    _receivedParts[partToProcess] = FilePartState.WAITING_FOR_ASSIGNMENT;
-        //    return MethodResult.ERROR;
-        //}
 
         public long AssignmentOfFilePart()
         {
