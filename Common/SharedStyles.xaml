@@ -321,6 +321,7 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="#793020"/>
+                <!--<Setter Property="BorderThickness" Value="3"/>-->
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="#94301d"/>
@@ -346,17 +347,14 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-
         <Style.Triggers>
-
             <Trigger Property="IsSelected" Value="True">
+                <!--<Setter Property="FontWeight" Value="Bold"/>-->
                 <Setter Property="Foreground" Value="#150702"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
-
         </Style.Triggers>
-
     </Style>
+
 
     <!--#endregion DataGridCellStyle1-->
 
@@ -425,12 +423,18 @@
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="#94301d"/>
                 <Setter Property="Foreground" Value="#050200"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontWeight" Value="Bold"/>
             </Trigger>
 
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="#94301d"/>
                 <Setter Property="Foreground" Value="#050200"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Trigger>
+
+            <Trigger Property="IsMouseOver" Value="False">
+                <!--<Setter Property="Background" Value="#94301d"/>
+                <Setter Property="Foreground" Value="#050200"/>-->
                 <Setter Property="FontWeight" Value="SemiBold"/>
             </Trigger>
 
