@@ -11,10 +11,6 @@ namespace CentralServer
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-
-            //await SqliteDataAccess.InsertOrUpdateOfferingFileDtoAsync(new Common.Model.OfferingFileDto("123:321") { FileName = "abcd", FileSize = 789 });
-            //var a = await SqliteDataAccess.GetAllOfferingFilesWithGradesAsync();
-
             MyConfigManager.StartApplication();
             Log.StartApplication();
             Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");

@@ -1,9 +1,9 @@
 ﻿using Common.Enum;
 using Logger;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace Common.Model
 {
@@ -90,12 +90,12 @@ namespace Common.Model
                     try
                     {
                         offeringFileDto.Add(OfferingFileDto.ToObjectFromJson(messageParts[1]));
-                        Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and validated!");
+                        Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1]} received and validated!");
                         succes = true;
                     }
                     catch (JsonException ex)
                     {
-                        Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1].Replace('\n', ' ').Replace('\r', ' ')} received and but not valid! " + ex.Message);
+                        Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1]} received and but not valid! " + ex.Message);
                     }
                 }
             }

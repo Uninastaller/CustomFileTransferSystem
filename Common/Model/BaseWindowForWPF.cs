@@ -110,6 +110,7 @@ namespace Common.Model
         {
             Closed -= Window_closedEvent;
             _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
             Log.WriteLog(LogLevel.DEBUG, $"Window of type: {sender?.GetType().Name} and his threads are closing");
             _windowWorkerThread.Join();
             Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background);

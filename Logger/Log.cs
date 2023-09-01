@@ -1,6 +1,7 @@
 ﻿using ConfigManager;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -14,6 +15,8 @@ namespace Logger
         private static readonly string _headerLine = "Time;Line;Filename;Method name;Thread name;Level;Message";
         private static readonly object _lockObect = new object();
         private static readonly int _megaByte = 0x100000;
+
+        private static readonly List<LogEntry> _bufferedLogEntries = new List<LogEntry>();
 
         private static ConcurrentQueue<LogEntry> _concurrentQueue = new ConcurrentQueue<LogEntry>();
         private static AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
@@ -29,6 +32,7 @@ namespace Logger
         private static bool _enableLogging = true;
         private static int _sizeLimitInMB = 10;
         private static string _loggingDirectory = string.Empty;
+        private static int _bufferSize = 50;
 
         #endregion Config
 
@@ -74,6 +78,11 @@ namespace Logger
                 _sizeLimitInMB = sizeLimitInMB;
             }
 
+            if (MyConfigManager.TryGetConfigValue<Int32>("BufferSize", out Int32 bufferSize))
+            {
+                _bufferSize = bufferSize;
+            }
+
             _loggingDirectory = Path.Combine(MyConfigManager.GetConfigValue("LoggingDirectory"), System.AppDomain.CurrentDomain.FriendlyName);
             _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
         }
@@ -107,7 +116,7 @@ namespace Logger
                 {
                     lock (_lockObect)
                     {
-                        WriteLog_(logLevel, message, lineNumber, callingFilePath, callingMethod, Thread.CurrentThread.Name ?? string.Empty, DateTime.Now.ToString("HH:mm:ss:fff"));
+                        WriteLogSync(logLevel, message, lineNumber, callingFilePath, callingMethod, Thread.CurrentThread.Name ?? string.Empty, DateTime.Now.ToString("HH:mm:ss:fff"));
                     }
                 }
             }
@@ -123,6 +132,10 @@ namespace Logger
                                                                                                                                         // Check if Cancel has been signalized
                 if (loopFlag == 1)
                 {
+                    // Empty buffer before exiting
+                    FlushBuffer();
+
+                    // Empty queue
                     while (!_concurrentQueue.IsEmpty)
                     {
                         _concurrentQueue.TryDequeue(out LogEntry? _);
@@ -138,12 +151,16 @@ namespace Logger
                 {
                     if (_concurrentQueue.Count > 0)
                     {
-                        lock (_lockObect)
-                        {
-                            while (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
-                            {
 
-                                WriteLog_(logEntry.LogLevel, logEntry.Message, logEntry.LineNumber, logEntry.CallingFilePath, logEntry.CallingMethod, logEntry.ThreadName, logEntry.DateTime);
+                        while (_concurrentQueue.TryDequeue(out LogEntry? logEntry))
+                        {
+                            // Buffer the log entry
+                            _bufferedLogEntries.Add(logEntry);
+
+                            // If buffer is full, flush it to disk
+                            if (_bufferedLogEntries.Count >= _bufferSize)
+                            {
+                                FlushBuffer();
                             }
                         }
                     }
@@ -198,7 +215,7 @@ namespace Logger
             }
         }
 
-        private static void WriteLog_(LogLevel logLevel, string message, int lineNumber, string callingFilePath, string callingMethod, string threadName, string dateTime)
+        private static void WriteLogSync(LogLevel logLevel, string message, int lineNumber, string callingFilePath, string callingMethod, string threadName, string dateTime)
         {
 
             if (!File.Exists(_logFilePathAndName))
@@ -243,5 +260,59 @@ namespace Logger
             }
         }
 
+        private static void FlushBuffer()
+        {
+            lock (_lockObect)
+            {
+                if (_bufferedLogEntries.Count == 0)
+                    return;
+
+                if (!File.Exists(_logFilePathAndName))
+                {
+                    CreateNewLogFile();
+                }
+
+                using (StreamWriter writer = new StreamWriter(_logFilePathAndName, true))
+                {
+                    foreach (var logEntry in _bufferedLogEntries)
+                    {
+                        var line = string.Format("{0};{1};{2};{3};{4};{5};{6}",
+                            logEntry.DateTime,
+                            logEntry.LineNumber,
+                            Path.GetFileName(logEntry.CallingFilePath),
+                            logEntry.CallingMethod,
+                            logEntry.ThreadName,
+                            logEntry.LogLevel.ToString(),
+                            logEntry.Message);
+                        writer.WriteLine(line);
+                    }
+                }
+
+                _bufferedLogEntries.Clear();
+
+                if (new FileInfo(_logFilePathAndName).Length > _megaByte * _sizeLimitInMB)
+                {
+                    try
+                    {
+                        string zipFileName = Path.Combine(_loggingDirectory, string.Format("log_{0:yyyy-MM-dd_HH_mm}.zip", DateTime.Now));
+                        using (var zip = new ZipArchive(File.Create(zipFileName), ZipArchiveMode.Create))
+                        {
+                            var entry = zip.CreateEntry(Path.GetFileName(_logFilePathAndName));
+                            using (var stream = entry.Open())
+                            using (var file = File.OpenRead(_logFilePathAndName))
+                            {
+                                file.CopyTo(stream);
+                            }
+                        }
+                        File.Delete(_logFilePathAndName);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle the exception by logging the error message or taking appropriate action.
+                        // For example, you could log to a separate error log or silently ignore the error.
+                    }
+                }
+            }
+        }
     }
 }
