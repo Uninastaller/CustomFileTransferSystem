@@ -105,6 +105,36 @@ namespace Common.Model
             }
         }
 
+        //public static void LoadCftsJsonsAndSendToSession(string uploadingDirectoryPath, ISession session)
+        //{
+        //    string cftsFilesDirectory = Path.Combine(uploadingDirectoryPath, _cftsDirectoryName);
+        //    if (Directory.Exists(cftsFilesDirectory))
+        //    {
+        //        string[] files = Directory.GetFiles(cftsFilesDirectory);
+
+        //        foreach (string filePath in files)
+        //        {
+        //            if (Path.GetExtension(filePath).Equals(_cftsFileExtensions))
+        //            {
+        //                // Read content of file
+        //                string jsonString = File.ReadAllText(filePath);
+        //                Log.WriteLog(LogLevel.INFO, $"Reading content of file: {filePath}, content: {jsonString}");
+        //                // Validate if conten is valid json
+        //                if (JsonValidator.ValidateJson<OfferingFileDto>(jsonString))
+        //                {
+        //                    OfferingFileDto offeringFileDto = OfferingFileDto.ToObjectFromJson(jsonString);
+        //                    FlagMessagesGenerator.GenerateOfferingFile(jsonString, session);
+        //                    Log.WriteLog(LogLevel.INFO, "Content is valid");
+        //                }
+        //                else
+        //                {
+        //                    Log.WriteLog(LogLevel.WARNING, "Content is invalid!");
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
         public static void OnUploadFileRequest(IPAddress ipAddress, int port, ISession session) => OnUploadFileRequest(ipAddress.ToString(), port, session);
 
         public static void OnUploadFileRequest(string ipAddress, int port, ISession session)

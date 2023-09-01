@@ -133,7 +133,7 @@ namespace TcpSession
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
         {
-            if (FlagMessageEvaluator.EvaluateRequestFile(buffer, offset, size, out string fileName, out Int64 fileSize))
+            if (FlagMessageEvaluator.EvaluateRequestFileMessage(buffer, offset, size, out string fileName, out Int64 fileSize))
             {
                 OnClientFileRequest(fileName, fileSize);
                 ServerSessionState = ServerSessionState.FILE_REQUEST;
@@ -147,7 +147,7 @@ namespace TcpSession
 
         private void OnRequestFilePartHandler(byte[] buffer, long offset, long size)
         {
-            if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePart(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
+            if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePartMessage(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
                 FlagMessagesGenerator.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);

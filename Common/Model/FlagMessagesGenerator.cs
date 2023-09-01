@@ -2,11 +2,8 @@
 using Common.Interface;
 using Logger;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Model
 {
@@ -50,30 +47,42 @@ namespace Common.Model
             // FLAG/PART NUMBER/FILE DATA
             byte[] flag = Encoding.UTF8.GetBytes(SocketMessageFlag.FILE_PART.GetStringValue());
             byte[] partNumberBytes = BitConverter.GetBytes(partNumber);
+
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(partNumberBytes);
 
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            byte[] buffer = new byte[partSize + flag.Length + sizeof(long)];
+            int bytesRead = 0;
+            long offset = partNumber * partSize;
+
+            try
             {
-                long offset = partNumber * partSize;
-                fileStream.Seek(offset, SeekOrigin.Begin);
-
-                byte[] buffer = new byte[partSize + flag.Length + sizeof(long)];
-                int bytesRead = fileStream.Read(buffer, flag.Length + sizeof(long), partSize); // Read the chunk from the file
-                System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
-                System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(long)); // Insert the part number
-
-                bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(long));
-                if (succes)
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
-                    Log.WriteLog(LogLevel.DEBUG, $"Part file: {partNumber}, was sended to client: {session.IpAndPort}!");
+                    fileStream.Seek(offset, SeekOrigin.Begin);
+
+                    bytesRead = fileStream.Read(buffer, flag.Length + sizeof(long), partSize); // Read the chunk from the file
                 }
-                else
-                {
-                    Log.WriteLog(LogLevel.WARNING, $"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!");
-                }
-                return succes ? MethodResult.SUCCES : MethodResult.ERROR;
             }
+            catch (Exception ex)
+            {
+                Log.WriteLog(LogLevel.ERROR, ex.Message);
+                return MethodResult.ERROR;
+            }
+
+            System.Buffer.BlockCopy(flag, 0, buffer, 0, flag.Length); // Insert the flag at the start of the buffer
+            System.Buffer.BlockCopy(partNumberBytes, 0, buffer, flag.Length, sizeof(long)); // Insert the part number
+
+            bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(long));
+            if (succes)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Part file: {partNumber}, was sended to client: {session.IpAndPort}!");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!");
+            }
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
         public static MethodResult GenerateRequestForFile(string fileName, long fileSize, ISession session)

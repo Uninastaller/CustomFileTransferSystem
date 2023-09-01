@@ -41,7 +41,7 @@ namespace Common.Model
 
         #region PublicMethods
 
-        public static bool EvaluateRequestFile(byte[] buffer, long offset, long size, out string fileName, out Int64 fileSize)
+        public static bool EvaluateRequestFileMessage(byte[] buffer, long offset, long size, out string fileName, out Int64 fileSize)
         {
             // Message has 3 parts: FLAG, FILE_NAME, FILE_SIZE
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
@@ -56,7 +56,7 @@ namespace Common.Model
             return false;
         }
 
-        public static bool EvaluateRequestFilePart(byte[] buffer, long offset, long size, out Int64 filePartNumber, out Int32 partSize)
+        public static bool EvaluateRequestFilePartMessage(byte[] buffer, long offset, long size, out Int64 filePartNumber, out Int32 partSize)
         {
             // Message has 3 parts: FLAG, FILE_PART_NUMBER, PART_SIZE
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
@@ -70,7 +70,7 @@ namespace Common.Model
             return false;
         }
 
-        public static bool EvaluateOfferingFile(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto)
+        public static bool EvaluateOfferingFileMessage(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto)
         {
 
             offeringFileDto = new List<OfferingFileDto?>();

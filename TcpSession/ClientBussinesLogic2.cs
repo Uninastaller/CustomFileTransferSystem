@@ -172,6 +172,7 @@ namespace TcpSession
             }
             else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
             {
+                // Las part to download remaining
                 _flagSwitch.SetLastPartSize(_fileReceiver.LastPartSize);
             }
 
@@ -257,7 +258,7 @@ namespace TcpSession
                 Log.WriteLog(LogLevel.DEBUG, $"File part No.:{partNumber} was received! [CLIENT]: {Address}:{Port}");
                 if (_fileReceiver.WriteToFile(partNumber, buffer, (int)offset + _flagBytesCount + sizeof(long), (int)size - _flagBytesCount - sizeof(long)) == MethodResult.ERROR)
                 {
-
+                    Log.WriteLog(LogLevel.INFO, $"Part number {partNumber}, returning to state waiting for asignment, becouse we were unable to save him");
                 }
 
                 //RequestFilePart();

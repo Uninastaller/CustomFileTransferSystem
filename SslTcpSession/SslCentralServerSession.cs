@@ -143,7 +143,7 @@ namespace SslTcpSession
 
         private async void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
-            if (FlagMessageEvaluator.EvaluateOfferingFile(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto))
+            if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto))
             {
                 await OnNewOfferingFileReceived(offeringFileDto);
             }
