@@ -65,6 +65,8 @@ namespace CentralServer.Windows
         private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
         private ServerSocketState _centralServersocketState = ServerSocketState.STOPPED;
 
+        private IWindowEnqueuer? _offeringFilesWindow;
+
         #endregion PrivateFields
 
         #region ProtectedFields
@@ -78,7 +80,6 @@ namespace CentralServer.Windows
         public ServerWindow()
         {
             InitializeComponent();
-            contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
             contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientStateChangeMessage));
             contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
 
@@ -113,18 +114,8 @@ namespace CentralServer.Windows
             tbServerPortVariable.Text = _serverPort.ToString();
 
             msgSwitch
-             .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
              .Case(contract.GetContractId(typeof(ClientStateChangeMessage)), (ClientStateChangeMessage x) => ClientStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x));
-        }
-
-        private void WindowStateSetMessageHandler(WindowStateSetMessage message)
-        {
-            if (WindowState == System.Windows.WindowState.Minimized)
-            {
-                WindowState = System.Windows.WindowState.Normal;
-            }
-            Activate();
         }
 
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
@@ -223,6 +214,22 @@ namespace CentralServer.Windows
             {
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
                 _serverBussinesLogic.Stop();
+            }
+        }
+
+        private void btnOfferingFilesWindow_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                if (_offeringFilesWindow == null || !_offeringFilesWindow.IsOpen())
+                {
+                    _offeringFilesWindow = BaseWindowForWPF.CreateWindow<OfferingFilesWindow>();
+                }
+                else
+                {
+                    _offeringFilesWindow.BaseMsgEnque(new WindowStateSetMessage());
+                }
             }
         }
 

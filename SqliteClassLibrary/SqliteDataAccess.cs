@@ -45,6 +45,24 @@ namespace CentralServer
 
         #region PublicMethods
 
+        public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithOnlyJsonGradesAsync()
+        {
+            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            {
+                string query = @"
+                    SELECT
+                        o.OfferingFileIdentificator,
+                        o.FileName,
+                        o.FileSize,
+                        CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, e.Grade) ELSE NULL END AS EndpointsAndGradesJson
+                    FROM OfferingFiles o
+                    LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
+                    GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
+
+                return (await cnn.QueryAsync<OfferingFileDto>(query).ConfigureAwait(false)).ToList();
+            }
+        }
+
         public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithGradesAsync()
         {
             using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))

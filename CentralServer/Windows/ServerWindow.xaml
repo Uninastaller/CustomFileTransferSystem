@@ -159,8 +159,13 @@
                         FontSize="15"
                         Grid.ColumnSpan="2"/>
 
+                <Button Style="{DynamicResource ButtonStyle1}" x:Name="btnOfferingFilesWindow" Content="Offering files window" Click="btnOfferingFilesWindow_Click" Grid.Row="8" Grid.Column="1"
+                    Margin="0,10,15,10"
+                    FontSize="15"
+                    Grid.ColumnSpan="2"/>
 
-                <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+
+                    <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
                           Grid.Row="3" Grid.Column="4" Grid.RowSpan="10"
                           x:Name="dtgClients"
                           d:ItemsSource="{d:SampleData ItemCount=4}">
