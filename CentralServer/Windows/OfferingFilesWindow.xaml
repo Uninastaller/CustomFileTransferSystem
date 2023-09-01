@@ -15,7 +15,7 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip">
 
-    <Border CornerRadius="32" BorderThickness="10" BorderBrush="#442b25" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+    <Border CornerRadius="32" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Grid>
 
             <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
@@ -62,10 +62,10 @@
             <Border CornerRadius="15" BorderThickness="20">
                 <Border.BorderBrush>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#3e2b26" Offset="0"/>
-                        <GradientStop Color="#332926" Offset=".33"/>
-                        <GradientStop Color="#642f22" Offset=".66"/>
-                        <GradientStop Color="#272727" Offset="1"/>
+                        <GradientStop Color="#4e3926" Offset="0"/>
+                        <GradientStop Color="#453a26" Offset=".33"/>
+                        <GradientStop Color="#753b22" Offset=".66"/>
+                        <GradientStop Color="#383838" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.BorderBrush>
 
@@ -104,10 +104,10 @@
 
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#3e2b26" Offset="0"/>
-                            <GradientStop Color="#332926" Offset=".33"/>
-                            <GradientStop Color="#642f22" Offset=".66"/>
-                            <GradientStop Color="#272727" Offset="1"/>
+                            <GradientStop Color="#4e3926" Offset="0"/>
+                            <GradientStop Color="#453a26" Offset=".33"/>
+                            <GradientStop Color="#753b22" Offset=".66"/>
+                            <GradientStop Color="#383838" Offset="1"/>
                         </LinearGradientBrush>
                     </Grid.Background>
 
