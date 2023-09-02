@@ -130,7 +130,30 @@
         </Setter>
     </Style>
 
-    <!--#endregion MaximizedButtonStyle-->
+    <!--#endregion DatabaseButtonStyle-->
+
+    <!--#region DatabaseButtonStyle-->
+
+    <ImageBrush x:Key="ClientButtonImage" ImageSource="pack://application:,,,/Common;component/Images/Clients_MouseOver.png" Stretch="Uniform"/>
+
+    <Style x:Key="ClientsButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource ClientButtonImage}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion DatabaseButtonStyle-->
 
     <!--#region TextBlockStyle1-->
 

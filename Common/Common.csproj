@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Clients_Default.png" />
+    <None Remove="Images\Clients_MouseOver.png" />
     <None Remove="Images\Close_Default.png" />
     <None Remove="Images\Close_MouseOver.png" />
     <None Remove="Images\Database_Default.png" />
@@ -22,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\Clients_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Clients_MouseOver.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\Close_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

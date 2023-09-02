@@ -282,5 +282,9 @@ namespace CentralServer.Windows
 
         #endregion OverridedMethods
 
+        private void btnClientsWindow_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
