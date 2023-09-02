@@ -52,9 +52,9 @@
                Foreground="Gray"
                FontWeight="Bold"/>
         
-        <Border CornerRadius="15" BorderThickness="20">
+        <Border x:Name="brdSecond" CornerRadius="15" BorderThickness="20">
             <Border.BorderBrush>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0.5,1">
                         <GradientStop Color="#4e3926" Offset="0"/>
                         <GradientStop Color="#453a26" Offset=".33"/>
                         <GradientStop Color="#753b22" Offset=".66"/>
@@ -63,8 +63,7 @@
 
                 </Border.BorderBrush>
 
-            <Grid>
-
+            <Grid x:Name="gdMain">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="20"></ColumnDefinition>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -97,7 +96,7 @@
                 </Grid.RowDefinitions>
 
                 <Grid.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0.5,1">
                             <GradientStop Color="#4e3926" Offset="0"/>
                             <GradientStop Color="#453a26" Offset=".33"/>
                             <GradientStop Color="#753b22" Offset=".66"/>

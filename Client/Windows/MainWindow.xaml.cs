@@ -11,6 +11,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Windows;
 using System.Windows.Media;
 
 namespace Client.Windows
@@ -76,6 +77,11 @@ namespace Client.Windows
         {
             InitializeComponent();
 
+            if (MyConfigManager.TryGetBoolConfigValue("EnableDynamicGradients", out bool enableDynamicGradients) && enableDynamicGradients)
+            {
+                WindowDesignSet();
+            }
+
             contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
 
             if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 centralServerPort))
@@ -111,6 +117,38 @@ namespace Client.Windows
 
         }
 
+        private void WindowDesignSet()
+        {
+            // Generate random points
+            Random rand = new Random();
+            double startX = rand.NextDouble();
+            double startY = rand.NextDouble();
+            double endX = rand.NextDouble();
+            double endY = rand.NextDouble();
+
+            // Generate random offsets
+            double[] randomOffsets = new double[4] { rand.NextDouble(), rand.NextDouble(), rand.NextDouble(), rand.NextDouble() };
+
+            // Sort them to ensure they are in ascending order
+            Array.Sort(randomOffsets);
+
+            // Create new LinearGradientBrush
+            LinearGradientBrush newBrush = new LinearGradientBrush()
+            {
+                StartPoint = new Point(startX, startY),
+                EndPoint = new Point(endX, endY),
+            };
+
+            // Add GradientStops to the LinearGradientBrush
+            newBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#4e3926"), randomOffsets[0]));
+            newBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#453a26"), randomOffsets[1]));
+            newBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#753b22"), randomOffsets[2]));
+            newBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#383838"), randomOffsets[3]));
+
+            brdSecond.BorderBrush = newBrush;
+            gdMain.Background = newBrush;
+        }
+
         private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
             if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
@@ -138,6 +176,7 @@ namespace Client.Windows
         private void btnClose_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             this.Close();
+            Environment.Exit(0);
         }
 
 
