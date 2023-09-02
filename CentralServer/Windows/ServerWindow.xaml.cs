@@ -246,6 +246,7 @@ namespace CentralServer.Windows
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
                 _serverBussinesLogic.Restart();
             }
+            WindowDesignSet();
         }
 
         private void btnStopServer_Click(object sender, System.Windows.RoutedEventArgs e)

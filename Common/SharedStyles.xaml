@@ -109,6 +109,29 @@
 
     <!--#endregion MaximizedButtonStyle-->
 
+    <!--#region DatabaseButtonStyle-->
+
+    <ImageBrush x:Key="DatabaseButtonImage" ImageSource="pack://application:,,,/Common;component/Images/Database_MouseOver.png" Stretch="Uniform"/>
+
+    <Style x:Key="DatabaseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource DatabaseButtonImage}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion MaximizedButtonStyle-->
+
     <!--#region TextBlockStyle1-->
 
     <Style x:Key="TextBlockStyle1" TargetType="{x:Type TextBlock}">
