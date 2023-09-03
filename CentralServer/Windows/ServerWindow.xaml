@@ -32,29 +32,17 @@
             <Grid>
                 <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20">
-                    <Button.Background>
-                        <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Close_Default.png" Stretch="None"/>
-                    </Button.Background>
-                </Button>
+                Height="20" Width="20"/>
 
                 <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="20" Width="20"
-                Margin="0,0,25,0">
-                    <Button.Background>
-                        <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Maximize_Default.png" Stretch="None"/>
-                    </Button.Background>
-                </Button>
+                Margin="0,0,25,0"/>
 
                 <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="20" Width="20"
-                Margin="0,0,50,0">
-                    <Button.Background>
-                        <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Minimize_Default.png" Stretch="None"/>
-                    </Button.Background>
-                </Button>
+                Margin="0,0,50,0"/>
 
                 <Label Content="Central Server" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"
                Height="24"
@@ -76,18 +64,11 @@
                         </Grid.ColumnDefinitions>
 
                         <Button Style="{DynamicResource DatabaseButtonStyle}" x:Name="btnOfferingFilesWindow" Content="" Click="btnOfferingFilesWindow_Click" Grid.Column="1" Margin="0,2,0,0"
-                            ToolTip="Open database with stored offering files">
-                            <Button.Background>
-                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Database_Default.png" Stretch="Uniform"/>
-                            </Button.Background>
-                        </Button>
+                            ToolTip="Open database with stored offering files"/>
+
 
                         <Button Style="{DynamicResource ClientsButtonStyle}" x:Name="btnClientsWindow" Content="" Click="btnClientsWindow_Click" Grid.Column="2" Margin="0,0,0,0"
-                            ToolTip="Open windows with connected clients">
-                            <Button.Background>
-                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Clients_Default.png" Stretch="Uniform"/>
-                            </Button.Background>
-                        </Button>
+                            ToolTip="Open windows with connected clients"/>
 
                     </Grid>
                 </Border>
