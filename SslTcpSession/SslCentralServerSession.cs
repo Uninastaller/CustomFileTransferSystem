@@ -57,6 +57,7 @@ namespace SslTcpSession
 
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.OFFERING_FILE, OnOfferingFileHandler);
+            _flagSwitch.Register(SocketMessageFlag.OFFERING_FILES_REQUEST, OnOfferingFilesRequestHandler);
         }
 
         #endregion Ctor
@@ -85,27 +86,39 @@ namespace SslTcpSession
             }
         }
 
+        private async Task SendOfferingFilesToClient()
+        {
+            ServerSessionState = ServerSessionState.OFFERING_FILES_SENDING;
+            List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithGradesAsync();
+            for (int i = 0; i < offeringFiles.Count; i++)
+            {
+                FlagMessagesGenerator.GenerateOfferingFile(offeringFiles[i].GetJson(), i == offeringFiles.Count - 1, this);
+            }
+        }
+
         #endregion PrivateMethods
 
         #region ProtectedMethods
 
-        protected async override void OnHandshaked()
+        protected override void OnHandshaked()
         {
             Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} handshaked!");
 
-            int maxRepeatCounter = 3;
-            await Task.Delay(100);
+            //int maxRepeatCounter = 3;
+            //await Task.Delay(100);
 
-            // Staf to do after 200ms => waiting without blocking thread
-            while (FlagMessagesGenerator.GenerateOfferingFilesRequest(this) == MethodResult.ERROR && maxRepeatCounter-- >= 0)
-            {
-                await Task.Delay(200);
-            }
+            //ServerSessionState = ServerSessionState.OFFERING_FILES_RECEIVING;
 
-            if (maxRepeatCounter < -1)
-            {
-                Disconnect();
-            }
+            //// Staf to do after 200ms => waiting without blocking thread
+            //while (FlagMessagesGenerator.GenerateOfferingFilesRequest(this) == MethodResult.ERROR && maxRepeatCounter-- >= 0)
+            //{
+            //    await Task.Delay(200);
+            //}
+
+            //if (maxRepeatCounter < -1)
+            //{
+            //    Disconnect();
+            //}
         }
 
         protected override void OnDisconnected()
@@ -138,17 +151,57 @@ namespace SslTcpSession
         {
             ServerSessionState = ServerSessionState.NONE;
             this.Server?.FindSession(this.Id)?.Disconnect();
-            Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
+            Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
         }
 
         private async void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
-            if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto))
+
+            if (ServerSessionState == ServerSessionState.NONE)
             {
-                await OnNewOfferingFileReceived(offeringFileDto);
+                ServerSessionState = ServerSessionState.OFFERING_FILES_RECEIVING;
+            }
+
+            if (ServerSessionState == ServerSessionState.OFFERING_FILES_RECEIVING)
+            {
+                if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto, out bool endOfMessageGroup))
+                {
+                    await OnNewOfferingFileReceived(offeringFileDto);
+                    if (endOfMessageGroup)
+                    {
+                        // Client should disconnect automatically after send all data, but if no, manually destroy session
+                        Log.WriteLog(LogLevel.INFO, $"All Offering File was receiver! Destroying session");
+                        Disconnect();
+                    }
+                }
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Offering File received, but session is not in default state, so message can not be proceed!");
             }
         }
 
+        /// <summary>
+        /// If server have no offering files, so server will not automatically send him offering files bcs of leak end of pessage group. He send offering files request to get offering files from server
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        private async void OnOfferingFilesRequestHandler(byte[] buffer, long offset, long size)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Offering File request received");
+            if (ServerSessionState == ServerSessionState.NONE)
+            {
+                await SendOfferingFilesToClient();
+                Log.WriteLog(LogLevel.INFO, $"All Offering File was sended to client! Destroying session");
+                // Client should disconnect automatically after send all data, but if no, manually destroy session
+                Disconnect();
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Offering File request received, but session is not in default state for this message, so message will not be proceed!");
+            }
+        }
 
         #endregion Events
 

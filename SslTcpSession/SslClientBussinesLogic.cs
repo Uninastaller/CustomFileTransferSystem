@@ -4,6 +4,7 @@ using Common.Model;
 using Common.ThreadMessages;
 using Logger;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -98,7 +99,7 @@ namespace SslTcpSession
             }
             else if (typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
             {
-                _flagSwitch.Register(SocketMessageFlag.OFFERING_FILES_REQUEST, OnOfferingFilesRequest);
+                _flagSwitch.Register(SocketMessageFlag.OFFERING_FILE, OnOfferingFileHandler);
             }
 
 
@@ -131,6 +132,30 @@ namespace SslTcpSession
 
             while (IsConnected)
                 Thread.Yield();
+        }
+
+        public void CreateAndSendOfferingFilesToCentralServer()
+        {
+            Log.WriteLog(LogLevel.DEBUG, "CreateAndSendOfferingFilesToCentralServer");
+            while (!IsHandshaked)
+            {
+                Thread.Yield();
+            }
+            State = ClientBussinesLogicState.OFFERING_FILES_SENDING;
+            ResourceInformer.CreateAndSendOfferingFilesToCentralServer(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, this);
+            Log.WriteLog(LogLevel.INFO, $"All Offering Files sended, disposing socket!");
+            Dispose();
+        }
+
+        public void CreateRequestForOfferingFilesToCentralServer()
+        {
+            while (!IsHandshaked)
+            {
+                Thread.Yield();
+            }
+            Log.WriteLog(LogLevel.DEBUG, "CreateRequestForOfferingFilesToCentralServer");
+            State = ClientBussinesLogicState.OFFERING_FILES_RECEIVING;
+            FlagMessagesGenerator.GenerateOfferingFilesRequest(this);
         }
 
         #endregion PublicMethods
@@ -238,11 +263,24 @@ namespace SslTcpSession
             }
         }
 
-        private void OnOfferingFilesRequest(byte[] buffer, long offset, long size)
+        private void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
-            Log.WriteLog(LogLevel.DEBUG, $"Upload files request received [CLIENT]: {Address}:{Port}");
-
-            Task.Run(() => ResourceInformer.OnUploadFileRequest(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, this));
+            if (State == ClientBussinesLogicState.OFFERING_FILES_RECEIVING)
+            {
+                State = ClientBussinesLogicState.OFFERING_FILES_RECEIVING;
+                if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto, out bool endOfMessageGroup))
+                {
+                    if (endOfMessageGroup)
+                    {
+                        Dispose();
+                        Log.WriteLog(LogLevel.INFO, $"All Offering Files received, disposing socket!");
+                    }
+                }
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Offering File received, but session is not in default state, so message can not be proceed!");
+            }
         }
 
         private void OnAcceptHandler(byte[] buffer, long offset, long size)
@@ -287,7 +325,7 @@ namespace SslTcpSession
             else
             {
                 this.Disconnect();
-                Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}");
+                Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting from server! [CLIENT]: {Address}:{Port}");
             }
         }
 

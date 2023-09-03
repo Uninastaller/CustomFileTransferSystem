@@ -1,11 +1,11 @@
-﻿using Common.Interface;
+﻿using Common.Enum;
+using Common.Interface;
 using ConfigManager;
 using Logger;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Common.Model
 {
@@ -78,29 +78,30 @@ namespace Common.Model
             {
                 string[] files = Directory.GetFiles(cftsFilesDirectory);
 
-                foreach (string filePath in files)
-                {
-                    if (Path.GetExtension(filePath).Equals(_cftsFileExtensions))
-                    {
-                        // Read content of file
-                        string jsonString = File.ReadAllText(filePath);
-                        Log.WriteLog(LogLevel.INFO, $"Reading content of file: {filePath}, content: {jsonString}");
-                        // Validate if conten is valid json
-                        try
-                        {
-                            // Attempt to parse the JSON string
-                            OfferingFileDto? offeringFileDto = OfferingFileDto.ToObjectFromJson(jsonString);
+                // Filter the list to include only files with the desired extension
+                var filteredFiles = files.Where(f => Path.GetExtension(f).Equals(_cftsFileExtensions)).ToList();
 
-                            // If parsing succeeds, the JSON is valid
-                            Log.WriteLog(LogLevel.INFO, "Content is valid");
-                            FlagMessagesGenerator.GenerateOfferingFile(jsonString, session);
-                        }
-                        catch (JsonException ex)
-                        {
-                            // Parsing failed, so the JSON is not valid
-                            Log.WriteLog(LogLevel.WARNING, "Content is invalid! " + ex.Message);
-                        }
+                for (int i = 0; i < files.Length; i++)
+                {
+                    string jsonString = File.ReadAllText(files[i]);    // Read content of file
+
+                    Log.WriteLog(LogLevel.INFO, $"Reading content of file: {files[i]}, content: {jsonString}");
+                    // Validate if conten is valid json
+                    try
+                    {
+                        // Attempt to parse the JSON string
+                        OfferingFileDto? offeringFileDto = OfferingFileDto.ToObjectFromJson(jsonString);
+
+                        // If parsing succeeds, the JSON is valid
+                        Log.WriteLog(LogLevel.INFO, "Content is valid");
+                        FlagMessagesGenerator.GenerateOfferingFile(jsonString, i == files.Count() - 1, session);
                     }
+                    catch (JsonException ex)
+                    {
+                        // Parsing failed, so the JSON is not valid
+                        Log.WriteLog(LogLevel.WARNING, "Content is invalid! " + ex.Message);
+                    }
+
                 }
             }
         }
@@ -135,9 +136,9 @@ namespace Common.Model
         //    }
         //}
 
-        public static void OnUploadFileRequest(IPAddress ipAddress, int port, ISession session) => OnUploadFileRequest(ipAddress.ToString(), port, session);
+        public static void CreateAndSendOfferingFilesToCentralServer(IPAddress ipAddress, int port, ISession session) => CreateAndSendOfferingFilesToCentralServer(ipAddress.ToString(), port, session);
 
-        public static void OnUploadFileRequest(string ipAddress, int port, ISession session)
+        public static void CreateAndSendOfferingFilesToCentralServer(string ipAddress, int port, ISession session)
         {
             string UploadingDirectoryPath = MyConfigManager.GetConfigValue("UploadingDirectory");
             CreateJsonFiles(ipAddress, port, UploadingDirectoryPath);

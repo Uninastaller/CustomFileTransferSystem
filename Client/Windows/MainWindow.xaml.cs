@@ -11,6 +11,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -24,27 +25,27 @@ namespace Client.Windows
 
         #region Properties
 
-        public ClientSocketState ConnectionWithCentralServerSocketState
-        {
-            get => _connectionWithCentralServerSocketState;
-            set
-            {
-                _connectionWithCentralServerSocketState = value;
-                Log.WriteLog(LogLevel.INFO, "Connection With Central Server Socekt State Change To " + value);
+        //public ClientSocketState ConnectionWithCentralServerSocketState
+        //{
+        //    get => _connectionWithCentralServerSocketState;
+        //    set
+        //    {
+        //        _connectionWithCentralServerSocketState = value;
+        //        Log.WriteLog(LogLevel.INFO, "Connection With Central Server Socekt State Change To " + value);
 
-                switch (value)
-                {
-                    case ClientSocketState.CONNECTED:
-                        elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
-                        break;
-                    case ClientSocketState.DISCONNECTED:
-                        elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        //        switch (value)
+        //        {
+        //            case ClientSocketState.CONNECTED:
+        //                elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
+        //                break;
+        //            case ClientSocketState.DISCONNECTED:
+        //                elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
+        //                break;
+        //            default:
+        //                break;
+        //        }
+        //    }
+        //}
 
         #endregion Properties
 
@@ -56,9 +57,9 @@ namespace Client.Windows
 
         #region PrivateFields
 
-        private IUniversalClientSocket? _socketToCentralServer;
+        //private IUniversalClientSocket? _socketToCentralServer;
         private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
-        private SslContext? _contextForCentralServerConnect;
+        private readonly SslContext _contextForCentralServerConnect;
         private IPAddress _centralServerIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
         private int _centralServerPort = 34258;
         private ClientSocketState _connectionWithCentralServerSocketState = ClientSocketState.DISCONNECTED;
@@ -89,6 +90,8 @@ namespace Client.Windows
                 _centralServerPort = centralServerPort;
             }
 
+            _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+
             Init();
         }
 
@@ -111,10 +114,19 @@ namespace Client.Windows
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
 
-            _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _socketToCentralServer = new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-                typeOfSession: Common.Enum.TypeOfSession.SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
+            Task.Run(() =>
+            {
+                new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+                    typeOfSession: TypeOfSession.SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000)
+                    .CreateAndSendOfferingFilesToCentralServer();
+            });
 
+            Task.Run(() =>
+            {
+                new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+                    typeOfSession: TypeOfSession.SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000)
+                    .CreateRequestForOfferingFilesToCentralServer();
+            });
         }
 
         private void WindowDesignSet()
@@ -153,7 +165,7 @@ namespace Client.Windows
         {
             if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
             {
-                ConnectionWithCentralServerSocketState = message.ClientSocketState;
+
             }
         }
 

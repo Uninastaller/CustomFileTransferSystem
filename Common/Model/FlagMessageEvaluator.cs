@@ -70,11 +70,12 @@ namespace Common.Model
             return false;
         }
 
-        public static bool EvaluateOfferingFileMessage(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto)
+        public static bool EvaluateOfferingFileMessage(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto, out bool endOdMessageGroup)
         {
 
             offeringFileDto = new List<OfferingFileDto?>();
             bool succes = false;
+            endOdMessageGroup = false;
 
             // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
             string messageBlock = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
@@ -91,6 +92,12 @@ namespace Common.Model
                     {
                         offeringFileDto.Add(OfferingFileDto.ToObjectFromJson(messageParts[1]));
                         Log.WriteLog(LogLevel.INFO, $"Offering file with content: {messageParts[1]} received and validated!");
+
+                        if (messageParts[2].Equals(SocketMessageFlag.END_OF_MESSAGE_GROUP.GetStringValue()))
+                        {
+                            endOdMessageGroup = true;
+                        }
+
                         succes = true;
                     }
                     catch (JsonException ex)

@@ -134,7 +134,7 @@ namespace SslTcpSession
         {
             ServerSessionState = ServerSessionState.NONE;
             this.Server?.FindSession(this.Id)?.Disconnect();
-            Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
+            Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
         }
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
@@ -147,7 +147,7 @@ namespace SslTcpSession
             else
             {
                 this.Server?.FindSession(this.Id)?.Disconnect();
-                Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }
         }
 
@@ -162,7 +162,7 @@ namespace SslTcpSession
             else
             {
                 this.Server?.FindSession(this.Id)?.Disconnect();
-                Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }
         }
 

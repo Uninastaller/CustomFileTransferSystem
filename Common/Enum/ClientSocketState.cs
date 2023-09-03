@@ -4,6 +4,6 @@
     {
         CONNECTED,
         DISCONNECTED,
-        INNER_STATE_CHANGE
+        INNER_STATE_CHANGE,
     }
 }

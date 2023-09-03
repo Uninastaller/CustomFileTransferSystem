@@ -162,18 +162,20 @@ namespace Common.Model
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResult GenerateOfferingFile(string offeringFileDtoJson, ISession session)
+        public static MethodResult GenerateOfferingFile(string offeringFileDtoJson, bool endingOfMessage, ISession session)
         {
             // Message has 3 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT, END_OF_MESSAGE
-            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILE, new object[] { offeringFileDtoJson, SocketMessageFlag.END_OF_MESSAGE.GetStringValue() });
+            byte[] request = GenerateMessage(SocketMessageFlag.OFFERING_FILE, 
+                new object[] { offeringFileDtoJson, endingOfMessage ? SocketMessageFlag.END_OF_MESSAGE_GROUP.GetStringValue() : SocketMessageFlag.END_OF_MESSAGE.GetStringValue() });
+
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Offering file was generated, to central server");
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file was generated, to session: {session.IpAndPort}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file, to central server");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file, to session: {session.IpAndPort}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }

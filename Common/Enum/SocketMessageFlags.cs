@@ -34,7 +34,11 @@ namespace Common.Enum
 
 
         [StringValue("e.F")]
-        END_OF_MESSAGE
+        END_OF_MESSAGE,
+
+        [StringValue("e.G")]
+        END_OF_MESSAGE_GROUP
+
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
