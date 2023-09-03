@@ -1,0 +1,120 @@
+﻿<model:BaseWindowForWPF x:Class="CentralServer.Windows.ClientsWindow"
+        xmlns:model="clr-namespace:Common.Model;assembly=Common"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CentralServer.Windows"
+        mc:Ignorable="d"
+        Title="ClientsWindow"
+        Height="450"
+        Width="800"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResizeWithGrip">
+    
+    <Border CornerRadius="32" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+        <Grid>
+
+            <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                VerticalAlignment="Top" HorizontalAlignment="Right"
+                Height="20" Width="20"
+                Margin="0,0,15,0"/>
+
+            <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                VerticalAlignment="Top" HorizontalAlignment="Right"
+                Height="20" Width="20"
+                Margin="0,0,40,0"/>
+
+            <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                VerticalAlignment="Top" HorizontalAlignment="Right"
+                Height="20" Width="20"
+                Margin="0,0,65,0"/>
+
+            <Label Content="Connected Clients" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"
+               Height="24"
+               Margin="0,0,5,0"
+               FontFamily="Consolas"
+               Foreground="Gray"
+               FontWeight="Bold"/>
+
+            <Border x:Name="brdSecond" CornerRadius="15" BorderThickness="20">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#4e3926" Offset="0"/>
+                        <GradientStop Color="#453a26" Offset=".33"/>
+                        <GradientStop Color="#753b22" Offset=".66"/>
+                        <GradientStop Color="#383838" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+
+                <Grid x:Name="gdMain">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="100"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="auto"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="20"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                        <RowDefinition Height="20"></RowDefinition>
+                    </Grid.RowDefinitions>
+
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#4e3926" Offset="0"/>
+                            <GradientStop Color="#453a26" Offset=".33"/>
+                            <GradientStop Color="#753b22" Offset=".66"/>
+                            <GradientStop Color="#383838" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+
+                    <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+                          Grid.Row="1" Grid.Column="1" Grid.RowSpan="10" Grid.ColumnSpan="12"
+                          x:Name="dtgClients"
+                          d:ItemsSource="{d:SampleData ItemCount=4}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding SessionGuid}"/>
+                            <DataGridTextColumn Header="IpAddress:Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding RemoteEndpoint}"/>
+                            <DataGridTextColumn Header="SessionState" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding ServerSessionState}"/>
+
+                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Disconnect" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnDisconnect" Click="btnDisconnect_Click"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</model:BaseWindowForWPF>

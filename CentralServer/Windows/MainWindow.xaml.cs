@@ -20,9 +20,9 @@ using System.Windows.Media;
 namespace CentralServer.Windows
 {
     /// <summary>
-    /// Interaction logic for ServerWindow.xaml
+    /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class ServerWindow : BaseWindowForWPF
+    public partial class MainWindow : BaseWindowForWPF
     {
         #region Properties
 
@@ -58,15 +58,17 @@ namespace CentralServer.Windows
 
         #region PrivateFields
 
-        private IUniversalServerSocket _serverBussinesLogic;
+        private readonly IUniversalServerSocket _serverBussinesLogic;
 
         private readonly int _serverPort = 34258;
         private readonly IPAddress _serverIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
         private readonly string _certificateName = "MyTestCertificateServer.pfx";
-        private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
         private ServerSocketState _centralServersocketState = ServerSocketState.STOPPED;
 
         private IWindowEnqueuer? _offeringFilesWindow;
+        private IWindowEnqueuer? _clientsWindow;
+
+        private Dictionary<Guid, ServerClientsModel> _clients = new Dictionary<Guid, ServerClientsModel>();
 
         #endregion PrivateFields
 
@@ -78,7 +80,7 @@ namespace CentralServer.Windows
 
         #region Ctor
 
-        public ServerWindow()
+        public MainWindow()
         {
             InitializeComponent();
 
@@ -160,18 +162,15 @@ namespace CentralServer.Windows
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
         {
             _clients = message.Clients;
-            RefreshClientsDatagrid();
+            if (_clientsWindow != null && _clientsWindow.IsOpen())
+            {
+                _clientsWindow.BaseMsgEnque(message);
+            }
         }
 
         private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
         {
             CentralServerSocketState = message.ServerSocketState;
-        }
-
-        private void RefreshClientsDatagrid()
-        {
-            dtgClients.ItemsSource = null;
-            dtgClients.ItemsSource = _clients.Values.ToList();
         }
 
         #endregion PrivateMethods
@@ -221,15 +220,6 @@ namespace CentralServer.Windows
             }
         }
 
-        private void btnDisconnect_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is ServerClientsModel serverClientsModel)
-            {
-                Log.WriteLog(LogLevel.DEBUG, button.Name);
-                _serverBussinesLogic.DisconnectSession(serverClientsModel.SessionGuid);
-            }
-        }
-
         private void btnStartServer_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (sender is Button button)
@@ -274,6 +264,23 @@ namespace CentralServer.Windows
             }
         }
 
+        private void btnClientsWindow_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                if (_clientsWindow == null || !_clientsWindow.IsOpen())
+                {
+                    _clientsWindow = BaseWindowForWPF.CreateWindow<ClientsWindow>(() => new ClientsWindow(_serverBussinesLogic));
+                    _clientsWindow?.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+                }
+                else
+                {
+                    _clientsWindow.BaseMsgEnque(new WindowStateSetMessage());
+                }
+            }
+        }
+
         #endregion Events
 
         #region OverridedMethods
@@ -282,9 +289,5 @@ namespace CentralServer.Windows
 
         #endregion OverridedMethods
 
-        private void btnClientsWindow_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

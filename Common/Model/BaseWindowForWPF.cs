@@ -106,6 +106,40 @@ namespace Common.Model
             return window;
         }
 
+        public static IWindowEnqueuer? CreateWindow<T>(Func<T> factoryMethod) where T : BaseWindowForWPF
+        {
+            T? window = null;
+
+            Thread newWindowThread = new Thread(new ThreadStart(() =>
+            {
+                SynchronizationContext.SetSynchronizationContext(
+                    new DispatcherSynchronizationContext(
+                        Dispatcher.CurrentDispatcher));
+
+                window = factoryMethod();
+
+                window.Title = Thread.CurrentThread.Name = $"{typeof(T).Name}";
+                window.Show();
+
+                // Start the Dispatcher Processing
+                Dispatcher.Run();
+            }));
+
+            newWindowThread.SetApartmentState(ApartmentState.STA);
+            // Make the thread a background thread
+            newWindowThread.IsBackground = true;
+            // Start the thread
+            newWindowThread.Start();
+
+            while (window == null)
+            {
+                Thread.Sleep(50);
+            }
+            Log.WriteLog(LogLevel.DEBUG, $"New window created with type of: {typeof(T).Name}");
+            return window;
+        }
+
+
         private void Window_closedEvent(object? sender, EventArgs e)
         {
             Closed -= Window_closedEvent;
