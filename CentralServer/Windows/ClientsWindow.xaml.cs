@@ -48,6 +48,12 @@ namespace CentralServer.Windows
         {
             InitializeComponent();
 
+            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            RefreshClientsDatagrid();
+
             _serverBussinesLogic = serverBussinesLogic;
 
             if (MyConfigManager.TryGetBoolConfigValue("EnableDynamicGradients", out bool enableDynamicGradients) && enableDynamicGradients)
@@ -122,6 +128,7 @@ namespace CentralServer.Windows
 
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
         {
+            return;
             _clients = message.Clients;
             RefreshClientsDatagrid();
         }

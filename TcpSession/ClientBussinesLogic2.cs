@@ -66,6 +66,8 @@ namespace TcpSession
 
         private long _assignedFilePart;
 
+        private long _disconnectTime = 0;
+
         #endregion PrivateFields
 
         #region Ctor
@@ -205,6 +207,7 @@ namespace TcpSession
             _timerCounter++;
 
             if (IsConnected)
+            {
                 if (State == ClientBussinesLogicState.REQUESTING_FILE)
                 {
                     RequestFile();
@@ -213,7 +216,12 @@ namespace TcpSession
                 {
                     RequestFilePart();
                 }
-
+            }
+            else if (++_disconnectTime == 10)
+            {
+                Log.WriteLog(LogLevel.WARNING, "Unable to connect to the server. Disposing socked!");
+                Dispose();
+            }
 
             TransferSendRate = BytesSent - _secondOldBytesSent;
             TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
@@ -294,13 +302,14 @@ namespace TcpSession
             base.Dispose(disposingManagedResources);
         }
 
-        protected override void OnConnected()
+        protected async override void OnConnected()
         {
             Log.WriteLog(LogLevel.DEBUG, $"Tcp client connected a new session with Id {Id}");
+            _disconnectTime = 0;
 
             if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
             {
-                Thread.Sleep(100);
+                await Task.Delay(100);
                 RequestFile();
             }
 

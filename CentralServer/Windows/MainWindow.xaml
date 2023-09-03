@@ -13,16 +13,8 @@
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="CanResizeWithGrip" Style="{DynamicResource ResizeGripStyle}">
 
-    <Window.Resources>
-
-        <Style TargetType="{x:Type ResizeGrip}">
-            <Setter Property="Margin"  Value="20"/>
-        </Style>
-
-    </Window.Resources>
-    
     <Grid Margin="20">
         <Grid.Effect>
             <DropShadowEffect BlurRadius="30" ShadowDepth="2" Direction="-90" Color="Gray"/>
@@ -125,7 +117,7 @@
                             </LinearGradientBrush>
                         </Grid.Background>
 
-                        <TextBlock Style="{DynamicResource TextBlockStyle1}" x:Name="tbTitle" Grid.Row="1" Grid.Column="1"
+                        <TextBlock Style="{DynamicResource TextBlockStyle1}" x:Name="tbTitle" Grid.Row="1" Grid.Column="1" Margin="-20,-20,0,0"
                            Text="Custom File Transfer System"
                            FontFamily="Arial"
                            FontSize="40"

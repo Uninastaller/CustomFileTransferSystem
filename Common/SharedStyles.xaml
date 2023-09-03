@@ -2,6 +2,126 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
 
+    <!--#region Colors-->
+
+    <SolidColorBrush x:Key="ButtonsColorDefault" Color="#741b0c"/>
+    <SolidColorBrush x:Key="ButtonsColorMouseOver" Color="#793020"/>
+    <SolidColorBrush x:Key="ButtonsColorPressed" Color="#5e2e23"/>
+    <SolidColorBrush x:Key="TextColorDefault" Color="#050200"/>
+    <SolidColorBrush x:Key="DatagridButtonBorderColor" Color="#150702"/>
+    <SolidColorBrush x:Key="DatagridRowColorDefault" Color="#7e3020"/>
+    <SolidColorBrush x:Key="DatagridRowColorMouseOver" Color="#94301d"/>
+    <SolidColorBrush x:Key="DatagridRowColorPressed" Color="#94301d"/>
+    <SolidColorBrush x:Key="DatagridRowColorLostFocus" Color="#793020"/>
+    <SolidColorBrush x:Key="TabItemButtonColorDefault" Color="#805e2e23"/>
+    <SolidColorBrush x:Key="TabItemButtonColorMouseOver" Color="#B0793020"/>
+    <SolidColorBrush x:Key="TabItemButtonColorPressed" Color="#D03e0f06"/>
+
+    <!--#endregion Colors-->
+    
+    <!--#region ResizeGripStyle-->
+
+    <Style x:Name="ResizeGripStyle" TargetType="{x:Type ResizeGrip}">
+        <Setter Property="Margin"  Value="20"/>
+    </Style>
+
+    <!--#region ResizeGripStyle-->
+
+    <!--#region TabControlStyle-->
+
+    <Style x:Key="TabControlStyle" TargetType="TabControl">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00FFFFFF" Offset="0.0"/>
+                    <GradientStop Color="#25A9A9A9" Offset="0.01"/>
+                    <GradientStop Color="#25A9A9A9" Offset="0.99"/>
+                    <GradientStop Color="#00FFFFFF" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid SnapsToDevicePixels="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TabPanel Grid.Row="0"
+                                      Background="Transparent"
+                                      IsItemsHost="True"
+                                      HorizontalAlignment="Left">
+                        </TabPanel>
+                        <Border Grid.Row="1"
+                                    CornerRadius="5"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    Background="{TemplateBinding Background}">
+                            <ContentPresenter ContentSource="SelectedContent"
+                                        SnapsToDevicePixels="True"
+                                        Margin="{TemplateBinding Padding}">
+                            </ContentPresenter>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#region TabControlStyle-->
+
+    <!--#region TabItemStyle-->
+
+    <Style x:Key="TabItemStyle" TargetType="TabItem">
+        <Setter Property="Background" Value="{StaticResource TabItemButtonColorDefault}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Margin" Value="0,0,5,0"/>
+        <Setter Property="Width" Value="auto"/>
+        <Setter Property="Padding" Value="20,5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Grid SnapsToDevicePixels="True">
+                        <Border CornerRadius="5"
+                                    Background="{TemplateBinding Background}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    Margin="{TemplateBinding Margin}"/>
+                        <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              SnapsToDevicePixels="True"
+                                              RecognizesAccessKey="True"
+                                              Margin="{TemplateBinding Padding}"
+                                              ContentSource="Header"
+                                              Focusable="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource TabItemButtonColorMouseOver}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{StaticResource TabItemButtonColorPressed}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion TabItemStyle-->
+
     <!--#region CloseButtonStyle-->
 
     <ImageBrush x:Key="CloseButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Close_MouseOver.png" Stretch="None"/>
@@ -183,7 +303,7 @@
         <Setter Property="TextWrapping" Value="NoWrap"/>
         <Setter Property="TextTrimming" Value="None"/>
 
-        <Setter Property="Foreground" Value="#050200"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
 
     </Style>
     <Style x:Key="FocusVisual1">
@@ -200,18 +320,15 @@
 
     <!--#region ButtonStyle1-->
 
-    <SolidColorBrush x:Key="Button.Static.Background1" Color="#741b0c"/>
     <SolidColorBrush x:Key="Button.Static.Border1" Color="#FF707070"/>
-    <SolidColorBrush x:Key="Button.MouseOver.Background1" Color="#793020"/>
     <SolidColorBrush x:Key="Button.MouseOver.Border1" Color="#FF3C7FB1"/>
-    <SolidColorBrush x:Key="Button.Pressed.Background1" Color="#5e2e23"/>
     <SolidColorBrush x:Key="Button.Pressed.Border1" Color="#FF2C628B"/>
     <SolidColorBrush x:Key="Button.Disabled.Background1" Color="#272727"/>
     <SolidColorBrush x:Key="Button.Disabled.Border1" Color="#FFADB2B5"/>
     <SolidColorBrush x:Key="Button.Disabled.Foreground1" Color="#FF838383"/>
     <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual1}"/>
-        <Setter Property="Background" Value="{StaticResource Button.Static.Background1}"/>
+        <Setter Property="Background" Value="{StaticResource ButtonsColorDefault}"/>
         <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border1}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -219,7 +336,7 @@
         <Setter Property="Padding" Value="1"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
 
-        <Setter Property="Foreground" Value="#050200"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
         <Setter Property="FontFamily" Value="Ariel"/>
 
         <Setter Property="Template">
@@ -233,11 +350,11 @@
                             <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background1}"/>
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource ButtonsColorMouseOver}"/>
                             <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border1}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background1}"/>
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource ButtonsColorPressed}"/>
                             <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border1}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
@@ -298,7 +415,7 @@
 
     <Style x:Key="DataGridStyle1" TargetType="{x:Type DataGrid}">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="#222528"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="RowDetailsVisibilityMode" Value="VisibleWhenSelected"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
@@ -371,8 +488,8 @@
 
     <Style x:Key="DataGridButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="#741b0c"/>
-        <Setter Property="BorderBrush" Value="#150702"/>
-        <Setter Property="Foreground" Value="#150702"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DatagridButtonBorderColor}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -388,11 +505,11 @@
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#793020"/>
+                <Setter Property="Background" Value="{StaticResource ButtonsColorMouseOver}"/>
                 <!--<Setter Property="BorderThickness" Value="3"/>-->
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#94301d"/>
+                <Setter Property="Background" Value="{StaticResource ButtonsColorPressed}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -418,7 +535,7 @@
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
                 <!--<Setter Property="FontWeight" Value="Bold"/>-->
-                <Setter Property="Foreground" Value="#150702"/>
+                <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -431,7 +548,7 @@
     <Style x:Key="DataGridColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#050200" />
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Margin" Value="15,0,15,10" />
         <Setter Property="Template">
@@ -454,9 +571,9 @@
     <!--#region DataGridRowStyle1-->
 
     <Style x:Key="DataGridRowStyle1" TargetType="{x:Type DataGridRow}">
-        <Setter Property="Background" Value="#7e3020"/>
+        <Setter Property="Background" Value="{StaticResource DatagridRowColorDefault}"/>
         <Setter Property="Margin" Value="0,4,0,0" />
-        <Setter Property="Foreground" Value="#050200" />
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}" />
         <Setter Property="SnapsToDevicePixels" Value="true"/>
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
         <Setter Property="ValidationErrorTemplate">
@@ -489,14 +606,14 @@
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#94301d"/>
-                <Setter Property="Foreground" Value="#050200"/>
+                <Setter Property="Background" Value="{StaticResource DatagridRowColorMouseOver}"/>
+                <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
                 <Setter Property="FontWeight" Value="Bold"/>
             </Trigger>
 
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="#94301d"/>
-                <Setter Property="Foreground" Value="#050200"/>
+                <Setter Property="Background" Value="{StaticResource DatagridRowColorPressed}"/>
+                <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
                 <Setter Property="FontWeight" Value="Bold"/>
             </Trigger>
 
@@ -511,7 +628,7 @@
                     <Condition Property="IsSelected" Value="True"/>
                     <Condition Property="Selector.IsSelectionActive" Value="False"/>
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="#793020" />
+                <Setter Property="Background" Value="{StaticResource DatagridRowColorLostFocus}" />
             </MultiTrigger>
         </Style.Triggers>
     </Style>
