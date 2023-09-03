@@ -1,9 +1,7 @@
 ﻿using Common.Enum;
-using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
 using ConfigManager;
-using Logger;
 using SslTcpSession;
 using System;
 using System.IO;
@@ -11,7 +9,6 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -114,19 +111,12 @@ namespace Client.Windows
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
 
-            Task.Run(() =>
-            {
-                new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-                    typeOfSession: TypeOfSession.SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000)
-                    .CreateAndSendOfferingFilesToCentralServer();
-            });
+            new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+                typeOfSession: TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
 
-            Task.Run(() =>
-            {
-                new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-                    typeOfSession: TypeOfSession.SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000)
-                    .CreateRequestForOfferingFilesToCentralServer();
-            });
+            new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+                typeOfSession: TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
+
         }
 
         private void WindowDesignSet()

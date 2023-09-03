@@ -97,7 +97,7 @@ namespace SslTcpSession
                 _flagSwitch.Register(SocketMessageFlag.ACCEPT, OnAcceptHandler);
                 _flagSwitch.Register(SocketMessageFlag.FILE_PART, OnFilePartHandler);
             }
-            else if (typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
+            else if (typeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
             {
                 _flagSwitch.Register(SocketMessageFlag.OFFERING_FILE, OnOfferingFileHandler);
             }
@@ -134,33 +134,25 @@ namespace SslTcpSession
                 Thread.Yield();
         }
 
-        public void CreateAndSendOfferingFilesToCentralServer()
+        #endregion PublicMethods
+
+        #region PrivateMethods
+
+        private void CreateAndSendOfferingFilesToCentralServer()
         {
             Log.WriteLog(LogLevel.DEBUG, "CreateAndSendOfferingFilesToCentralServer");
-            while (!IsHandshaked)
-            {
-                Thread.Yield();
-            }
             State = ClientBussinesLogicState.OFFERING_FILES_SENDING;
             ResourceInformer.CreateAndSendOfferingFilesToCentralServer(NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback, 34259, this);
             Log.WriteLog(LogLevel.INFO, $"All Offering Files sended, disposing socket!");
             Dispose();
         }
 
-        public void CreateRequestForOfferingFilesToCentralServer()
+        private void CreateRequestForOfferingFilesToCentralServer()
         {
-            while (!IsHandshaked)
-            {
-                Thread.Yield();
-            }
             Log.WriteLog(LogLevel.DEBUG, "CreateRequestForOfferingFilesToCentralServer");
             State = ClientBussinesLogicState.OFFERING_FILES_RECEIVING;
             FlagMessagesGenerator.GenerateOfferingFilesRequest(this);
         }
-
-        #endregion PublicMethods
-
-        #region PrivateMethods
 
         private void RequestFilePart()
         {
@@ -348,20 +340,31 @@ namespace SslTcpSession
         protected override void OnConnected()
         {
             Log.WriteLog(LogLevel.DEBUG, $"Ssl client connected a new session with Id {Id}");
-
-            if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
-            {
-                Thread.Sleep(100);
-                RequestFile();
-            }
-
             _gui.BaseMsgEnque(new ClientSocketStateChangeMessage() { ClientSocketState = ClientSocketState.CONNECTED, TypeOfSession = _typeOfSession });
         }
 
-        protected override void OnHandshaked()
+        protected async override void OnHandshaked()
         {
             Log.WriteLog(LogLevel.DEBUG, $"Ssl client handshaked a new session with Id {Id}");
-            //SendAsync("Hello from SSL client!");
+            switch (_typeOfSession)
+            {
+                case TypeOfSession.DOWNLOADING:
+                    if (_fileReceiver != null && !_fileReceiver.NoPartsForAsignmentLeft)
+                    {
+                        await Task.Delay(100);
+                        RequestFile();
+                    }
+                    break;
+                case TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER:
+                    CreateAndSendOfferingFilesToCentralServer();
+                    break;
+                case TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER:
+                    CreateRequestForOfferingFilesToCentralServer();
+                    break;
+                default:
+                    break;
+            }
+            
         }
 
         protected override void OnDisconnected()
