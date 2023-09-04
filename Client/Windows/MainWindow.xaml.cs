@@ -102,7 +102,7 @@ namespace Client.Windows
 
          Init();
 
-         TbSuccessMessage.Visibility = Visibility.Collapsed;
+         tbSuccessMessage.Visibility = Visibility.Collapsed;
       }
 
       #endregion Ctor
@@ -169,16 +169,16 @@ namespace Client.Windows
          timer.Interval = duration;
 
          // Show the message
-         TbSuccessMessage.Visibility = Visibility.Visible;
-         TbSuccessMessage.Text = message;
+         tbSuccessMessage.Visibility = Visibility.Visible;
+         tbSuccessMessage.Text = message;
 
          // Subscribe to the Tick event
          EventHandler tickEventHandler = null;
          tickEventHandler = (sender, e) =>
          {
             // Hide the message
-            TbSuccessMessage.Visibility = Visibility.Collapsed;
-            TbSuccessMessage.Text = "";
+            tbSuccessMessage.Visibility = Visibility.Collapsed;
+            tbSuccessMessage.Text = "";
 
             // Stop the timer
             timer.Stop();
@@ -206,16 +206,16 @@ namespace Client.Windows
          timer.Interval = duration;
 
          // Show the message
-         TbSuccessMessage.Visibility = Visibility.Visible;
-         TbSuccessMessage.Text = message;
+         tbSuccessMessage.Visibility = Visibility.Visible;
+         tbSuccessMessage.Text = message;
 
          // Subscribe to the Tick event
          EventHandler? tickEventHandler = null;
          tickEventHandler = (sender, e) =>
          {
             // Hide the message
-            TbSuccessMessage.Visibility = Visibility.Collapsed;
-            TbSuccessMessage.Text = "";
+            tbSuccessMessage.Visibility = Visibility.Collapsed;
+            tbSuccessMessage.Text = "";
 
             // Stop the timer
             timer.Stop();

@@ -123,15 +123,15 @@
                             </LinearGradientBrush>
                         </Grid.Background>
 
+                        <TextBlock x:Name="tbSuccessMessage"  Style="{StaticResource SuccessMessageStyle}" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
+                                   Text="Operation Successful!" Foreground="{StaticResource TextColorDefault}" Visibility="Visible" Padding="20,0" Width="Auto"/>
+
                         <TextBlock Style="{DynamicResource TextBlockStyle1}" x:Name="tbTitle" Grid.Row="1" Grid.Column="1"
                            Text="Custom File Transfer System"
                            FontFamily="Arial"
                            FontSize="40"
                            FontWeight="Bold"
                            Grid.ColumnSpan="12"/>
-
-                        <TextBlock x:Name="TbSuccessMessage"  Style="{StaticResource SuccessMessageStyle}" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
-                                   Text="Operation Successful!" Foreground="{StaticResource TextColorDefault}" Visibility="Visible" Padding="20,0" Width="Auto"/>
 
                         <TabControl Style="{StaticResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
                             <TabItem Style="{StaticResource TabItemStyle}" Header="DataGrid 1">
