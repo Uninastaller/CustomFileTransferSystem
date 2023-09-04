@@ -269,8 +269,9 @@ namespace SslTcpSession
             if (State == ClientBussinesLogicState.OFFERING_FILES_RECEIVING)
             {
                 State = ClientBussinesLogicState.OFFERING_FILES_RECEIVING;
-                if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto, out bool endOfMessageGroup))
+                if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto> offeringFileDto, out bool endOfMessageGroup))
                 {
+                    _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFileDto));
                     if (endOfMessageGroup)
                     {
                         Dispose();

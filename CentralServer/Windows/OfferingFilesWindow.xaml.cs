@@ -118,7 +118,7 @@ namespace CentralServer.Windows
         // Separated refresh logic into its own async method
         private async Task RefreshDataAsync()
         {
-            var offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithOnlyJsonGradesAsync(); // Await here
+            List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithOnlyJsonGradesAsync(); // Await here
             dtgOfferingFiles.ItemsSource = offeringFiles; // No need for explicit casting
         }
 

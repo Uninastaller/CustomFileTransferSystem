@@ -70,10 +70,10 @@ namespace Common.Model
             return false;
         }
 
-        public static bool EvaluateOfferingFileMessage(byte[] buffer, long offset, long size, out List<OfferingFileDto?> offeringFileDto, out bool endOdMessageGroup)
+        public static bool EvaluateOfferingFileMessage(byte[] buffer, long offset, long size, out List<OfferingFileDto> offeringFileDto, out bool endOdMessageGroup)
         {
 
-            offeringFileDto = new List<OfferingFileDto?>();
+            offeringFileDto = new List<OfferingFileDto>();
             bool succes = false;
             endOdMessageGroup = false;
 

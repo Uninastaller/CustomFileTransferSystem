@@ -2,14 +2,18 @@
 using Common.Model;
 using Common.ThreadMessages;
 using ConfigManager;
+using Logger;
 using SslTcpSession;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace Client.Windows
@@ -59,7 +63,9 @@ namespace Client.Windows
         private readonly SslContext _contextForCentralServerConnect;
         private IPAddress _centralServerIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
         private int _centralServerPort = 34258;
-        private ClientSocketState _connectionWithCentralServerSocketState = ClientSocketState.DISCONNECTED;
+        //private ClientSocketState _connectionWithCentralServerSocketState = ClientSocketState.DISCONNECTED;
+
+        private readonly ObservableCollection<OfferingFileDto> _offeringFiles = new ObservableCollection<OfferingFileDto>();
 
         #endregion PrivateFields
 
@@ -81,6 +87,7 @@ namespace Client.Windows
             }
 
             contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
+            contract.Add(MsgIds.OfferingFilesReceivedMessage, typeof(OfferingFilesReceivedMessage));
 
             if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 centralServerPort))
             {
@@ -107,16 +114,15 @@ namespace Client.Windows
 
             msgSwitch
              .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
              ;
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
 
-            new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-                typeOfSession: TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
+            //new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+            //    typeOfSession: TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
 
-            new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-                typeOfSession: TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
-
+            dtgOfferingFiles.ItemsSource = _offeringFiles;
         }
 
         private void WindowDesignSet()
@@ -153,9 +159,22 @@ namespace Client.Windows
 
         private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
-            if (message.TypeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER)
+            Log.WriteLog(LogLevel.DEBUG, "ClientSocketStateChangeMessageHandler");
+            if (message.ClientSocketState == ClientSocketState.CONNECTED)
             {
+                if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
+                {
+                    _offeringFiles.Clear();
+                }
+            }
+        }
 
+        private void OfferingFilesReceivedMessageHandler(List<OfferingFileDto> offeringFiles)
+        {
+            Log.WriteLog(LogLevel.DEBUG, "OfferingFilesReceivedMessageHandler");
+            foreach (var offeringFile in offeringFiles)
+            {
+                _offeringFiles.Add(offeringFile);
             }
         }
 
@@ -171,7 +190,6 @@ namespace Client.Windows
 
         private void Border_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-
             this.DragMove();
         }
 
@@ -196,6 +214,25 @@ namespace Client.Windows
             else
             {
                 this.WindowState = System.Windows.WindowState.Maximized; // Maximize window
+            }
+        }
+
+
+        private void btnDownloadOfferingFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+               Log.WriteLog(LogLevel.DEBUG, button.Name);          
+            }
+        }
+
+        private void btnOfferingFilesWindow_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
+                    typeOfSession: TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
             }
         }
 

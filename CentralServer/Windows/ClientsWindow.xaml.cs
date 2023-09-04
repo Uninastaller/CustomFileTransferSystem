@@ -48,11 +48,11 @@ namespace CentralServer.Windows
         {
             InitializeComponent();
 
-            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
-            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
-            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
-            _clients.Add(Guid.NewGuid(), new ServerClientsModel());
-            RefreshClientsDatagrid();
+            //_clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            //_clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            //_clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            //_clients.Add(Guid.NewGuid(), new ServerClientsModel());
+            //RefreshClientsDatagrid();
 
             _serverBussinesLogic = serverBussinesLogic;
 
@@ -128,7 +128,7 @@ namespace CentralServer.Windows
 
         private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
         {
-            return;
+            //return;
             _clients = message.Clients;
             RefreshClientsDatagrid();
         }

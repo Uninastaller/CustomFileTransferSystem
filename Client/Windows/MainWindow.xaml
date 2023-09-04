@@ -123,11 +123,54 @@
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="DataGrid 1">
 
                             </TabItem>
-                            <TabItem Style="{DynamicResource TabItemStyle}" Header="DataGrid 2">
-                                <DataGrid/>
+                            <TabItem Style="{DynamicResource TabItemStyle}" Header="Offering Files">
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>                                        
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorPressed}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnOfferingFilesWindow" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                                ToolTip="Download Offering Files from Central Server" Click="btnOfferingFilesWindow_Click"/>
+                                    </Grid>
+                                    
+                                    <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgOfferingFiles"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+                                        
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
+
+                                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Download identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnDownloadOfferingFile_Click" Tag="{Binding}" x:Name="btnDownloadOfferingFile"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            
+                                            <DataGridTextColumn Header="EndpointsAndGradesJson" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding EndpointsAndGradesJson}"/>
+
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                    
+                                </Grid>
+                                
                             </TabItem>
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="DataGrid 3">
-                                <DataGrid/>
                             </TabItem>
                         </TabControl>
 

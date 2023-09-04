@@ -10,6 +10,7 @@
         public static readonly int RefreshTablesMessage = 6;
         public static readonly int MessageReceiveMessage = 7;
         public static readonly int DisposeMessage = 8;
-        public static readonly int ServerSocketStateChangeMessage = 3;
+        public static readonly int ServerSocketStateChangeMessage = 9;
+        public static readonly int OfferingFilesReceivedMessage = 9;
     }
 }

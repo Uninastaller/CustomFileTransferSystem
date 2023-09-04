@@ -13,6 +13,8 @@
     <None Remove="Images\Close_MouseOver.png" />
     <None Remove="Images\Database_Default.png" />
     <None Remove="Images\Database_MouseOver.png" />
+    <None Remove="Images\Download_Default.png" />
+    <None Remove="Images\Download_MouseOver.png" />
     <None Remove="Images\Maximize_Default.png" />
     <None Remove="Images\Maximize_MouseOver.png" />
     <None Remove="Images\Minimize_Default.png" />
@@ -40,6 +42,12 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Database_MouseOver.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Download_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Download_MouseOver.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Maximize_Default.png">
