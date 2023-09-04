@@ -165,7 +165,6 @@ namespace Client.Windows
             if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
             {
                _offeringFiles.Clear();
-               btnDownloadOfferingFilesFromCetnralServer.IsEnabled = true;
             }
 
          }
@@ -174,6 +173,10 @@ namespace Client.Windows
             if (message.TypeOfSession == TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
             {
                btnUploadOfferingFileToCentralServer.IsEnabled = true;
+            }
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
+            {
+               btnDownloadOfferingFilesFromCetnralServer.IsEnabled = true;
             }
          }
       }
