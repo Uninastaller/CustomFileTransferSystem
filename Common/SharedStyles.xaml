@@ -7,7 +7,8 @@
     <SolidColorBrush x:Key="ButtonsColorDefault" Color="#741b0c"/>
     <SolidColorBrush x:Key="ButtonsColorMouseOver" Color="#793020"/>
     <SolidColorBrush x:Key="ButtonsColorPressed" Color="#5e2e23"/>
-    
+    <SolidColorBrush x:Key="ButtonsColorDisabled" Color="#80616161"/>
+
     <SolidColorBrush x:Key="TextColorDefault" Color="#050200"/>
     
     <SolidColorBrush x:Key="DatagridButtonBorderColor" Color="#150702"/>
@@ -533,6 +534,9 @@
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource ButtonsColorPressed}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource ButtonsColorDisabled}"/>
             </Trigger>
         </Style.Triggers>
     </Style>

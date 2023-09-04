@@ -128,6 +128,8 @@ namespace Client.Windows
          dtgOfferingFiles.ItemsSource = _offeringFiles;
       }
 
+      #region TemplateMethods
+
       private void WindowDesignSet()
       {
          // Generate random points
@@ -160,55 +162,44 @@ namespace Client.Windows
          gdMain.Background = newBrush;
       }
 
-      private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
+      private void ShowTimedMessageAndEnableUI(string message, TimeSpan duration, UIElement componentToEnable)
       {
-         Log.WriteLog(LogLevel.DEBUG, "ClientSocketStateChangeMessageHandler");
-         if (message.ClientSocketState == ClientSocketState.CONNECTED)
-         {
-            if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
-            {
-               _offeringFiles.Clear();
-            }
+         // Initialize and configure the DispatcherTimer
+         DispatcherTimer timer = new DispatcherTimer();
+         timer.Interval = duration;
 
-         }
-         else if (message.ClientSocketState == ClientSocketState.DISCONNECTED)
+         // Show the message
+         TbSuccessMessage.Visibility = Visibility.Visible;
+         TbSuccessMessage.Text = message;
+
+         // Subscribe to the Tick event
+         EventHandler tickEventHandler = null;
+         tickEventHandler = (sender, e) =>
          {
-            if (message.TypeOfSession == TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
-            {
-               ShowTemporaryMessage("Offering files uploading operations ended!", TimeSpan.FromSeconds(4));
-               btnUploadOfferingFilesToCentralServer.IsEnabled = true;
-            }
-            if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
-            {
-               ShowTemporaryMessage("Offering files downloading operation ended!", TimeSpan.FromSeconds(4));
-               btnDownloadOfferingFilesFromCetnralServer.IsEnabled = true;
-            }
-         }
+            // Hide the message
+            TbSuccessMessage.Visibility = Visibility.Collapsed;
+            TbSuccessMessage.Text = "";
+
+            // Stop the timer
+            timer.Stop();
+
+            // Unsubscribe from Tick event
+            timer.Tick -= tickEventHandler;
+
+            // Dispose the timer
+            timer = null;
+         };
+
+         // Enable the component
+         componentToEnable.IsEnabled = true;
+
+         timer.Tick += tickEventHandler;
+
+         // Start the timer
+         timer.Start();
       }
 
-      private void OfferingFilesReceivedMessageHandler(List<OfferingFileDto> offeringFiles)
-      {
-         Log.WriteLog(LogLevel.DEBUG, "OfferingFilesReceivedMessageHandler");
-         foreach (var offeringFile in offeringFiles)
-         {
-            _offeringFiles.Add(offeringFile);
-         }
-      }
-
-      private void SaveFileIdentificator(OfferingFileDto offeringFileDto)
-      {
-         string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
-         string filePath = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
-
-         if (!Directory.Exists(filePath))
-         {
-            Directory.CreateDirectory(filePath);
-         }
-         File.WriteAllText(Path.Combine(filePath, fileName), offeringFileDto.GetJson());
-         ShowTemporaryMessage("File Identificator Saved!", TimeSpan.FromSeconds(2));
-      }
-
-      private void ShowTemporaryMessage(string message, TimeSpan duration)
+      private void ShowTimedMessage(string message, TimeSpan duration)
       {
          // Initialize and configure the DispatcherTimer
          DispatcherTimer? timer = new DispatcherTimer();
@@ -241,6 +232,40 @@ namespace Client.Windows
          timer.Start();
       }
 
+      #endregion TemplateMethods
+
+      private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
+      {
+         Log.WriteLog(LogLevel.DEBUG, "ClientSocketStateChangeMessageHandler");
+         if (message.ClientSocketState == ClientSocketState.CONNECTED)
+         {
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
+            {
+               _offeringFiles.Clear();
+            }
+
+         }
+         else if (message.ClientSocketState == ClientSocketState.DISCONNECTED)
+         {
+            if (message.TypeOfSession == TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
+            {
+               ShowTimedMessageAndEnableUI("Offering files uploading operations ended!", TimeSpan.FromSeconds(4), btnUploadOfferingFilesToCentralServer);
+            }
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
+            {
+               ShowTimedMessageAndEnableUI("Offering files downloading operation ended!", TimeSpan.FromSeconds(4), btnDownloadOfferingFilesFromCetnralServer);
+            }
+         }
+      }
+
+      private void OfferingFilesReceivedMessageHandler(List<OfferingFileDto> offeringFiles)
+      {
+         Log.WriteLog(LogLevel.DEBUG, "OfferingFilesReceivedMessageHandler");
+         foreach (var offeringFile in offeringFiles)
+         {
+            _offeringFiles.Add(offeringFile);
+         }
+      }
 
       #endregion PrivateMethods
 
@@ -286,8 +311,18 @@ namespace Client.Windows
       {
          if (sender is Button button && button.Tag is OfferingFileDto offeringFileDto)
          {
+            button.IsEnabled = false;
             Log.WriteLog(LogLevel.DEBUG, button.Name);
-            SaveFileIdentificator(offeringFileDto);
+
+            string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
+            string filePath = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+
+            if (!Directory.Exists(filePath))
+            {
+               Directory.CreateDirectory(filePath);
+            }
+            File.WriteAllText(Path.Combine(filePath, fileName), offeringFileDto.GetJson());
+            ShowTimedMessageAndEnableUI("File Identificator Saved!", TimeSpan.FromSeconds(2), button);
          }
       }
 
