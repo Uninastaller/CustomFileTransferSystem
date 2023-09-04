@@ -33,18 +33,19 @@
         <Border CornerRadius="0" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
             
             <Grid>
-                <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
-                VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"/>
 
-                <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"
+                Height="25" Width="25"/>
+
+                <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
+                VerticalAlignment="Top" HorizontalAlignment="Right"
+                Height="25" Width="25"
                 Margin="0,0,25,0"/>
 
-                <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Grid.Column="0" Grid.Row="0" Panel.ZIndex="1"
+                <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"
+                Height="25" Width="25"
                 Margin="0,0,50,0"/>
 
                 <Label Content="Client Application" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"
@@ -146,10 +147,25 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="40"/>
                                             <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
                                             <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
-                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnOfferingFilesWindow" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
-                                                ToolTip="Download Offering Files from Central Server" Click="btnOfferingFilesWindow_Click"/>
+                                        
+                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnDownloadOfferingFilesFromCetnralServer" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
+                                                ToolTip="Download Offering Files from Central Server" Click="btnDownloadOfferingFilesFromCetnralServer_Click"/>
+                                        
+                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnUploadOfferingFileToCentralServer" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                                ToolTip="Upload Offering Files to Central Server" Click="btnUploadOfferingFileToCentralServer_Click" RenderTransformOrigin="0.5,0.5">
+                                            
+                                            <Button.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform/>
+                                                    <SkewTransform/>
+                                                    <RotateTransform Angle="180"/>
+                                                    <TranslateTransform/>
+                                                </TransformGroup>
+                                            </Button.RenderTransform>
+                                        </Button>
                                     </Grid>
                                     
                                     <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"

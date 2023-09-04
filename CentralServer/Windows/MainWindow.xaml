@@ -32,18 +32,19 @@
         <Border CornerRadius="0" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
 
             <Grid>
+
                 <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"/>
+                Height="25" Width="25"/>
 
                 <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"
+                Height="25" Width="25"
                 Margin="0,0,25,0"/>
 
                 <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
-                Height="20" Width="20"
+                Height="25" Width="25"
                 Margin="0,0,50,0"/>
 
                 <Label Content="Central Server" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"

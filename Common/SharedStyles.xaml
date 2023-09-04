@@ -17,6 +17,10 @@
     <SolidColorBrush x:Key="TabItemButtonColorMouseOver" Color="#B0793020"/>
     <SolidColorBrush x:Key="TabItemButtonColorPressed" Color="#D03e0f06"/>
 
+    <SolidColorBrush x:Key="ImageButtonsColorDefault" Color="#050200"/>
+    <SolidColorBrush x:Key="ImageButtonsColorMouseOver" Color="#741b0c"/>
+    <SolidColorBrush x:Key="ImageButtonsColorDisable" Color="Gray"/>
+
     <!--#endregion Colors-->
 
     <!--#region TabControlStyle-->
@@ -114,63 +118,26 @@
 
     <!--#endregion TabItemStyle-->
 
-    <!--#region CloseButtonStyle-->
+    <!--#region CloseButtonStyle-->    
 
-    <ImageBrush x:Key="CloseButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Close_MouseOver.png" Stretch="None"/>
-    <ImageBrush x:Key="CloseButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Close_Default.png" Stretch="None"/>
-
-    <Style x:Key="FocusVisual">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
-    <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
-    <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
-    <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
-    <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
-    <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
-    <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
-    <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
-    <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
     <Style x:Key="CloseButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-        <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="Padding" Value="1"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Close_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsDefaulted" Value="true">
-                            <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource CloseButtonImage_Default}"/>
-                            <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource CloseButtonImage_MouseOver}"/>
-                            <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="true">
-                            <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
-                            <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
-                            <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -182,22 +149,24 @@
 
     <!--#region MinimizeButtonImage-->
 
-    <ImageBrush x:Key="MinimizeButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Minimize_MouseOver.png" Stretch="None"/>
-    <ImageBrush x:Key="MinimizeButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Minimize_Default.png" Stretch="None"/>
-
-    <Style x:Key="MinimizeButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+    <Style x:Key="MinimizeButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Minimize_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsDefault" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource MinimizeButtonImage_Default}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource MinimizeButtonImage_MouseOver}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -207,24 +176,26 @@
 
     <!--#endregion MinimizeButtonImage-->
 
-    <!--#region MaximizedButtonStyle-->
+    <!--#region MaximizeButtonStyle-->
 
-    <ImageBrush x:Key="MaximizeButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Maximize_MouseOver.png" Stretch="None"/>
-    <ImageBrush x:Key="MaximizeButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Maximize_Default.png" Stretch="None"/>
-
-    <Style x:Key="MaximizeButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+    <Style x:Key="MaximizeButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Maximize_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource MaximizeButtonImage_Default}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource MaximizeButtonImage_MouseOver}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -232,27 +203,28 @@
         </Setter>
     </Style>
 
-    <!--#endregion MaximizedButtonStyle-->
+    <!--#endregion MaximizeButtonStyle-->
 
     <!--#region DatabaseButtonStyle-->
 
-    <ImageBrush x:Key="DatabaseButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Database_MouseOver.png" Stretch="Uniform"/>
-    <ImageBrush x:Key="DatabaseButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Database_Default.png" Stretch="Uniform"/>
-
-
-    <Style x:Key="DatabaseButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+    <Style x:Key="DatabaseButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Database_Default.png"  Stretch="Uniform"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource DatabaseButtonImage_Default}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource DatabaseButtonImage_MouseOver}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -264,22 +236,24 @@
 
     <!--#region ClientsButtonStyle-->
 
-    <ImageBrush x:Key="ClientButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Clients_MouseOver.png" Stretch="Uniform"/>
-    <ImageBrush x:Key="ClientButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Clients_Default.png" Stretch="Uniform"/>
-
-    <Style x:Key="ClientsButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+    <Style x:Key="ClientsButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Clients_Default.png" Stretch="Uniform"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource ClientButtonImage_Default}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource ClientButtonImage_MouseOver}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -291,22 +265,24 @@
 
     <!--#region DownloadButtonStyle-->
 
-    <ImageBrush x:Key="DownloadButtonImage_MouseOver" ImageSource="pack://application:,,,/Common;component/Images/Download_MouseOver.png" Stretch="None"/>
-    <ImageBrush x:Key="DownloadButtonImage_Default" ImageSource="pack://application:,,,/Common;component/Images/Download_Default.png" Stretch="None"/>
-
-    <Style x:Key="DownloadButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CloseButtonStyle}">
+    <Style x:Key="DownloadButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
-                        <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                    </Border>
+                    <Grid>
+                         <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Download_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource DownloadButtonImage_Default}"/>
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource DownloadButtonImage_MouseOver}"/>
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
