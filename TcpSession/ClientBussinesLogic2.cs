@@ -320,7 +320,7 @@ namespace TcpSession
         {
             Log.WriteLog(LogLevel.DEBUG, $"Tcp client disconnected from session with Id: {Id}");
 
-            if (_assignedFilePart != -1)
+            if (_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart != -1)
             {
                 _fileReceiver?.ReAssignFilePart(_assignedFilePart);
                 _assignedFilePart = 0;
