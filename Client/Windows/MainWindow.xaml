@@ -34,16 +34,16 @@
             
             <Grid>
 
-                <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
+                <Button Style="{StaticResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"/>
 
-                <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
+                <Button Style="{StaticResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"
                 Margin="0,0,25,0"/>
 
-                <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
+                <Button Style="{StaticResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"
                 Margin="0,0,50,0"/>
@@ -87,7 +87,7 @@
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
-                            <ColumnDefinition Width="100"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -130,11 +130,14 @@
                            FontWeight="Bold"
                            Grid.ColumnSpan="12"/>
 
-                        <TabControl Style="{DynamicResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
-                            <TabItem Style="{DynamicResource TabItemStyle}" Header="DataGrid 1">
+                        <TextBlock x:Name="TbSuccessMessage"  Style="{StaticResource SuccessMessageStyle}" Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
+                                   Text="Operation Successful!" Foreground="{StaticResource TextColorDefault}" Visibility="Visible" Padding="20,0" Width="Auto"/>
+
+                        <TabControl Style="{StaticResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
+                            <TabItem Style="{StaticResource TabItemStyle}" Header="DataGrid 1">
 
                             </TabItem>
-                            <TabItem Style="{DynamicResource TabItemStyle}" Header="Offering Files">
+                            <TabItem Style="{StaticResource TabItemStyle}" Header="Offering Files">
                                 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -150,12 +153,12 @@
                                             <RowDefinition Height="15"/>
                                             <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
-                                        
-                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnDownloadOfferingFilesFromCetnralServer" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
+
+                                        <Button Style="{StaticResource DownloadButtonStyle}" x:Name="btnDownloadOfferingFilesFromCetnralServer" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
                                                 ToolTip="Download Offering Files from Central Server" Click="btnDownloadOfferingFilesFromCetnralServer_Click"/>
-                                        
-                                        <Button Style="{DynamicResource DownloadButtonStyle}" x:Name="btnUploadOfferingFileToCentralServer" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
-                                                ToolTip="Upload Offering Files to Central Server" Click="btnUploadOfferingFileToCentralServer_Click" RenderTransformOrigin="0.5,0.5">
+
+                                        <Button Style="{StaticResource DownloadButtonStyle}" x:Name="btnUploadOfferingFilesToCentralServer" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                                ToolTip="Upload Offering Files to Central Server" Click="btnUploadOfferingFilesToCentralServer_Click" RenderTransformOrigin="0.5,0.5">
                                             
                                             <Button.RenderTransform>
                                                 <TransformGroup>
@@ -167,8 +170,8 @@
                                             </Button.RenderTransform>
                                         </Button>
                                     </Grid>
-                                    
-                                    <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
                                               Grid.Column="2"
                                               x:Name="dtgOfferingFiles"
                                               d:ItemsSource="{d:SampleData ItemCount=4}">
@@ -198,7 +201,9 @@
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Button Content="Download identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnDownloadOfferingFile_Click" Tag="{Binding}" x:Name="btnDownloadOfferingFile"/>
+                                                            <Button Content="Save Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnSaveFileIdentificator_Click" Tag="{Binding}" x:Name="btnSaveFileIdentificator">
+                                                                
+                                                            </Button>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>

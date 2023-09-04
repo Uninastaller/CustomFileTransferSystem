@@ -15,6 +15,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Client.Windows
 {
@@ -58,6 +59,9 @@ namespace Client.Windows
 
       #region PrivateFields
 
+      private const string _cftsDirectoryName = "CFTS";
+      private const string _cftsFileExtensions = ".cfts";
+
       //private IUniversalClientSocket? _socketToCentralServer;
       private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
       private readonly SslContext _contextForCentralServerConnect;
@@ -97,6 +101,8 @@ namespace Client.Windows
          _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
 
          Init();
+
+         TbSuccessMessage.Visibility = Visibility.Collapsed;
       }
 
       #endregion Ctor
@@ -118,9 +124,6 @@ namespace Client.Windows
           ;
 
          tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
-
-         //new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
-         //    typeOfSession: TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
 
          dtgOfferingFiles.ItemsSource = _offeringFiles;
       }
@@ -172,10 +175,12 @@ namespace Client.Windows
          {
             if (message.TypeOfSession == TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
             {
-               btnUploadOfferingFileToCentralServer.IsEnabled = true;
+               ShowTemporaryMessage("Offering files uploading operations ended!", TimeSpan.FromSeconds(4));
+               btnUploadOfferingFilesToCentralServer.IsEnabled = true;
             }
             if (message.TypeOfSession == TypeOfSession.DOWNLOADING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER)
             {
+               ShowTemporaryMessage("Offering files downloading operation ended!", TimeSpan.FromSeconds(4));
                btnDownloadOfferingFilesFromCetnralServer.IsEnabled = true;
             }
          }
@@ -189,6 +194,53 @@ namespace Client.Windows
             _offeringFiles.Add(offeringFile);
          }
       }
+
+      private void SaveFileIdentificator(OfferingFileDto offeringFileDto)
+      {
+         string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
+         string filePath = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+
+         if (!Directory.Exists(filePath))
+         {
+            Directory.CreateDirectory(filePath);
+         }
+         File.WriteAllText(Path.Combine(filePath, fileName), offeringFileDto.GetJson());
+         ShowTemporaryMessage("File Identificator Saved!", TimeSpan.FromSeconds(2));
+      }
+
+      private void ShowTemporaryMessage(string message, TimeSpan duration)
+      {
+         // Initialize and configure the DispatcherTimer
+         DispatcherTimer? timer = new DispatcherTimer();
+         timer.Interval = duration;
+
+         // Show the message
+         TbSuccessMessage.Visibility = Visibility.Visible;
+         TbSuccessMessage.Text = message;
+
+         // Subscribe to the Tick event
+         EventHandler? tickEventHandler = null;
+         tickEventHandler = (sender, e) =>
+         {
+            // Hide the message
+            TbSuccessMessage.Visibility = Visibility.Collapsed;
+            TbSuccessMessage.Text = "";
+
+            // Stop the timer
+            timer.Stop();
+
+            // Unsubscribe from Tick event
+            timer.Tick -= tickEventHandler;
+
+            // Dispose the timer
+            timer = null;
+         };
+         timer.Tick += tickEventHandler;
+
+         // Start the timer
+         timer.Start();
+      }
+
 
       #endregion PrivateMethods
 
@@ -230,11 +282,12 @@ namespace Client.Windows
       }
 
 
-      private void btnDownloadOfferingFile_Click(object sender, RoutedEventArgs e)
+      private void btnSaveFileIdentificator_Click(object sender, RoutedEventArgs e)
       {
-         if (sender is Button button)
+         if (sender is Button button && button.Tag is OfferingFileDto offeringFileDto)
          {
             Log.WriteLog(LogLevel.DEBUG, button.Name);
+            SaveFileIdentificator(offeringFileDto);
          }
       }
 
@@ -250,7 +303,7 @@ namespace Client.Windows
       }
 
 
-      private void btnUploadOfferingFileToCentralServer_Click(object sender, RoutedEventArgs e)
+      private void btnUploadOfferingFilesToCentralServer_Click(object sender, RoutedEventArgs e)
       {
          if (sender is Button button)
          {

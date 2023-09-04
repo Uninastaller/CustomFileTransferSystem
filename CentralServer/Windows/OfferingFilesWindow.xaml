@@ -18,17 +18,17 @@
     <Border CornerRadius="32" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Grid>
 
-            <Button Style="{DynamicResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
+            <Button Style="{StaticResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"
                 Margin="0,0,15,0"/>
 
-            <Button Style="{DynamicResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
+            <Button Style="{StaticResource MaximizeButtonStyle}" x:Name="btnMaximize" Content="" Click="btnMaximize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"
                 Margin="0,0,40,0"/>
 
-            <Button Style="{DynamicResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
+            <Button Style="{StaticResource MinimizeButtonStyle}" x:Name="btnMinimize" Content="" Click="btnMinimize_Click" Panel.ZIndex="1"
                 VerticalAlignment="Top" HorizontalAlignment="Right"
                 Height="25" Width="25"
                 Margin="0,0,65,0"/>
@@ -41,7 +41,7 @@
                Foreground="Gray"
                FontWeight="Bold"/>
 
-            <Button Style="{DynamicResource ButtonStyle1}" x:Name="btnRefreshData" Content="Refresh Data" Click="btnRefreshData_Click" Grid.Row="8" Grid.Column="1" Panel.ZIndex="1"
+            <Button Style="{StaticResource ButtonStyle1}" x:Name="btnRefreshData" Content="Refresh Data" Click="btnRefreshData_Click" Grid.Row="8" Grid.Column="1" Panel.ZIndex="1"
                     HorizontalAlignment="Left" VerticalAlignment="Bottom"
                     Margin="40,0,0,5"
                     FontSize="12"
@@ -99,10 +99,10 @@
                         </LinearGradientBrush>
                     </Grid.Background>
 
-                    
 
 
-                    <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+
+                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
                           Grid.Row="1" Grid.Column="1" Grid.RowSpan="10" Grid.ColumnSpan="12"
                           Margin="0"
                           x:Name="dtgOfferingFiles"

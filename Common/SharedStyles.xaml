@@ -7,21 +7,49 @@
     <SolidColorBrush x:Key="ButtonsColorDefault" Color="#741b0c"/>
     <SolidColorBrush x:Key="ButtonsColorMouseOver" Color="#793020"/>
     <SolidColorBrush x:Key="ButtonsColorPressed" Color="#5e2e23"/>
+    
     <SolidColorBrush x:Key="TextColorDefault" Color="#050200"/>
+    
     <SolidColorBrush x:Key="DatagridButtonBorderColor" Color="#150702"/>
+    
     <SolidColorBrush x:Key="DatagridRowColorDefault" Color="#7e3020"/>
     <SolidColorBrush x:Key="DatagridRowColorMouseOver" Color="#94301d"/>
     <SolidColorBrush x:Key="DatagridRowColorPressed" Color="#94301d"/>
     <SolidColorBrush x:Key="DatagridRowColorLostFocus" Color="#793020"/>
+    
     <SolidColorBrush x:Key="TabItemButtonColorDefault" Color="#805e2e23"/>
     <SolidColorBrush x:Key="TabItemButtonColorMouseOver" Color="#B0793020"/>
-    <SolidColorBrush x:Key="TabItemButtonColorPressed" Color="#D03e0f06"/>
+    <SolidColorBrush x:Key="TabItemButtonColorPressed" Color="#D03e0f06"/>    
 
     <SolidColorBrush x:Key="ImageButtonsColorDefault" Color="#050200"/>
     <SolidColorBrush x:Key="ImageButtonsColorMouseOver" Color="#741b0c"/>
     <SolidColorBrush x:Key="ImageButtonsColorDisable" Color="Gray"/>
 
+    <SolidColorBrush x:Key="SuccessMessageFakePopupColor" Color="#8062fcaf"/>
+
     <!--#endregion Colors-->
+
+    <!--#region SuccessMessageStyle-->
+
+    <Style x:Key="SuccessMessageStyle" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
+        <Setter Property="Visibility" Value="Visible"/>
+        <Setter Property="Padding" Value="20,0"/>
+        <Setter Property="Width" Value="Auto"/>
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="Transparent" Offset="0.0"/>
+                    <GradientStop Color="#8062fcaf" Offset="0.05"/>
+                    <GradientStop Color="#8062fcaf" Offset="0.95"/>
+                    <GradientStop Color="Transparent" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion SuccessMessageStyle-->
 
     <!--#region TabControlStyle-->
 

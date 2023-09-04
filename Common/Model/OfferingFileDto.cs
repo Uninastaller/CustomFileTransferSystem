@@ -7,7 +7,7 @@ namespace Common.Model
     public class OfferingFileDto
     {
         [JsonIgnore]
-        public string OfferingFileIdentificator => FileName + ResourceInformer.offeringFilesJoint + FileSize;
+        public string OfferingFileIdentificator => FileName + "_" + FileSize;
         [JsonIgnore]
         public string EndpointsAndGradesJson { get; set; } = string.Empty;
 
