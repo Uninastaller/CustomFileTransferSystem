@@ -7,11 +7,14 @@ using SslTcpSession;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -27,27 +30,7 @@ namespace Client.Windows
 
       #region Properties
 
-      //public ClientSocketState ConnectionWithCentralServerSocketState
-      //{
-      //    get => _connectionWithCentralServerSocketState;
-      //    set
-      //    {
-      //        _connectionWithCentralServerSocketState = value;
-      //        Log.WriteLog(LogLevel.INFO, "Connection With Central Server Socekt State Change To " + value);
 
-      //        switch (value)
-      //        {
-      //            case ClientSocketState.CONNECTED:
-      //                elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
-      //                break;
-      //            case ClientSocketState.DISCONNECTED:
-      //                elpServerStatus.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
-      //                break;
-      //            default:
-      //                break;
-      //        }
-      //    }
-      //}
 
       #endregion Properties
 
@@ -67,9 +50,9 @@ namespace Client.Windows
       private readonly SslContext _contextForCentralServerConnect;
       private IPAddress _centralServerIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
       private int _centralServerPort = 34258;
-      //private ClientSocketState _connectionWithCentralServerSocketState = ClientSocketState.DISCONNECTED;
 
       private readonly ObservableCollection<OfferingFileDto> _offeringFiles = new ObservableCollection<OfferingFileDto>();
+      private readonly ObservableCollection<OfferingFileDto> _localOfferingFiles = new ObservableCollection<OfferingFileDto>();
 
       #endregion PrivateFields
 
@@ -117,7 +100,6 @@ namespace Client.Windows
 
       private void Init()
       {
-
          msgSwitch
           .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
           .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
@@ -125,7 +107,76 @@ namespace Client.Windows
 
          tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
 
+         LoadLocalOfferingFiles();
          dtgOfferingFiles.ItemsSource = _offeringFiles;
+         dtgLocalOfferingFiles.ItemsSource = _localOfferingFiles;
+      }
+
+      private void LoadLocalOfferingFiles()
+      {
+         Log.WriteLog(LogLevel.DEBUG, "LoadLocalOfferingFiles");
+         string filesDirectory = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+         if (Directory.Exists(filesDirectory))
+         {
+            string[] files = Directory.GetFiles(filesDirectory);
+
+            // Filter the list to include only files with the desired extension
+            var filteredFiles = files.Where(f => Path.GetExtension(f).Equals(_cftsFileExtensions)).ToList();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+               string jsonString = File.ReadAllText(files[i]);    // Read content of file
+
+               Log.WriteLog(LogLevel.INFO, $"Reading content of file: {files[i]}, content: {jsonString}");
+               // Validate if conten is valid json
+               try
+               {
+                  // Attempt to parse the JSON string
+                  OfferingFileDto? offeringFileDto = OfferingFileDto.ToObjectFromJson(jsonString);
+                  if (offeringFileDto != null)
+                  {
+                     TryAddLocalOfferingFile(offeringFileDto);
+                  }
+
+               }
+               catch (JsonException ex)
+               {
+                  // Parsing failed, so the JSON is not valid
+                  Log.WriteLog(LogLevel.WARNING, "Content is invalid! " + ex.Message);
+               }
+            }
+         }
+      }
+
+      private void TryAddLocalOfferingFile(OfferingFileDto offeringFileDto)
+      {
+         if (!_localOfferingFiles.Contains(offeringFileDto))
+         {
+            OfferingFileDto? oldOfferingFileWithSameIdentificator = _localOfferingFiles.FirstOrDefault(x => x.OfferingFileIdentificator.Equals(offeringFileDto.OfferingFileIdentificator));
+            if (oldOfferingFileWithSameIdentificator != null)
+            {
+               _localOfferingFiles.Remove(oldOfferingFileWithSameIdentificator);
+            }
+            _localOfferingFiles.Add(offeringFileDto);
+         }
+      }
+
+      private void TryDeleteLocalOfferingFile(OfferingFileDto offeringFileDto)
+      {
+         // Delete from memmory of the program
+         if (_localOfferingFiles.Contains(offeringFileDto))
+         {
+            _localOfferingFiles.Remove(offeringFileDto);
+         }
+
+         // Delete from saved file
+         string filesDirectory = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+         string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
+         string filePath = Path.Combine(filesDirectory, fileName);
+         if (File.Exists(filePath))
+         {
+            File.Delete(filePath);
+         }
       }
 
       #region TemplateMethods
@@ -314,14 +365,18 @@ namespace Client.Windows
             button.IsEnabled = false;
             Log.WriteLog(LogLevel.DEBUG, button.Name);
 
-            string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
-            string filePath = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+            // Add him to memmory of running program
+            TryAddLocalOfferingFile(offeringFileDto);
 
-            if (!Directory.Exists(filePath))
+            // Save him for later
+            string fileName = offeringFileDto.OfferingFileIdentificator + _cftsFileExtensions;
+            string fileDirectory = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
+
+            if (!Directory.Exists(fileDirectory))
             {
-               Directory.CreateDirectory(filePath);
+               Directory.CreateDirectory(fileDirectory);
             }
-            File.WriteAllText(Path.Combine(filePath, fileName), offeringFileDto.GetJson());
+            File.WriteAllText(Path.Combine(fileDirectory, fileName), offeringFileDto.GetJson());
             ShowTimedMessageAndEnableUI("File Identificator Saved!", TimeSpan.FromSeconds(2), button);
          }
       }
@@ -346,6 +401,46 @@ namespace Client.Windows
             Log.WriteLog(LogLevel.DEBUG, button.Name);
             new SslClientBussinesLogic(_contextForCentralServerConnect, _centralServerIpAddress, _centralServerPort, this,
                 typeOfSession: TypeOfSession.UPDATING_OFFERING_FILES_SESSION_WITH_CENTRAL_SERVER, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
+         }
+      }
+
+
+      private void btnDeleteFileIdentificator_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button && button.Tag is OfferingFileDto offeringFileDto)
+         {
+            button.IsEnabled = false;
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+            TryDeleteLocalOfferingFile(offeringFileDto);
+            ShowTimedMessageAndEnableUI("File Identificator Removed!", TimeSpan.FromSeconds(2), button);
+         }
+      }
+
+      private void btnUploadingDirectory_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+            string uploadingDirectory = MyConfigManager.GetConfigValue("UploadingDirectory");
+            if (!string.IsNullOrEmpty(uploadingDirectory) && Directory.Exists(uploadingDirectory))
+            {
+               Process.Start("explorer.exe", uploadingDirectory);
+            }
+         }
+      }
+
+      private void btnDownloadingDirectory_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+            string downloadingDirectory = MyConfigManager.GetConfigValue("DownloadingDirectory");
+            if (!string.IsNullOrEmpty(downloadingDirectory) && Directory.Exists(downloadingDirectory))
+            {
+               Process.Start("explorer.exe", downloadingDirectory);
+            }
          }
       }
 

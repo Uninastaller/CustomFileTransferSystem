@@ -67,7 +67,11 @@
                             <ColumnDefinition Width="10"/>
                         </Grid.ColumnDefinitions>
 
-                        
+                        <Button Style="{StaticResource UploadingDirectoryButtonStyle}" x:Name="btnUploadingDirectory" Content="" Click="btnUploadingDirectory_Click" Grid.Column="1" Margin="0,0,0,0"
+                            ToolTip="Open uploading directory"/>
+
+                        <Button Style="{StaticResource DownloadingDirectoryButtonStyle}" x:Name="btnDownloadingDirectory" Content="" Click="btnDownloadingDirectory_Click" Grid.Column="2" Margin="0,0,0,0"
+                            ToolTip="Open downloading directory"/>
 
                     </Grid>
                 </Border>
@@ -137,6 +141,9 @@
                             <TabItem Style="{StaticResource TabItemStyle}" Header="DataGrid 1">
 
                             </TabItem>
+                            
+                            <!--// OFFERING FILES TAB //-->
+                            
                             <TabItem Style="{StaticResource TabItemStyle}" Header="Offering Files">
                                 
                                 <Grid>
@@ -158,8 +165,7 @@
                                                 ToolTip="Download Offering Files from Central Server" Click="btnDownloadOfferingFilesFromCetnralServer_Click"/>
 
                                         <Button Style="{StaticResource DownloadButtonStyle}" x:Name="btnUploadOfferingFilesToCentralServer" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
-                                                ToolTip="Upload Offering Files to Central Server" Click="btnUploadOfferingFilesToCentralServer_Click" RenderTransformOrigin="0.5,0.5">
-                                            
+                                                ToolTip="Upload Offering Files to Central Server" Click="btnUploadOfferingFilesToCentralServer_Click" RenderTransformOrigin="0.5,0.5">                                            
                                             <Button.RenderTransform>
                                                 <TransformGroup>
                                                     <ScaleTransform/>
@@ -169,6 +175,7 @@
                                                 </TransformGroup>
                                             </Button.RenderTransform>
                                         </Button>
+                                        
                                     </Grid>
 
                                     <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
@@ -215,7 +222,70 @@
                                 </Grid>
                                 
                             </TabItem>
-                            <TabItem Style="{DynamicResource TabItemStyle}" Header="DataGrid 3">
+
+                            <!--// LOCA: OFFERING FILES TAB //-->
+
+                            <TabItem Style="{DynamicResource TabItemStyle}" Header="Local Offering Files">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>                                        
+                                        
+                                    </Grid>
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgLocalOfferingFiles"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.RowDetailsTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding EndpointsAndGrades}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding Key}" Margin="5"/>
+                                                                <TextBlock Text=":" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value}" Margin="5"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGrid.RowDetailsTemplate>
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
+
+                                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Delete Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnDeleteFileIdentificator_Click" Tag="{Binding}" x:Name="btnDeleteFileIdentificator"/>
+                                                            <Button Content="Start Downloading" Style="{StaticResource DataGridButtonStyle}" Click="btnDeleteFileIdentificator_Click" Tag="{Binding}" x:Name="btnStartDownloading"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                </Grid>
+
                             </TabItem>
                         </TabControl>
 

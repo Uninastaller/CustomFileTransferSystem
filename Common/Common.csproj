@@ -10,9 +10,11 @@
     <None Remove="Images\Clients_Default.png" />
     <None Remove="Images\Close_Default.png" />
     <None Remove="Images\Database_Default.png" />
+    <None Remove="Images\DownloadingDirectory_Default.png" />
     <None Remove="Images\Download_Default.png" />
     <None Remove="Images\Maximize_Default.png" />
     <None Remove="Images\Minimize_Default.png" />
+    <None Remove="Images\UploadingDirectory_Default.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +31,9 @@
     <Resource Include="Images\Database_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Images\DownloadingDirectory_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\Download_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -36,6 +41,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Minimize_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\UploadingDirectory_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
