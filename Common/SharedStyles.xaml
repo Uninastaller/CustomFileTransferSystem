@@ -18,14 +18,6 @@
     <SolidColorBrush x:Key="TabItemButtonColorPressed" Color="#D03e0f06"/>
 
     <!--#endregion Colors-->
-    
-    <!--#region ResizeGripStyle-->
-
-    <Style x:Name="ResizeGripStyle" TargetType="{x:Type ResizeGrip}">
-        <Setter Property="Margin"  Value="20"/>
-    </Style>
-
-    <!--#region ResizeGripStyle-->
 
     <!--#region TabControlStyle-->
 

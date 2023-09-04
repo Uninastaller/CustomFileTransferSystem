@@ -103,6 +103,7 @@
 
                     <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
                           Grid.Row="1" Grid.Column="1" Grid.RowSpan="10" Grid.ColumnSpan="12"
+                          Margin="0"
                           x:Name="dtgOfferingFiles"
                           d:ItemsSource="{d:SampleData ItemCount=4}">
                         <DataGrid.Columns>

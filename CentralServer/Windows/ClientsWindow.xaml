@@ -94,6 +94,7 @@
                     <DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
                           Grid.Row="1" Grid.Column="1" Grid.RowSpan="10" Grid.ColumnSpan="12"
                           x:Name="dtgClients"
+                          Margin="0"
                           d:ItemsSource="{d:SampleData ItemCount=4}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="#" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding SessionGuid}"/>
