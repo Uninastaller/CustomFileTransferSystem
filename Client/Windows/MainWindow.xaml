@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Title="MainWindow" 
         Height="600"
-        Width="1000"
+        Width="1400"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -138,7 +138,73 @@
                            Grid.ColumnSpan="12"/>
 
                         <TabControl Style="{StaticResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
-                            <TabItem Style="{StaticResource TabItemStyle}" Header="DataGrid 1">
+                            <TabItem Style="{StaticResource TabItemStyle}" Header="Downloading">
+
+                            <!--// Downloading TAB //-->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+
+
+                                    </Grid>
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgDownloading"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.RowDetailsTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding Clients}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="EndPoint:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Endpoint}" Margin="5"/>
+                                                                <TextBlock Text="SocketType:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Type}" Margin="5"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGrid.RowDetailsTemplate>
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.FileName}"/>
+                                            <DataGridTextColumn Header="TransferReceiveRate" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding TransferReceiveRateFormatedAsText}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.FileSize}"/>
+                                            <DataGridTextColumn Header="TotalParts" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.TotalParts}"/>
+                                            <DataGridTextColumn Header="DownloadedParts" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.NumberOfDownloadedParts}"/>
+                                            <DataGridTextColumn Header="% Downloaded" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.PercentageDownload}"/>
+                                            <DataGridTextColumn Header="DownloadingTime" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.DownloadingTime}"/>
+
+
+                                            <!--<DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Pause" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnPause"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>-->
+
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                </Grid>
 
                             </TabItem>
                             

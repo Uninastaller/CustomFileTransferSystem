@@ -22,7 +22,6 @@ namespace SslTcpSession
 
       #region Properties
 
-      public string IpAndPort => Socket.LocalEndPoint?.ToString() ?? string.Empty;
       public TypeOfClientSocket Type { get; }
       public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferSendRate);
       public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
@@ -357,10 +356,10 @@ namespace SslTcpSession
          }
          TransferReceiveRate = 0;
          TransferSendRate = 0;
-         _fileReceiver = null;
+         //_fileReceiver = null;
          base.Dispose(disposingManagedResources);
          _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession));
-         _gui = null;
+         //_gui = null;
       }
 
       protected override void OnConnected()

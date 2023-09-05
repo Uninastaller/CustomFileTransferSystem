@@ -76,11 +76,11 @@ namespace Common.Model
             bool succes = session.SendAsync(buffer, 0, bytesRead + flag.Length + sizeof(long));
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Part file: {partNumber}, was sended to client: {session.IpAndPort}!");
+                Log.WriteLog(LogLevel.DEBUG, $"Part file: {partNumber}, was sended to client: {session.Endpoint}!");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unabled to send part file: {partNumber}, to client: {session.IpAndPort}!");
+                Log.WriteLog(LogLevel.WARNING, $"Unabled to send part file: {partNumber}, to client: {session.Endpoint}!");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -92,11 +92,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Request for file was generated for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Request for file was generated for file: {fileName} with size: {fileSize}, to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send request for file: {fileName} with size: {fileSize}, to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -107,11 +107,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Reject was generated to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Reject was generated to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send reject to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send reject to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -122,11 +122,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Accept was generated to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Accept was generated to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send accept to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send accept to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -138,11 +138,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Request for file part was generated for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Request for file part was generated for file part No.: {filePart} with size: {partSize}, to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send request for file part No.: {filePart} with size: {partSize}, to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -153,11 +153,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Offering file request was generated to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file request was generated to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file request to client: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file request to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
@@ -171,11 +171,11 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Offering file was generated, to session: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file was generated, to session: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file, to session: {session.IpAndPort}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file, to session: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }

@@ -60,7 +60,7 @@ namespace Client.Windows
       private readonly ObservableCollection<OfferingFileDto> _offeringFiles = new ObservableCollection<OfferingFileDto>();
       private readonly ObservableCollection<OfferingFileDto> _localOfferingFiles = new ObservableCollection<OfferingFileDto>();
 
-      private List<DownloadModelObject> _downloadModels = new List<DownloadModelObject>();
+      private ObservableCollection<DownloadModelObject> _downloadModels = new ObservableCollection<DownloadModelObject>();
 
       #endregion PrivateFields
 
@@ -121,6 +121,7 @@ namespace Client.Windows
          LoadLocalOfferingFiles();
          dtgOfferingFiles.ItemsSource = _offeringFiles;
          dtgLocalOfferingFiles.ItemsSource = _localOfferingFiles;
+         dtgDownloading.ItemsSource = _downloadModels;
       }
 
       private void LoadLocalOfferingFiles()
@@ -493,7 +494,7 @@ namespace Client.Windows
             Log.WriteLog(LogLevel.DEBUG, button.Name);
 
             DownloadingStart(offeringFileDto);
-
+            ShowTimedMessageAndEnableUI("Start of Downloading operation done!", TimeSpan.FromSeconds(2), button);
          }
       }
 
@@ -504,6 +505,19 @@ namespace Client.Windows
          {
             Log.WriteLog(LogLevel.DEBUG, $"Creating new Download model fo identificator: {offeringFileDto.OfferingFileIdentificator}");
             NewDownloadingStart(offeringFileDto);
+         }
+         else
+         {
+            Log.WriteLog(LogLevel.DEBUG, $"Downloading already exist: {offeringFileDto.OfferingFileIdentificator}, refreshing cliets");
+            ExistingDownloadingStart(downloadModelObject, offeringFileDto);
+         }
+      }
+
+      private void ExistingDownloadingStart(DownloadModelObject downloadModelObject, OfferingFileDto offeringFileDto)
+      {
+         foreach (KeyValuePair<string, EndpointProperties> endPointsAndProperties in offeringFileDto.EndpointsAndProperties)
+         {
+            TryCreateNewDownloadingClientBusinessLogic(downloadModelObject, endPointsAndProperties.Key, endPointsAndProperties.Value.TypeOfServerSocket);
          }
       }
 
