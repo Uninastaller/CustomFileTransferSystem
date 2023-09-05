@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\SslTcpSession\SslTcpSession.csproj" />
+    <ProjectReference Include="..\TcpSession\TcpSession.csproj" />
   </ItemGroup>
 
 </Project>

@@ -79,10 +79,10 @@ namespace SslTcpSession
         {
             get
             {
-                if (IsConnected && Socket != null && Socket.LocalEndPoint != null)
-                {
-                    return ((IPEndPoint)Socket.LocalEndPoint).Port;
-                }
+                //if (IsConnected && Socket != null && Socket.LocalEndPoint != null)
+                //{
+                //    return ((IPEndPoint)Socket.LocalEndPoint).Port;
+                //}
                 return _port;
             }
             private set
