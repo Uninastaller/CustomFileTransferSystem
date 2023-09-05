@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -54,13 +55,12 @@ namespace Client.Windows
       private SslContext _contextForP2pAsClient;
 
       private readonly SslContext _contextForCentralServerConnect;
-      //private IPAddress _centralServerIpAddress = NetworkUtils.GetLocalIPAddress() ?? IPAddress.Loopback;
-      //private int _centralServerPort = 34258;
 
       private readonly ObservableCollection<OfferingFileDto> _offeringFiles = new ObservableCollection<OfferingFileDto>();
       private readonly ObservableCollection<OfferingFileDto> _localOfferingFiles = new ObservableCollection<OfferingFileDto>();
 
       private ObservableCollection<DownloadModelObject> _downloadModels = new ObservableCollection<DownloadModelObject>();
+
 
       #endregion PrivateFields
 
@@ -84,11 +84,9 @@ namespace Client.Windows
          contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
          contract.Add(MsgIds.OfferingFilesReceivedMessage, typeof(OfferingFilesReceivedMessage));
          contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
+         //contract.Add(MsgIds.RefreshTablesMessage, typeof(RefreshTablesMessage));
 
-         //if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 centralServerPort))
-         //{
-         //    _centralServerPort = centralServerPort;
-         //}
+         //Closed += Window_closedEvent;
 
          _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
          _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -113,6 +111,7 @@ namespace Client.Windows
          msgSwitch
           .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
           .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
+          //.Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
           .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
           ;
 
@@ -553,7 +552,7 @@ namespace Client.Windows
 
       private void TryCreateNewDownloadingClientBusinessLogic(DownloadModelObject downloadModelObject, string ipAddressAndPort, TypeOfServerSocket typeOfServerSocket)
       {
-         if(NetworkUtils.TryGetIPEndPointFromString(ipAddressAndPort, out IPEndPoint iPEndPoint))
+         if (NetworkUtils.TryGetIPEndPointFromString(ipAddressAndPort, out IPEndPoint iPEndPoint))
          {
             if (!downloadModelObject.Clients.Any(client => client.Endpoint.ToString().Equals(iPEndPoint.ToString())))
             {
@@ -565,6 +564,7 @@ namespace Client.Windows
                      typeOfSession: TypeOfSession.DOWNLOADING);
 
                   downloadModelObject.Clients.Add(socket);
+                  downloadModelObject.IsDownloading = true;
                   //_p2PMasterClass.CreateNewClient(socket);
                }
                if (typeOfServerSocket == TypeOfServerSocket.TCP_SERVER_SSL)
@@ -575,19 +575,29 @@ namespace Client.Windows
                      typeOfSession: TypeOfSession.DOWNLOADING);
 
                   downloadModelObject.Clients.Add(socket);
+                  downloadModelObject.IsDownloading = true;
                   //_p2PMasterClass.CreateNewClient(socket);
                }
             }
          }
       }
 
-      #endregion Events
+      private void btnPauseDownload_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button && tbMyTabControl.SelectedIndex == 0 && dtgDownloading.SelectedItem is DownloadModelObject downloadModelObject)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+            downloadModelObject.IsDownloading = false;
+         }
 
-      #region OverridedMethods
+         #endregion Events
+
+         #region OverridedMethods
 
 
 
-      #endregion OverridedMethods
+         #endregion OverridedMethods
 
+      }
    }
 }

@@ -227,7 +227,7 @@ namespace SslTcpSession
         /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
         public virtual bool Connect()
         {
-            if (IsConnected || IsHandshaked || IsConnecting || IsHandshaking)
+            if (IsConnected || IsHandshaked || IsConnecting || IsHandshaking || IsDisposed)
                 return false;
 
             // Setup buffers
@@ -455,7 +455,7 @@ namespace SslTcpSession
         /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
         public virtual bool ConnectAsync()
         {
-            if (IsConnected || IsHandshaked || IsConnecting || IsHandshaking)
+            if (IsConnected || IsHandshaked || IsConnecting || IsHandshaking || IsDisposed)
                 return false;
 
             // Setup buffers

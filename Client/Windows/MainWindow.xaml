@@ -137,7 +137,7 @@
                            FontWeight="Bold"
                            Grid.ColumnSpan="12"/>
 
-                        <TabControl Style="{StaticResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
+                        <TabControl x:Name="tbMyTabControl" Style="{StaticResource TabControlStyle}" Grid.Row="2" Grid.Column="1" Grid.RowSpan="9" Grid.ColumnSpan="12">
                             <TabItem Style="{StaticResource TabItemStyle}" Header="Downloading">
 
                             <!--// Downloading TAB //-->
@@ -156,6 +156,8 @@
                                             <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
 
+                                        <Button Style="{StaticResource PauseButtonStyle}" x:Name="btnPauseDownload" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                                ToolTip="PauseDownload" Click="btnPauseDownload_Click"/>
 
                                     </Grid>
 
@@ -189,6 +191,7 @@
                                             <DataGridTextColumn Header="DownloadedParts" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.NumberOfDownloadedParts}"/>
                                             <DataGridTextColumn Header="% Downloaded" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.PercentageDownload}"/>
                                             <DataGridTextColumn Header="DownloadingTime" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.DownloadingTime}"/>
+                                            <DataGridTextColumn Header="IsDownloading" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding IsDownloading}"/>
 
 
                                             <!--<DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">

@@ -102,8 +102,6 @@ namespace Common.Model
          _fileNameDownloading = Path.ChangeExtension(_fileName, ".tmp");
          _fileNameDownloadingStatus = Path.ChangeExtension(_fileName, DownloadingStatusFileController.downloadingStatusFileControllerFileExtension);
 
-         _downloadingTime.Start();
-
          Log.WriteLog(LogLevel.DEBUG, $"Resuming downloading, number of downloaded parts is: {NumberOfDownloadedParts}!");
       }
 
@@ -123,8 +121,6 @@ namespace Common.Model
          _totalParts = CalculateTotalPartsCount(fileSize, partSize);
          _receivedParts = new FilePartState[_totalParts];
          _lastPartSize = CalculateLastPartSize(fileSize, partSize);
-
-         _downloadingTime.Start();
 
          Log.WriteLog(LogLevel.DEBUG, "Starting downloading from beginning!");
 
@@ -277,6 +273,16 @@ namespace Common.Model
             NoPartsForAsignmentLeft = true;
             return -1; // There are no part that are waiting for asignment
          }
+      }
+
+      public void PauseTimer()
+      {
+         _downloadingTime.Stop();
+      }
+
+      public void StartTimer()
+      {
+         _downloadingTime.Start();
       }
 
       #endregion PublicMethods

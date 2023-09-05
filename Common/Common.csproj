@@ -14,6 +14,7 @@
     <None Remove="Images\Download_Default.png" />
     <None Remove="Images\Maximize_Default.png" />
     <None Remove="Images\Minimize_Default.png" />
+    <None Remove="Images\Pause_Default.png" />
     <None Remove="Images\UploadingDirectory_Default.png" />
   </ItemGroup>
 
@@ -41,6 +42,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Minimize_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Pause_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\UploadingDirectory_Default.png">

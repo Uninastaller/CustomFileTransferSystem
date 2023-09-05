@@ -379,6 +379,35 @@
 
     <!--#endregion DownloadingDirectoryButtonStyle-->
 
+    <!--#region PauseButtonStyle-->
+
+    <Style x:Key="PauseButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Pause_Default.png" Stretch="Uniform"/>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion DownloadingDirectoryButtonStyle-->
+
     <!--#region TextBlockStyle1-->
 
     <Style x:Key="TextBlockStyle1" TargetType="{x:Type TextBlock}">

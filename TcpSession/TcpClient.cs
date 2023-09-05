@@ -205,7 +205,7 @@ namespace TcpSession
         /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
         public virtual bool Connect()
         {
-            if (IsConnected || IsConnecting)
+            if (IsConnected || IsConnecting || IsDisposed)
                 return false;
 
             // Setup buffers
@@ -393,7 +393,7 @@ namespace TcpSession
         /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
         public virtual bool ConnectAsync()
         {
-            if (IsConnected || IsConnecting)
+            if (IsConnected || IsConnecting || IsDisposed)
                 return false;
 
             // Setup buffers
