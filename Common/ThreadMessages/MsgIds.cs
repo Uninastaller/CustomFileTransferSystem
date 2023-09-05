@@ -11,6 +11,6 @@
         public static readonly int MessageReceiveMessage = 7;
         public static readonly int DisposeMessage = 8;
         public static readonly int ServerSocketStateChangeMessage = 9;
-        public static readonly int OfferingFilesReceivedMessage = 9;
+        public static readonly int OfferingFilesReceivedMessage = 10;
     }
 }

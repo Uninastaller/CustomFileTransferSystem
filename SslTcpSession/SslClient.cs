@@ -1,4 +1,5 @@
 ﻿using Common.Model;
+using Logger;
 using System;
 using System.Net;
 using System.Net.Security;
@@ -14,7 +15,7 @@ namespace SslTcpSession
     /// SSL client is used to read/write data from/into the connected SSL server
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class SslClient :  BaseSession, IDisposable
+    public class SslClient : BaseSession, IDisposable
     {
         /// <summary>
         /// Initialize SSL client with a given server IP address and port number
@@ -22,7 +23,8 @@ namespace SslTcpSession
         /// <param name="context">SSL context</param>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public SslClient(SslContext context, IPAddress address, int port, int optionReceiveBufferSize, int optionSendBufferSize) : this(context, new IPEndPoint(address, port)) {
+        public SslClient(SslContext context, IPAddress address, int port, int optionReceiveBufferSize, int optionSendBufferSize) : this(context, new IPEndPoint(address, port))
+        {
             OptionReceiveBufferSize = optionReceiveBufferSize;
             OptionSendBufferSize = optionSendBufferSize;
         }
@@ -1198,15 +1200,6 @@ namespace SslTcpSession
             // refer to reference type fields because those objects may
             // have already been finalized."
 
-            Socket?.Close();
-            Socket = null;
-            _sslStream?.Close();
-            _sslStream = null;
-            (_sslStream as IDisposable)?.Dispose(); // added line
-
-
-
-
             if (!IsDisposed)
             {
                 if (disposingManagedResources)
@@ -1216,8 +1209,17 @@ namespace SslTcpSession
                 }
 
                 // Dispose unmanaged resources here...
-
                 // Set large fields to null here...
+                Socket = null;
+                (_sslStream as IDisposable)?.Dispose();
+                _sslStream = null;
+                Endpoint = null;
+                _connectEventArg?.Dispose();
+                _connectEventArg = null;
+                _flagSwitch = null;
+                //_receiveBuffer = null;
+                //_sendBufferFlush = null;
+                //_sendBufferMain = null;
 
                 // Mark as disposed.
                 IsDisposed = true;

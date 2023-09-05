@@ -1,6 +1,7 @@
 ﻿using Common.Model;
 using System;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -1081,9 +1082,6 @@ namespace TcpSession
             // refer to reference type fields because those objects may
             // have already been finalized."
 
-            Socket?.Close();
-            Socket = null;
-
             if (!IsDisposed)
             {
                 if (disposingManagedResources)
@@ -1095,6 +1093,18 @@ namespace TcpSession
                 // Dispose unmanaged resources here...
 
                 // Set large fields to null here...
+                Socket = null;
+                Endpoint = null;
+                //_connectEventArg?.Dispose();
+                //_connectEventArg = null;
+                //_receiveEventArg?.Dispose();
+                //_receiveEventArg = null;
+                //_sendEventArg?.Dispose();
+                //_sendEventArg = null;
+                _flagSwitch = null;
+                //_receiveBuffer = null;
+                //_sendBufferFlush = null;
+                //_sendBufferMain = null;
 
                 // Mark as disposed.
                 IsDisposed = true;

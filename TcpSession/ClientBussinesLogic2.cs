@@ -68,6 +68,8 @@ namespace TcpSession
 
         private long _disconnectTime = 0;
 
+        private bool _stopAndDispose = false;
+
         #endregion PrivateFields
 
         #region Ctor
@@ -115,15 +117,7 @@ namespace TcpSession
         {
             _stop = true;
 
-            DisconnectAsync();
-
-            if (_timer != null)
-            {
-                _timer.Elapsed -= OneSecondHandler;
-                _timer.Stop();
-                _timer.Dispose();
-                _timer = null;
-            }
+            DisconnectAsync();            
 
             while (IsConnected)
                 Thread.Yield();
@@ -140,7 +134,7 @@ namespace TcpSession
             {
                 State = ClientBussinesLogicState.NONE;
                 Log.WriteLog(LogLevel.DEBUG, "File is completly transfered");
-                this.Dispose();
+                StopAndDispose();
                 return;
             }
             else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
@@ -169,7 +163,7 @@ namespace TcpSession
             {
                 State = ClientBussinesLogicState.NONE;
                 Log.WriteLog(LogLevel.DEBUG, "File is completly transfered");
-                this.Dispose();
+                StopAndDispose();
                 return;
             }
             else if (_assignedFilePart + 1 == _fileReceiver.TotalParts)
@@ -198,6 +192,19 @@ namespace TcpSession
                 State = ClientBussinesLogicState.REQUEST_SENDED;
         }
 
+        private void StopAndDispose()
+        {
+            if (_stopAndDispose)
+            {
+                return;
+            }
+
+            _stopAndDispose = true;
+
+            _stop = true;
+            Dispose();
+        }
+
         #endregion PrivateMethods
 
         #region EventHandler
@@ -220,7 +227,7 @@ namespace TcpSession
             else if (++_disconnectTime == 10)
             {
                 Log.WriteLog(LogLevel.WARNING, "Unable to connect to the server. Disposing socked!");
-                Dispose();
+                StopAndDispose();
             }
 
             TransferSendRate = BytesSent - _secondOldBytesSent;
@@ -237,7 +244,7 @@ namespace TcpSession
             {
                 Log.WriteLog(LogLevel.DEBUG, "Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
                 MessageBox.Show("Request for file was rejected!");
-                this.Dispose();
+                StopAndDispose();
             }
         }
 
@@ -295,7 +302,16 @@ namespace TcpSession
         {
             Log.WriteLog(LogLevel.DEBUG, $"Tcp client with Id {Id} is being disposed");
 
-            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT));
+            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession));
+
+            if (_timer != null)
+            {
+                _timer.Elapsed -= OneSecondHandler;
+                _timer.Stop();
+                _timer.Dispose();
+                _timer = null;
+            }
+
             TransferReceiveRate = 0;
             TransferSendRate = 0;
             DisconnectAndStop();

@@ -180,7 +180,7 @@ namespace SslTcpSession
 
         protected override void OnDispose()
         {
-            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER));
+            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, _typeOfSession));
 
             if (_timer != null)
             {
