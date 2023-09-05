@@ -136,7 +136,7 @@ namespace Common.Model
 
       public static void CreateJsonFile(string ipAddress, int port, FileInfo fileInfo)
       {
-         var offeringFileDto = new OfferingFileDto($"{ipAddress}:{port}")
+         var offeringFileDto = new OfferingFileDto($"{ipAddress}:{port}", Enum.TypeOfServerSocket.TCP_SERVER)
          {
             FileName = fileInfo.Name,
             FileSize = fileInfo.Length,

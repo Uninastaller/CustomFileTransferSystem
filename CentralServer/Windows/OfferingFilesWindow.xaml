@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Title="OfferingFilesWindow"
         Height="450"
-        Width="800"
+        Width="900"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -111,7 +111,7 @@
                             <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
                             <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
                             <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
-                            <DataGridTextColumn Header="EndpointsAndGradesJson" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding EndpointsAndGradesJson}"/>                            
+                            <DataGridTextColumn Header="EndpointsAndPropertiesJson" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding EndpointsAndPropertiesJson}"/>                            
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

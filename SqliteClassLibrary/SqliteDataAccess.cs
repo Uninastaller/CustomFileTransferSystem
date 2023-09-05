@@ -1,4 +1,5 @@
-﻿using Common.Model;
+﻿using Common.Enum;
+using Common.Model;
 using Dapper;
 using System.Collections.Generic;
 using System.Configuration;
@@ -10,186 +11,184 @@ using System.Threading.Tasks;
 
 namespace CentralServer
 {
-    public class SqliteDataAccess
-    {
+   public class SqliteDataAccess
+   {
 
-        #region Properties
-
-
-
-        #endregion Properties
-
-        #region PublicFields
+      #region Properties
 
 
 
-        #endregion PublicFields
+      #endregion Properties
 
-        #region PrivateFields
-
-
-
-        #endregion PrivateFields
-
-        #region ProtectedFields
+      #region PublicFields
 
 
 
-        #endregion ProtectedFields
+      #endregion PublicFields
 
-        #region Ctor
+      #region PrivateFields
+
+      private static string QueryToFetchAllOfferingFilesDto => @"
+            SELECT
+                o.OfferingFileIdentificator,
+                o.FileName,
+                o.FileSize,
+                CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, json_object('Grade', e.Grade, 'TypeOfServerSocket', e.TypeOfServerSocket)) ELSE NULL END AS EndpointsAndPropertiesJson
+            FROM OfferingFiles o
+            LEFT JOIN EndpointsAndProperties e ON o.OfferingFileIdentificator = e.OfferingFileId
+            GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
+
+      #endregion PrivateFields
+
+      #region ProtectedFields
 
 
 
-        #endregion Ctor
+      #endregion ProtectedFields
 
-        #region PublicMethods
+      #region Ctor
 
-        public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithOnlyJsonGradesAsync()
-        {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+
+
+      #endregion Ctor
+
+      #region PublicMethods
+
+      public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithEndpointsAsync()
+      {
+         var offeringFiles = await ExecuteQueryForOfferingFiles(QueryToFetchAllOfferingFilesDto);
+         DeserializeEndpointProperties(offeringFiles);
+         return offeringFiles;
+      }
+
+      private static async Task<List<OfferingFileDto>> ExecuteQueryForOfferingFiles(string query)
+      {
+         using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+         {
+            return (await cnn.QueryAsync<OfferingFileDto>(query).ConfigureAwait(false)).ToList();
+         }
+      }
+
+      private static void DeserializeEndpointProperties(List<OfferingFileDto> offeringFiles)
+      {
+         foreach (var offeringFile in offeringFiles)
+         {
+            if (!string.IsNullOrEmpty(offeringFile.EndpointsAndPropertiesJson))
             {
-                string query = @"
-                    SELECT
-                        o.OfferingFileIdentificator,
-                        o.FileName,
-                        o.FileSize,
-                        CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, e.Grade) ELSE NULL END AS EndpointsAndGradesJson
-                    FROM OfferingFiles o
-                    LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
-                    GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
-
-                return (await cnn.QueryAsync<OfferingFileDto>(query).ConfigureAwait(false)).ToList();
+               offeringFile.EndpointsAndProperties = JsonSerializer.Deserialize<Dictionary<string, EndpointProperties>>(offeringFile.EndpointsAndPropertiesJson);
             }
-        }
+         }
+      }
 
-        public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithGradesAsync()
-        {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+      public static async Task<List<OfferingFileDto>> GetAllOfferingFilesWithOnlyJsonEndpointsAsync()
+      {
+         return await ExecuteQueryForOfferingFiles(QueryToFetchAllOfferingFilesDto);
+      }
+
+      public static async Task<OfferingFileDto> GetOfferingFileWithEndpointsByIdAsync(string offeringFileId)
+      {
+         using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+         {
+            string query = @"
+                  SELECT
+                      o.OfferingFileIdentificator,
+                      o.FileName,
+                      o.FileSize,
+                      CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, json_object('Grade', e.Grade, 'TypeOfServerSocket', e.TypeOfServerSocket)) ELSE NULL END AS EndpointsAndPropertiesJson
+                  FROM OfferingFiles o
+                  LEFT JOIN EndpointsAndProperties e ON o.OfferingFileIdentificator = e.OfferingFileId
+                  WHERE o.OfferingFileIdentificator = @OfferingFileId
+                  GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
+
+            var offeringFile = await cnn.QuerySingleOrDefaultAsync<OfferingFileDto>(query, new { OfferingFileId = offeringFileId });
+
+            if (offeringFile != null && !string.IsNullOrEmpty(offeringFile.EndpointsAndPropertiesJson))
             {
-                string query = @"
-                    SELECT
-                        o.OfferingFileIdentificator,
-                        o.FileName,
-                        o.FileSize,
-                        CASE WHEN COUNT(e.Id) > 0 THEN json_group_object(e.Endpoint, e.Grade) ELSE NULL END AS EndpointsAndGradesJson
-                    FROM OfferingFiles o
-                    LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
-                    GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
-
-                var offeringFiles = (await cnn.QueryAsync<OfferingFileDto>(query).ConfigureAwait(false)).ToList();
-
-                foreach (var offeringFile in offeringFiles)
-                {
-                    if (!string.IsNullOrEmpty(offeringFile.EndpointsAndGradesJson))
-                    {
-                        offeringFile.EndpointsAndGrades = JsonSerializer.Deserialize<Dictionary<string, int>>(offeringFile.EndpointsAndGradesJson);
-                    }
-                }
-
-                return offeringFiles;
+               offeringFile.EndpointsAndProperties = JsonSerializer.Deserialize<Dictionary<string, EndpointProperties>>(offeringFile.EndpointsAndPropertiesJson);
             }
-        }
 
-        public static async Task<OfferingFileDto> GetOfferingFileWithGradesByIdAsync(string offeringFileId)
-        {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            return offeringFile;
+         }
+      }
+
+      public static async Task InsertOrUpdateOfferingFileDtoAsync(OfferingFileDto offeringFileDto)
+      {
+         using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+         {
+            cnn.Open();
+            using (IDbTransaction transaction = cnn.BeginTransaction())
             {
-                string query = @"
-                    SELECT
-                        o.OfferingFileIdentificator,
-                        o.FileName,
-                        o.FileSize,
-                        json_group_object(e.Endpoint, e.Grade) AS EndpointsAndGradesJson
-                    FROM OfferingFiles o
-                    LEFT JOIN EndpointsAndGrades e ON o.OfferingFileIdentificator = e.OfferingFileId
-                    WHERE o.OfferingFileIdentificator = @OfferingFileId
-                    GROUP BY o.OfferingFileIdentificator, o.FileName, o.FileSize";
+               // Insert the offering file or ignore if it already exists
+               await cnn.ExecuteAsync("INSERT OR IGNORE INTO OfferingFiles (OfferingFileIdentificator, FileName, FileSize) VALUES (@OfferingFileIdentificator, @FileName, @FileSize)",
+                  offeringFileDto, transaction: transaction);
 
-                var offeringFile = await cnn.QuerySingleOrDefaultAsync<OfferingFileDto>(query, new { OfferingFileId = offeringFileId });
-
-                if (offeringFile != null && !string.IsNullOrEmpty(offeringFile.EndpointsAndGradesJson))
-                {
-                    offeringFile.EndpointsAndGrades = JsonSerializer.Deserialize<Dictionary<string, int>>(offeringFile.EndpointsAndGradesJson);
-                }
-
-                return offeringFile;
+               // Set the grade to 0 for existing endpoints, insert new endpoints
+               foreach (KeyValuePair<string, EndpointProperties> endpointAndProperties in offeringFileDto.EndpointsAndProperties)
+               {
+                  await cnn.ExecuteAsync(@"INSERT OR REPLACE INTO EndpointsAndProperties (OfferingFileId, Endpoint, TypeOfServerSocket)
+                     VALUES (@OfferingFileId, @Endpoint, @TypeOfServerSocket)",
+                     new { OfferingFileId = offeringFileDto.OfferingFileIdentificator, Endpoint = endpointAndProperties.Key, endpointAndProperties.Value.TypeOfServerSocket }, transaction: transaction);
+               }
+               transaction.Commit();
             }
-        }
+         }
+      }
 
-        public static async Task InsertOrUpdateOfferingFileDtoAsync(OfferingFileDto offeringFileDto)
-        {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+      public static async Task InsertOfferingFileDtoAsync(OfferingFileDto offeringFileDto)
+      {
+         using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+         {
+            cnn.Open();
+            using (IDbTransaction transaction = cnn.BeginTransaction())
             {
-                cnn.Open();
-                using (IDbTransaction transaction = cnn.BeginTransaction())
-                {
-                    // Insert the offering file or ignore if it already exists
-                    await cnn.ExecuteAsync("INSERT OR IGNORE INTO OfferingFiles (OfferingFileIdentificator, FileName, FileSize) VALUES (@OfferingFileIdentificator, @FileName, @FileSize)", offeringFileDto);
+               // Execute the query asynchronously
+               await cnn.ExecuteAsync("INSERT INTO OfferingFiles (OfferingFileIdentificator, FileName, FileSize) VALUES (@OfferingFileIdentificator, @FileName, @FileSize)",
+                                       offeringFileDto,
+                                       transaction: transaction);
 
-                    // Set the grade to 0 for existing endpoints, insert new endpoints
-                    foreach (KeyValuePair<string, int> endpointAndGrade in offeringFileDto.EndpointsAndGrades)
-                    {
-                        await cnn.ExecuteAsync(@"INSERT OR REPLACE INTO EndpointsAndGrades (OfferingFileId, Endpoint, Grade) VALUES (@OfferingFileId, @Endpoint, 0)", new { OfferingFileId = offeringFileDto.OfferingFileIdentificator, Endpoint = endpointAndGrade.Key });
-                    }
-                    transaction.Commit();
-                }
+               foreach (KeyValuePair<string, EndpointProperties> endpointAndProperties in offeringFileDto.EndpointsAndProperties)
+               {
+                  // Execute the query asynchronously
+                  await cnn.ExecuteAsync("INSERT INTO EndpointsAndProperties (OfferingFileId, Endpoint, Grade, TypeOfServerSocket) VALUES (@OfferingFileId, @Endpoint, @Grade, @TypeOfServerSocket)",
+                         new { OfferingFileId = offeringFileDto.OfferingFileIdentificator,
+                            Endpoint = endpointAndProperties.Key, Grade = endpointAndProperties.Value,
+                            TypeOfServerSocket = endpointAndProperties.Value.TypeOfServerSocket },
+                           transaction: transaction);
+               }
+               transaction.Commit();
             }
-        }
-
-        public static async Task InsertOfferingFileDtoAsync(OfferingFileDto offeringFileDto)
-        {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-            {
-                cnn.Open();
-                using (IDbTransaction transaction = cnn.BeginTransaction())
-                {
-                    // Execute the query asynchronously
-                    await cnn.ExecuteAsync("INSERT INTO OfferingFiles (OfferingFileIdentificator, FileName, FileSize) VALUES (@OfferingFileIdentificator, @FileName, @FileSize)",
-                                            offeringFileDto,
-                                            transaction: transaction);
-
-                    foreach (KeyValuePair<string, int> endpointAndGrade in offeringFileDto.EndpointsAndGrades)
-                    {
-                        // Execute the query asynchronously
-                        await cnn.ExecuteAsync("INSERT INTO EndpointsAndGrades (OfferingFileId, Endpoint, Grade) VALUES (@OfferingFileId, @Endpoint, @Grade)",
-                               new { OfferingFileId = offeringFileDto.OfferingFileIdentificator, Endpoint = endpointAndGrade.Key, Grade = endpointAndGrade.Value },
-                               transaction: transaction);
-                    }
-                    transaction.Commit();
-                }
-            }
-        }
+         }
+      }
 
 
-        #endregion PublicMethods
+      #endregion PublicMethods
 
-        #region PrivateMethods
+      #region PrivateMethods
 
-        private static string LoadConnectionString(string id = "Default")
-        {
-            return ConfigurationManager.ConnectionStrings[id].ConnectionString;
-        }
+      private static string LoadConnectionString(string id = "Default")
+      {
+         return ConfigurationManager.ConnectionStrings[id].ConnectionString;
+      }
 
-        #endregion PrivateMethods
+      #endregion PrivateMethods
 
-        #region ProtectedMethods
+      #region ProtectedMethods
 
 
 
-        #endregion ProtectedMethods
+      #endregion ProtectedMethods
 
-        #region Events
-
-
-
-        #endregion Events
-
-        #region OverridedMethods
+      #region Events
 
 
 
-        #endregion OverridedMethods
+      #endregion Events
 
-    }
+      #region OverridedMethods
+
+
+
+      #endregion OverridedMethods
+
+   }
 }

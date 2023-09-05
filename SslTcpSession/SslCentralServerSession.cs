@@ -89,7 +89,7 @@ namespace SslTcpSession
         private async Task SendOfferingFilesToClient()
         {
             ServerSessionState = ServerSessionState.OFFERING_FILES_SENDING;
-            List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithGradesAsync();
+            List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithEndpointsAsync();
             for (int i = 0; i < offeringFiles.Count; i++)
             {
                 FlagMessagesGenerator.GenerateOfferingFile(offeringFiles[i].GetJson(), i == offeringFiles.Count - 1, this);

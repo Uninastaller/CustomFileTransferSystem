@@ -185,13 +185,16 @@
 
                                         <DataGrid.RowDetailsTemplate>
                                             <DataTemplate>
-                                                <ItemsControl ItemsSource="{Binding EndpointsAndGrades}">
+                                                <ItemsControl ItemsSource="{Binding EndpointsAndProperties}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="EndPoint:" Margin="5"/>
                                                                 <TextBlock Text="{Binding Key}" Margin="5"/>
-                                                                <TextBlock Text=":" Margin="5"/>
-                                                                <TextBlock Text="{Binding Value}" Margin="5"/>
+                                                                <TextBlock Text="Health:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.Grade}" Margin="5"/>
+                                                                <TextBlock Text="SocketType:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.TypeOfServerSocket}" Margin="5"/>
                                                             </StackPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
@@ -251,13 +254,16 @@
 
                                         <DataGrid.RowDetailsTemplate>
                                             <DataTemplate>
-                                                <ItemsControl ItemsSource="{Binding EndpointsAndGrades}">
+                                                <ItemsControl ItemsSource="{Binding EndpointsAndProperties}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="EndPoint:" Margin="5"/>
                                                                 <TextBlock Text="{Binding Key}" Margin="5"/>
-                                                                <TextBlock Text=":" Margin="5"/>
-                                                                <TextBlock Text="{Binding Value}" Margin="5"/>
+                                                                <TextBlock Text="Health:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.Grade}" Margin="5"/>
+                                                                <TextBlock Text="SocketType:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.TypeOfServerSocket}" Margin="5"/>
                                                             </StackPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>

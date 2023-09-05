@@ -126,3 +126,117 @@ char: 16-bit Unicode character. Memory: 2 bytes.
 Boolean Data Type:
 
 bool: Represents true or false values. Memory: Typically 1 byte. 
+
+
+
+
+// nested datagrid for dictionary
+<DataGrid Style="{DynamicResource DataGridStyle1}" 
+          CellStyle="{DynamicResource DataGridCellStyle1}"
+          ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" 
+          RowStyle="{DynamicResource DataGridRowStyle1}"
+          Grid.Column="2"
+          x:Name="dtgOfferingFiles"
+          d:ItemsSource="{d:SampleData ItemCount=4}">
+              
+    <DataGrid.Columns>
+        <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
+        
+        <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Download identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnDownloadOfferingFile_Click" Tag="{Binding}" x:Name="btnDownloadOfferingFile"/>
+                    </StackPanel>
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- Column to show EndpointsAndGrades dictionary -->
+        <DataGridTemplateColumn Header="EndpointsAndGrades" Width="auto">
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <ListView ItemsSource="{Binding EndpointsAndGrades}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Endpoint" Width="100" DisplayMemberBinding="{Binding Path=Key}"/>
+                                <GridViewColumn Header="Grade" Width="50" DisplayMemberBinding="{Binding Path=Value}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+    </DataGrid.Columns>
+</DataGrid>
+
+// Default
+<DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgOfferingFiles"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
+
+                                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Save Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnSaveFileIdentificator_Click" Tag="{Binding}" x:Name="btnSaveFileIdentificator"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+
+// With detail
+<DataGrid Style="{DynamicResource DataGridStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" RowStyle="{DynamicResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgOfferingFiles"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.RowDetailsTemplate>
+                                            <DataTemplate>
+                                                <ItemsControl ItemsSource="{Binding EndpointsAndProperties}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="EndPoint:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Key}" Margin="5"/>
+                                                                <TextBlock Text="Health:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.Grade}" Margin="5"/>
+                                                                <TextBlock Text="SocketType:" Margin="5"/>
+                                                                <TextBlock Text="{Binding Value.TypeOfServerSocket}" Margin="5"/>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DataTemplate>
+                                        </DataGrid.RowDetailsTemplate>
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="OfferingFileIdentificator" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding OfferingFileIdentificator}"/>
+                                            <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileName}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileSize}"/>
+
+                                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Save Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnSaveFileIdentificator_Click" Tag="{Binding}" x:Name="btnSaveFileIdentificator"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
+                                            
+                                        </DataGrid.Columns>
+                                    </DataGrid>
