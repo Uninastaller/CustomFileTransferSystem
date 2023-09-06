@@ -13,7 +13,7 @@ namespace Common
     {
         private bool _isOnLeft = true;
         public bool IsInProgress { get; private set; } = false;
-        public double ProgressTime { get; set; } = 2;
+        public double ProgressTime { get; set; } = 1;
 
         public bool IsOnLeft
         {

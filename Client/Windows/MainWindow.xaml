@@ -142,7 +142,7 @@
                             <TabItem Style="{StaticResource TabItemStyle}" Header="Downloading">
 
                             <!--// Downloading TAB //-->
-                                <Grid>
+                                <Grid Margin="5,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>
                                         <ColumnDefinition Width="5"/>
@@ -216,8 +216,8 @@
                             <!--// OFFERING FILES TAB //-->
                             
                             <TabItem Style="{StaticResource TabItemStyle}" Header="Offering Files">
-                                
-                                <Grid>
+
+                                <Grid Margin="5,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>
                                         <ColumnDefinition Width="5"/>
@@ -301,7 +301,7 @@
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Local Offering Files">
 
-                                <Grid>
+                                <Grid Margin="5,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>
                                         <ColumnDefinition Width="5"/>
@@ -369,7 +369,7 @@
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
 
-                                <Grid>
+                                <Grid Margin="5,0,0,0">
                                     
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto"/>
@@ -380,12 +380,20 @@
                                     <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="40"/>
+                                            <RowDefinition Height="10"/>
                                             <RowDefinition Height="40"/>
-                                            <RowDefinition Height="15"/>
-                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="10"/>
+                                            <RowDefinition Height="40"/>
                                         </Grid.RowDefinitions>
 
-                                        <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="TcpSocket" RightText="TcpSslSocket" Grid.Row="1" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="25,0"/>
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                   Text="Controls"
+                                                   FontFamily="Arial"                           
+                                                   FontSize="30"
+                                                   FontWeight="ExtraBold"/>
+                                        
+                                        <common:CustomSwitchWithText x:Name="swchSocketState" LeftText="OFF" RightText="ON" Grid.Row="2" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="0,0,30,0"/>
+                                        <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="TcpSocket" RightText="TcpSslSocket" Grid.Row="4" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="25,0"/>
 
                                     </Grid>
                                     

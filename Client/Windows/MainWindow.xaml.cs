@@ -51,7 +51,10 @@ namespace Client.Windows
         //private IUniversalClientSocket? _socketToCentralServer;
         private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
         private readonly string _certificateNameForP2pAsClient = "MyTestCertificateClient.pfx";
+        private readonly string _certificateNameForP2pAsServer = "MyTestCertificateServer.pfx";
+
         private SslContext _contextForP2pAsClient;
+        private SslContext _contextForP2pAsServer;
 
         private readonly SslContext _contextForCentralServerConnect;
 
@@ -59,6 +62,8 @@ namespace Client.Windows
         private readonly ObservableCollection<OfferingFileDto> _localOfferingFiles = new ObservableCollection<OfferingFileDto>();
 
         private ObservableCollection<DownloadModelObject> _downloadModels = new ObservableCollection<DownloadModelObject>();
+
+        private IUniversalServerSocket? _uploadingServerBussinessLogic;
 
 
         #endregion PrivateFields
@@ -88,6 +93,7 @@ namespace Client.Windows
             //Closed += Window_closedEvent;
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+            _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
 
             Init();
@@ -593,6 +599,12 @@ namespace Client.Windows
             }
 
         }
+
+        private void CustomSwitchWithText_Switched(object sender, EventArgs e)
+        {
+
+        }
+
         #endregion Events
 
         #region OverridedMethods
@@ -601,9 +613,5 @@ namespace Client.Windows
 
         #endregion OverridedMethods
 
-        private void CustomSwitchWithText_Switched(object sender, EventArgs e)
-        {
-
-        }
     }
 }
