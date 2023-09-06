@@ -197,24 +197,16 @@
                                             <DataGridTemplateColumn Header="% Downloaded">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <Grid Width="100">
-                                                            <Rectangle Name="BaseRectangle" Fill="Gray" Opacity="0.3"/>
-                                                            <Rectangle Name="ProgressRectangle" Fill="Green" Opacity="0.5" HorizontalAlignment="Left">
-                                                                <Rectangle.Width>
-                                                                    <MultiBinding Converter="{StaticResource PercentageToWidthConverter}">
-                                                                        <Binding Path="FileReceiver.PercentageDownload"/>
-                                                                        <Binding ElementName="BaseRectangle" Path="ActualWidth"/>
-                                                                    </MultiBinding>
-                                                                </Rectangle.Width>
-                                                            </Rectangle>
-                                                            <TextBlock Text="{Binding FileReceiver.PercentageDownload, StringFormat={}{0}%}" 
-                                                                        VerticalAlignment="Center" 
-                                                                        HorizontalAlignment="Center" 
-                                                                        Foreground="Black"/>
+                                                        <Grid>
+                                                            <ProgressBar Maximum="100" Minimum="0" Value="{Binding FileReceiver.PercentageDownload, Mode=OneWay}" 
+                                                                         Foreground="Green" Opacity="0.5" />
+                                                            <TextBlock Text="{Binding FileReceiver.PercentageDownload, StringFormat='{}{0}%'}" 
+                                                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                                         </Grid>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
+
                                             <DataGridTextColumn Header="DownloadingTime" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.DownloadingTime}"/>
                                             <DataGridTextColumn Header="IsDownloading" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding IsDownloading}"/>
                                          
@@ -376,6 +368,13 @@
                                 </Grid>
 
                             </TabItem>
+
+                            <!--// UPLOADING SERVER SOCKET TAB //-->
+
+                            <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
+                                
+                            </TabItem>
+
                         </TabControl>
 
 
