@@ -49,11 +49,13 @@ namespace TcpSession
         private long _secondOldBytesSent;
         private long _secondOldBytesReceived;
 
+        private TypeOfSession _typeOfSession;
+
         #endregion PrivateFields
 
         #region Ctor
 
-        public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024) : base(address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
+        public ServerBussinesLogic2(IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
             Type = TypeOfServerSocket.TCP_SERVER;
             _gui = gui;
@@ -62,6 +64,7 @@ namespace TcpSession
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
+            _typeOfSession = typeOfSession;
         }
 
         #endregion Ctor
@@ -230,12 +233,12 @@ namespace TcpSession
 
         protected override void OnStarted()
         {
-
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STARTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnStopped()
         {
-
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STOPPED, TypeOfSession = _typeOfSession });
         }
 
         #endregion OverridedMethods

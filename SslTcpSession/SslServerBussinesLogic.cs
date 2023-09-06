@@ -239,12 +239,12 @@ namespace SslTcpSession
 
         protected override void OnStarted()
         {
-            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STARTED });
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STARTED, TypeOfSession = _typeOfSession });
         }
 
         protected override void OnStopped()
         {
-            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STOPPED });
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STOPPED, TypeOfSession = _typeOfSession });
         }
 
         #endregion OverridedMethods

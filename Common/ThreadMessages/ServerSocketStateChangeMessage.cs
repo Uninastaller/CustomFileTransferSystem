@@ -1,5 +1,6 @@
 ﻿using Common.Enum;
 using Common.Model;
+using System;
 
 namespace Common.ThreadMessages
 {
@@ -9,7 +10,9 @@ namespace Common.ThreadMessages
         {
         }
 
-        //public TypeOfSession TypeOfSession { get; set; }
+        //public TypeOfServerSocket TypeOfServerSocket { get; set; }
+        public TypeOfSession TypeOfSession { get; set; }
         public ServerSocketState ServerSocketState { get; set; }
+        //public Guid Id { get; set; }
     }
 }

@@ -34,7 +34,36 @@ namespace Client.Windows
 
         #region Properties
 
+        public ServerSocketState UploadingServerSocketState
+        {
+            get => _uploadingServerSocketState;
+            private set
+            {
+                if (_uploadingServerSocketState != value)
+                {
+                    _uploadingServerSocketState = value;
+                    Log.WriteLog(LogLevel.INFO, "Uploading Server Socket State Change To " + value);
 
+                    switch (value)
+                    {
+                        case ServerSocketState.STARTED:
+                            elpUploadingServerSocketState.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
+                            ShowTimedMessage("Server started!", TimeSpan.FromSeconds(2));
+                            tbServerIpAddressVariable.Text = _uploadingServerBussinessLogic?.Address;
+                            tbServerPortVariable.Text = _uploadingServerBussinessLogic?.Port.ToString();
+                            break;
+                        case ServerSocketState.STOPPED:
+                            elpUploadingServerSocketState.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
+                            ShowTimedMessage("Server stopped!", TimeSpan.FromSeconds(2));
+                            tbServerIpAddressVariable.Text = string.Empty;
+                            tbServerPortVariable.Text = string.Empty;
+                            break;
+                        default:
+                            break;
+                    }
+                }                
+            }
+        }
 
         #endregion Properties
 
@@ -45,6 +74,8 @@ namespace Client.Windows
         #endregion PublicFields
 
         #region PrivateFields
+
+        private ServerSocketState _uploadingServerSocketState = ServerSocketState.STOPPED;
 
         private const string _cftsDirectoryName = "CFTS";
         private const string _cftsFileExtensions = ".cfts";
@@ -89,9 +120,7 @@ namespace Client.Windows
             contract.Add(MsgIds.ClientSocketStateChangeMessage, typeof(ClientSocketStateChangeMessage));
             contract.Add(MsgIds.OfferingFilesReceivedMessage, typeof(OfferingFilesReceivedMessage));
             contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
-            //contract.Add(MsgIds.RefreshTablesMessage, typeof(RefreshTablesMessage));
-
-            //Closed += Window_closedEvent;
+            contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -100,6 +129,8 @@ namespace Client.Windows
             Init();
 
             tbSuccessMessage.Visibility = Visibility.Collapsed;
+            tbServerIpAddressVariable.Text = string.Empty;
+            tbServerPortVariable.Text = string.Empty;
         }
 
         #endregion Ctor
@@ -118,6 +149,7 @@ namespace Client.Windows
              .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
              .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x))
              ;
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
@@ -301,9 +333,20 @@ namespace Client.Windows
 
         #endregion TemplateMethods
 
+        private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"ServerSocketStateChangeMessageHandler TypeOfSession: {message.TypeOfSession}, ServerSocketState: {message.ServerSocketState}");
+
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING)
+            {
+                UploadingServerSocketState = message.ServerSocketState;
+            }
+        }
+
         private void DisposeMessageHandler(DisposeMessage message)
         {
-            Log.WriteLog(LogLevel.DEBUG, "DisposeMessageHandler");
+            Log.WriteLog(LogLevel.DEBUG, $"DisposeMessageHandler " +
+                $"id:{message.SessionGuid}, TypeOfSocket: {message.TypeOfSocket}, TypeOfSession: {message.TypeOfSession}, IsPurposeFullfilled: {message.IsPurposeFullfilled}");
 
             if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.CLIENT)
             {
@@ -603,23 +646,83 @@ namespace Client.Windows
 
         private void swchSocketState_Switched(object sender, EventArgs e)
         {
-            if (sender is CustomSwitchWithText customSwitchWithText)
-            {
-                Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
+            if (!(sender is CustomSwitchWithText customSwitchWithText)) return;
 
-                // Starting socket
-                if (customSwitchWithText.IsOnLeft)
+            Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
+
+            TypeOfServerSocket typeOfServerSocket = swchSocketType.IsOnLeft ? TypeOfServerSocket.TCP_SERVER : TypeOfServerSocket.TCP_SERVER_SSL;
+
+            // Starting socket
+            if (!customSwitchWithText.IsOnLeft && (_uploadingServerBussinessLogic == null || !_uploadingServerBussinessLogic.IsStarted))
+            {
+
+                // Check for valid ip address
+                IPAddress? iPAddress = NetworkUtils.GetLocalIPAddress();
+                if (iPAddress == null)
                 {
-                    // Choosing between tcp and ssltcp
-                    if (swchSocketType.IsOnLeft)
+                    Log.WriteLog(LogLevel.ERROR, "Invalid ipAdress!");
+                    return;
+                }
+
+                // Check for valid port
+                if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out int port))
+                {
+                    Log.WriteLog(LogLevel.ERROR, "Invalid port!");
+                    return;
+                }
+
+                // Check if there is already server socket, and if is, then if he have same address, port and type
+                if (_uploadingServerBussinessLogic != null && iPAddress.ToString().Equals(_uploadingServerBussinessLogic.Address) && _uploadingServerBussinessLogic.Port == port
+                    && typeOfServerSocket == _uploadingServerBussinessLogic.Type)
+                {
+                    // Socket we need already exist
+                    if (!_uploadingServerBussinessLogic.IsStarted)
                     {
-                        // TCP
+                        // Start, if its not started
+                        _uploadingServerBussinessLogic.Start();
+                        Log.WriteLog(LogLevel.INFO, $"Socket for uploading with ip: {iPAddress}, port: {port}, type: {_uploadingServerBussinessLogic.Type} exist and starting!");
                     }
                     else
                     {
-                        // SSL TCP
+                        Log.WriteLog(LogLevel.INFO, $"Socket for uploading with ip: {iPAddress}, port: {port}, type: {_uploadingServerBussinessLogic.Type} exist and already started!");
                     }
                 }
+                else
+                {
+                    // There is no server socket, or we want different parameters
+                    // Clear presious socket if exist
+                    _uploadingServerBussinessLogic?.Stop();
+                    _uploadingServerBussinessLogic?.Dispose();
+
+
+                    // Check for valid free port
+                    if (!NetworkUtils.IsPortFree(port, iPAddress))
+                    {
+                        Log.WriteLog(LogLevel.WARNING, $"Port: {port} is not free!");
+                        port = NetworkUtils.GetRandomFreePort(iPAddress);
+                    }
+
+                    // Choosing between tcp and ssltcp to create
+                    if (typeOfServerSocket == TypeOfServerSocket.TCP_SERVER)
+                    {
+                        // TCP
+                        Log.WriteLog(LogLevel.INFO, $"Starting Tcp socket in ip: {iPAddress}, port: {port}");
+                        _uploadingServerBussinessLogic = new ServerBussinesLogic2(iPAddress, port, this, optionAcceptorBacklog: 2);
+                    }
+                    else
+                    {
+                        // SSL
+                        Log.WriteLog(LogLevel.INFO, $"Starting SSl Tcp socket in ip: {iPAddress}, port: {port}");
+                        _uploadingServerBussinessLogic = new SslServerBussinesLogic(_contextForP2pAsServer, iPAddress, port, this, optionAcceptorBacklog: 2);
+                    }
+                }
+            }
+            else
+            {
+                // Stopping socket
+                _uploadingServerBussinessLogic?.Stop();
+                _uploadingServerBussinessLogic?.Dispose();
+                _uploadingServerBussinessLogic = null;
             }
         }
 
