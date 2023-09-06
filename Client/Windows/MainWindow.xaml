@@ -167,10 +167,6 @@
                                               x:Name="dtgDownloading"
                                               d:ItemsSource="{d:SampleData ItemCount=4}">
 
-                                        <DataGrid.Resources>
-                                            <local:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
-                                        </DataGrid.Resources>
-
                                         <DataGrid.RowDetailsTemplate>
                                             <DataTemplate>
                                                 <ItemsControl ItemsSource="{Binding Clients}">
@@ -372,7 +368,16 @@
                             <!--// UPLOADING SERVER SOCKET TAB //-->
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
-                                
+
+                                <Grid Width="100" Height="40" MouseDown="Grid_MouseDown">
+                                    <!-- Toggle switch track -->
+                                    <Rectangle Fill="Brown" RadiusX="20" RadiusY="20" />
+                                    <!-- Toggle switch thumb -->
+                                    <Ellipse x:Name="ThumbEllipse" Fill="Green" Width="40" Height="40" HorizontalAlignment="Left" Margin="0,0,0,0"/>
+                                </Grid>
+
+
+
                             </TabItem>
 
                         </TabControl>

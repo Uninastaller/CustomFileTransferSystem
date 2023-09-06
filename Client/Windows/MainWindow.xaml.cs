@@ -20,7 +20,9 @@ using System.Text.Json;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using TcpSession;
 
@@ -591,16 +593,50 @@ namespace Client.Windows
          {
             Log.WriteLog(LogLevel.DEBUG, button.Name);
             downloadModelObject.IsDownloading = false;
-         }
-
-         #endregion Events
-
-         #region OverridedMethods
-
-
-
-         #endregion OverridedMethods
+         }  
 
       }
+      #endregion Events
+
+      #region OverridedMethods
+
+
+
+      #endregion OverridedMethods
+
+      #region Animation
+      bool isOn = false;
+
+      private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
+      {
+         // Create a ThicknessAnimation
+         ThicknessAnimation animation = new ThicknessAnimation
+         {
+            Duration = new Duration(TimeSpan.FromSeconds(0.2))
+         };
+
+         // Determine the direction of the animation based on the current state
+         if (isOn)
+         {
+            animation.From = new Thickness(60, 0, 0, 0);
+            animation.To = new Thickness(0, 0, 0, 0);
+         }
+         else
+         {
+            animation.From = new Thickness(0, 0, 0, 0);
+            animation.To = new Thickness(60, 0, 0, 0);
+         }
+
+         // Begin the animation
+         ThumbEllipse.BeginAnimation(MarginProperty, animation);
+
+         // Toggle the state
+         isOn = !isOn;
+      }
+
+
+
+
+      #endregion Animation
    }
 }
