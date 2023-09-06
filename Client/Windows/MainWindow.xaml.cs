@@ -1,4 +1,5 @@
-﻿using Common.Enum;
+﻿using Common;
+using Common.Enum;
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
@@ -600,7 +601,29 @@ namespace Client.Windows
 
         }
 
-        private void CustomSwitchWithText_Switched(object sender, EventArgs e)
+        private void swchSocketState_Switched(object sender, EventArgs e)
+        {
+            if (sender is CustomSwitchWithText customSwitchWithText)
+            {
+                Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
+
+                // Starting socket
+                if (customSwitchWithText.IsOnLeft)
+                {
+                    // Choosing between tcp and ssltcp
+                    if (swchSocketType.IsOnLeft)
+                    {
+                        // TCP
+                    }
+                    else
+                    {
+                        // SSL TCP
+                    }
+                }
+            }
+        }
+
+        private void swchSocketType_Switched(object sender, EventArgs e)
         {
 
         }

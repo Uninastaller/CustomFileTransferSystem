@@ -18,13 +18,13 @@
             <!-- Toggle switch track -->
             <Rectangle Fill="{StaticResource ToogleButtonBackgroundColor}" RadiusX="20" RadiusY="20"/>
             <!-- Toggle switch thumb -->
-            <Ellipse x:Name="ThumbEllipse" Fill="{StaticResource ToogleButtonElipsoColor}" Width="40" Height="40" HorizontalAlignment="Left"/>
+            <Ellipse x:Name="ThumbEllipse" Fill="{StaticResource ToogleButtonElipsoColorDefault}" Width="40" Height="40" HorizontalAlignment="Left"/>
             
         </Grid>
         <!-- Left Text Box -->
-        <TextBlock x:Name="LeftTextBlock" Style="{DynamicResource TextBlockStyle1}" Text="{Binding LeftText, ElementName=Root}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="auto" Grid.Column="0" Margin="0,0,5,0"/>
+        <TextBlock x:Name="LeftTextBlock" Style="{DynamicResource TextBlockStyle1}" Text="{Binding LeftText, ElementName=Root}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="auto" Grid.Column="0" Margin="0,0,5,0"/>
 
         <!-- Right Text Box -->
-        <TextBlock x:Name="RightTextBlock" Style="{DynamicResource TextBlockStyle1}" Text="{Binding RightText, ElementName=Root}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="auto" Grid.Column="2" Margin="5,0,0,0"/>
+        <TextBlock x:Name="RightTextBlock" Style="{DynamicResource TextBlockStyle1}" Text="{Binding RightText, ElementName=Root}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="auto" Grid.Column="2" Margin="5,0,0,0"/>
     </Grid>
 </UserControl>

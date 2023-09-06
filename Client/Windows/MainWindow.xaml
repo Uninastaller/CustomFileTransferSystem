@@ -367,8 +367,13 @@
 
                             <!--// UPLOADING SERVER SOCKET TAB //-->
 
-                            <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
-
+                            <TabItem Style="{DynamicResource TabItemStyle}">
+                                <TabItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text=" Uploading Server Socket"/>
+                                        <Ellipse x:Name="elpUploadingServerSocketState" Width="20" Height="20" Fill="#741b0c" Margin="5,5,0,0"/>
+                                    </StackPanel>
+                                </TabItem.Header>
                                 <Grid Margin="5,0,0,0">
                                     
                                     <Grid.ColumnDefinitions>
@@ -381,19 +386,34 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="40"/>
                                             <RowDefinition Height="10"/>
-                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="auto"/>
                                             <RowDefinition Height="10"/>
-                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="10"/>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="10"/>
+                                            <RowDefinition Height="auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <TextBlock Style="{StaticResource TextBlockStyle1}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center"
                                                    Text="Controls"
                                                    FontFamily="Arial"                           
                                                    FontSize="30"
                                                    FontWeight="ExtraBold"/>
-                                        
-                                        <common:CustomSwitchWithText x:Name="swchSocketState" LeftText="OFF" RightText="ON" Grid.Row="2" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="0,0,30,0"/>
-                                        <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="TcpSocket" RightText="TcpSslSocket" Grid.Row="4" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="25,0"/>
+
+                                        <common:CustomSwitchWithText x:Name="swchSocketState" LeftText="OFF" RightText="ON" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Switched="swchSocketState_Switched" HorizontalAlignment="Center" Padding="0,0,0,0" ColorLeft="{StaticResource ToggleButtonEllipseOffColorARGB}" ColorRight="{StaticResource ToogleButtonEllipseOnColorARGB}"/>
+                                        <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="TcpSocket" RightText="TcpSslSocket" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Switched="swchSocketType_Switched" HorizontalAlignment="Center" Padding="55,0,30,0" ColorLeft="{StaticResource ToogleButtonEllipseOnColorARGB}" ColorRight="{StaticResource ToogleButtonEllipseOnColorARGB}"/>
+
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tbServerIpAddress" Grid.Row="6" Grid.Column="0" Text="IpAddress: " FontFamily="Arial" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tbServerIpAddressVariable" Grid.Row="6" Grid.Column="1" Text="127.0.0.1" FontFamily="Arial" FontWeight="Bold" HorizontalAlignment="Left"/>
+
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tbServerPort" Grid.Row="8" Grid.Column="0" Text="Port: " FontFamily="Arial" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tbServerPortVariable" Grid.Row="8" Grid.Column="1" Text="12345" FontFamily="Arial" FontWeight="Bold" HorizontalAlignment="Left"/>
 
                                     </Grid>
                                     
