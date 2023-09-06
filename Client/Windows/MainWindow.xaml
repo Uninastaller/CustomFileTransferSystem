@@ -4,8 +4,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Client"
-        mc:Ignorable="d"
+        xmlns:local="clr-namespace:Client" xmlns:common="clr-namespace:Common;assembly=Common"
+                        mc:Ignorable="d"
         Title="MainWindow" 
         Height="600"
         Width="1400"
@@ -369,13 +369,7 @@
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
 
-                                <Grid Width="100" Height="40" MouseDown="Grid_MouseDown">
-                                    <!-- Toggle switch track -->
-                                    <Rectangle Fill="Brown" RadiusX="20" RadiusY="20" />
-                                    <!-- Toggle switch thumb -->
-                                    <Ellipse x:Name="ThumbEllipse" Fill="Green" Width="40" Height="40" HorizontalAlignment="Left" Margin="0,0,0,0"/>
-                                </Grid>
-
+                                <common:CustomSwitchWithText LeftText="aaasadaa" RightText="bbdsadab" />
 
 
                             </TabItem>

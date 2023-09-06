@@ -28,6 +28,9 @@
 
     <SolidColorBrush x:Key="SuccessMessageFakePopupColor" Color="#8062fcaf"/>
 
+    <SolidColorBrush x:Key="ToogleButtonElipsoColor" Color="#8062fcaf"/>
+    <SolidColorBrush x:Key="ToogleButtonBackgroundColor" Color="#80741b0c"/>
+
     <!--#endregion Colors-->
 
     <!--#region SuccessMessageStyle-->

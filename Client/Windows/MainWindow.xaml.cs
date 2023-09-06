@@ -605,34 +605,34 @@ namespace Client.Windows
       #endregion OverridedMethods
 
       #region Animation
-      bool isOn = false;
+      //bool isOn = false;
 
-      private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
-      {
-         // Create a ThicknessAnimation
-         ThicknessAnimation animation = new ThicknessAnimation
-         {
-            Duration = new Duration(TimeSpan.FromSeconds(0.2))
-         };
+      //private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
+      //{
+      //   // Create a ThicknessAnimation
+      //   ThicknessAnimation animation = new ThicknessAnimation
+      //   {
+      //      Duration = new Duration(TimeSpan.FromSeconds(0.2))
+      //   };
 
-         // Determine the direction of the animation based on the current state
-         if (isOn)
-         {
-            animation.From = new Thickness(60, 0, 0, 0);
-            animation.To = new Thickness(0, 0, 0, 0);
-         }
-         else
-         {
-            animation.From = new Thickness(0, 0, 0, 0);
-            animation.To = new Thickness(60, 0, 0, 0);
-         }
+      //   // Determine the direction of the animation based on the current state
+      //   if (isOn)
+      //   {
+      //      animation.From = new Thickness(60, 0, 0, 0);
+      //      animation.To = new Thickness(0, 0, 0, 0);
+      //   }
+      //   else
+      //   {
+      //      animation.From = new Thickness(0, 0, 0, 0);
+      //      animation.To = new Thickness(60, 0, 0, 0);
+      //   }
 
-         // Begin the animation
-         ThumbEllipse.BeginAnimation(MarginProperty, animation);
+      //   // Begin the animation
+      //   ThumbEllipse.BeginAnimation(MarginProperty, animation);
 
-         // Toggle the state
-         isOn = !isOn;
-      }
+      //   // Toggle the state
+      //   isOn = !isOn;
+      //}
 
 
 
