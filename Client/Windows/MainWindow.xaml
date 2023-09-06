@@ -369,7 +369,7 @@
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
 
-                                <common:CustomSwitchWithText LeftText="aaasadaa" RightText="bbdsadab" />
+                                <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="aaasadaa" RightText="bbdsadab" Switched="CustomSwitchWithText_Switched"/>
 
 
                             </TabItem>
