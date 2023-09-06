@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Client.Windows"
+        xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
         Title="MainWindow" 
         Height="600"
@@ -23,6 +23,7 @@
         </Style>
 
         <!--#region ResizeGripStyle-->
+
     </Window.Resources>
 
     <Grid Margin="20">
@@ -166,6 +167,10 @@
                                               x:Name="dtgDownloading"
                                               d:ItemsSource="{d:SampleData ItemCount=4}">
 
+                                        <DataGrid.Resources>
+                                            <local:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
+                                        </DataGrid.Resources>
+
                                         <DataGrid.RowDetailsTemplate>
                                             <DataTemplate>
                                                 <ItemsControl ItemsSource="{Binding Clients}">
@@ -182,28 +187,37 @@
                                                 </ItemsControl>
                                             </DataTemplate>
                                         </DataGrid.RowDetailsTemplate>
-
+ 
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="FileName" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.FileName}"/>
                                             <DataGridTextColumn Header="TransferReceiveRate" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding TransferReceiveRateFormatedAsText}"/>
                                             <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.FileSize}"/>
                                             <DataGridTextColumn Header="TotalParts" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.TotalParts}"/>
                                             <DataGridTextColumn Header="DownloadedParts" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.NumberOfDownloadedParts}"/>
-                                            <DataGridTextColumn Header="% Downloaded" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.PercentageDownload}"/>
-                                            <DataGridTextColumn Header="DownloadingTime" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.DownloadingTime}"/>
-                                            <DataGridTextColumn Header="IsDownloading" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding IsDownloading}"/>
-
-
-                                            <!--<DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                            <DataGridTemplateColumn Header="% Downloaded">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <Button Content="Pause" Style="{StaticResource DataGridButtonStyle}" Tag="{Binding}" x:Name="btnPause"/>
-                                                        </StackPanel>
+                                                        <Grid Width="100">
+                                                            <Rectangle Name="BaseRectangle" Fill="Gray" Opacity="0.3"/>
+                                                            <Rectangle Name="ProgressRectangle" Fill="Green" Opacity="0.5" HorizontalAlignment="Left">
+                                                                <Rectangle.Width>
+                                                                    <MultiBinding Converter="{StaticResource PercentageToWidthConverter}">
+                                                                        <Binding Path="FileReceiver.PercentageDownload"/>
+                                                                        <Binding ElementName="BaseRectangle" Path="ActualWidth"/>
+                                                                    </MultiBinding>
+                                                                </Rectangle.Width>
+                                                            </Rectangle>
+                                                            <TextBlock Text="{Binding FileReceiver.PercentageDownload, StringFormat={}{0}%}" 
+                                                                        VerticalAlignment="Center" 
+                                                                        HorizontalAlignment="Center" 
+                                                                        Foreground="Black"/>
+                                                        </Grid>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>-->
-
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="DownloadingTime" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileReceiver.DownloadingTime}"/>
+                                            <DataGridTextColumn Header="IsDownloading" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding IsDownloading}"/>
+                                         
                                         </DataGrid.Columns>
                                     </DataGrid>
 
