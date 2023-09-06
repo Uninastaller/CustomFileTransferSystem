@@ -369,9 +369,28 @@
 
                             <TabItem Style="{DynamicResource TabItemStyle}" Header="Uploading Server Socket">
 
-                                <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="aaasadaa" RightText="bbdsadab" Switched="CustomSwitchWithText_Switched"/>
+                                <Grid>
+                                    
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
 
+                                        <common:CustomSwitchWithText x:Name="swchSocketType" LeftText="TcpSocket" RightText="TcpSslSocket" Grid.Row="1" Switched="CustomSwitchWithText_Switched" HorizontalAlignment="Center" Padding="25,0"/>
+
+                                    </Grid>
+                                    
+                                </Grid>
+                                
                             </TabItem>
 
                         </TabControl>
