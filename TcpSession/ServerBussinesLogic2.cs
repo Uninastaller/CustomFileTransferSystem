@@ -176,7 +176,7 @@ namespace TcpSession
 
         protected override void OnDispose()
         {
-            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, TypeOfSession.DOWNLOADING));
+            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, TypeOfSession.DOWNLOADING, true));
 
             if (_timer != null)
             {

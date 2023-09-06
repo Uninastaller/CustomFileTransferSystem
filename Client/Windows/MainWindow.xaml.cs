@@ -111,7 +111,6 @@ namespace Client.Windows
          msgSwitch
           .Case(contract.GetContractId(typeof(ClientSocketStateChangeMessage)), (ClientSocketStateChangeMessage x) => ClientSocketStateChangeMessageHandler(x))
           .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
-          //.Case(contract.GetContractId(typeof(RefreshTablesMessage)), (RefreshTablesMessage x) => RefreshTablesMessageHandler())
           .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
           ;
 
@@ -312,7 +311,11 @@ namespace Client.Windows
                if (clientToRemove != null)
                {
                   downloadModel.Clients.Remove(clientToRemove);
-                  Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}");
+                  if (message.IsPurposeFullfilled)
+                  {
+                     downloadModel.IsDownloading = false;
+                  }
+                  Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}, with IsPurposeFullfilled: {message.IsPurposeFullfilled}");
                }
             }
          }

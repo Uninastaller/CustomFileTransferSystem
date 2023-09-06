@@ -6,6 +6,7 @@ using System.Linq;
 using System.Timers;
 using Common.Interface;
 using Common.ThreadMessages;
+using Logger;
 
 namespace Common.Model
 {
@@ -32,6 +33,7 @@ namespace Common.Model
                   CleanupRefresher();
                   foreach (var client in Clients)
                   {
+                     Log.WriteLog(LogLevel.DEBUG, $"Cleaning remaining sockets: {client.Endpoint}");
                      client.Dispose();
                   }
                }
@@ -94,6 +96,7 @@ namespace Common.Model
             _timer?.Stop();
             _timer?.Dispose();
             _timer = null;
+
          }         
       }
       private void OnPropertyChanged(string propertyName)

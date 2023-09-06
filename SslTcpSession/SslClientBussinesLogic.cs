@@ -358,7 +358,7 @@ namespace SslTcpSession
          TransferSendRate = 0;
          //_fileReceiver = null;
          base.Dispose(disposingManagedResources);
-         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession));
+         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, (_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart == -1)));
          //_gui = null;
       }
 
