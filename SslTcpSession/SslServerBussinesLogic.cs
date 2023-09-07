@@ -61,7 +61,6 @@ namespace SslTcpSession
             _typeOfSession = typeOfSession;
 
             _gui = gui;
-            Start();
 
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
