@@ -22,7 +22,7 @@ namespace Common
             get { return _isOnLeft; }
             set
             {
-                if (_isOnLeft != value && !IsInProgress)
+                if (_isOnLeft != value)
                 {
                     IsInProgress = true;
                     _isOnLeft = value;
@@ -116,8 +116,12 @@ namespace Common
 
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            IsOnLeft = !IsOnLeft;
-            OnSwitched();
+            if (!IsInProgress)
+            {
+                IsInProgress = true;
+                IsOnLeft = !IsOnLeft;
+                OnSwitched();
+            }
         }
 
         public CustomSwitchWithText()
