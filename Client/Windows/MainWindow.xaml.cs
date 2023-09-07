@@ -68,12 +68,12 @@ namespace Client.Windows
             // Setting color to elipse on Tab header
             elpUploadingServerSocketState.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x26, 0x3F, 0x03)); // Using Color class
 
-            // Show message
-            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket started!", TimeSpan.FromSeconds(4));
-
             // Set starting and disposing toogle button to right positions
             swchSocketDisposeState.IsOnLeft = false;
             swchSocketState.IsOnLeft = false;
+
+            // Show message
+            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket started!", TimeSpan.FromSeconds(3));
         }
 
         private void StopOfUploadingServer()
@@ -81,16 +81,16 @@ namespace Client.Windows
             // Setting color to elipse on Tab header
             elpUploadingServerSocketState.Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0x74, 0x1B, 0x0C)); // Using Color class
 
-            // Show message
-            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket stopped!", TimeSpan.FromSeconds(4));
-
             // Set starting toogle button to right position
             swchSocketState.IsOnLeft = true;
+
+            // Show message
+            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket stopped!", TimeSpan.FromSeconds(3));
         }
 
         private void CreationOfUploadingSocket()
         {
-            Log.WriteLog(LogLevel.DEBUG, "CreationOfUploadingSocket");
+            Log.WriteLog(LogLevel.DEBUG, "CreationOfUploadingSocket");           
 
             // Filling text blocks with ip and port on UI
             tbServerIpAddressVariable.Text = _uploadingServerBussinessLogic?.Address;
@@ -99,20 +99,26 @@ namespace Client.Windows
             // Set disposing toogle button to right position
             swchSocketDisposeState.IsOnLeft = false;
 
-            // Show message
-            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Socket Created!", TimeSpan.FromSeconds(4));
-
             // Disable choosing between tcp and ssl tcp socket
             swchSocketType.IsEnabled = false;
 
             // Enabling Starting socket toogle button
             swchSocketState.IsEnabled = true;
+
+            // Set Socket type to righ position
+            swchSocketType.IsOnLeft = _uploadingServerBussinessLogic?.Type == TypeOfServerSocket.TCP_SERVER ? true : false;
+
+            // Show message
+            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Socket Created!", TimeSpan.FromSeconds(3));
         }
 
         private void DisposeOfUploadingSocket(bool startupCalling = false)
         {
             if (!startupCalling)
             Log.WriteLog(LogLevel.DEBUG, "DisposingServerSocketDisposed");
+
+            // Set UploadingServerSocketState to Stopped
+            UploadingServerSocketState = ServerSocketState.STOPPED;
 
             // Clearing text blocks with ip and port on UI
             tbServerIpAddressVariable.Text = string.Empty;
@@ -121,15 +127,15 @@ namespace Client.Windows
             // Set disposing toogle button to right position
             swchSocketDisposeState.IsOnLeft = true;
 
-            // Show message
-            if (!startupCalling)
-            ShowTimedMessage("Uploading Server Socket Disposed!", TimeSpan.FromSeconds(4));
-
             // Enable choosing between tcp and ssl tcp socket
             swchSocketType.IsEnabled = true;
 
             // Disabling Starting socket toogle button
             swchSocketState.IsEnabled = false;
+
+            // Show message
+            if (!startupCalling)
+                ShowTimedMessage("Uploading Server Socket Disposed!", TimeSpan.FromSeconds(3));
         }
 
         #endregion UploadingServer
@@ -143,7 +149,7 @@ namespace Client.Windows
 
         #region PrivateFields
 
-        private ServerSocketState _uploadingServerSocketState;
+        private ServerSocketState _uploadingServerSocketState = ServerSocketState.STOPPED;
 
         private const string _cftsDirectoryName = "CFTS";
         private const string _cftsFileExtensions = ".cfts";
@@ -735,10 +741,12 @@ namespace Client.Windows
 
             Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
 
+            bool starting = customSwitchWithText.IsOnLeft;
+
             TypeOfServerSocket typeOfServerSocket = swchSocketType.IsOnLeft ? TypeOfServerSocket.TCP_SERVER : TypeOfServerSocket.TCP_SERVER_SSL;
 
             // Starting socket
-            if (!customSwitchWithText.IsOnLeft && (_uploadingServerBussinessLogic == null || !_uploadingServerBussinessLogic.IsStarted))
+            if (starting && (_uploadingServerBussinessLogic == null || !_uploadingServerBussinessLogic.IsStarted))
             {
 
                 // Check for valid ip address
@@ -813,7 +821,10 @@ namespace Client.Windows
 
         private void swchSocketType_Switched(object sender, EventArgs e)
         {
+            if (!(sender is CustomSwitchWithText customSwitchWithText)) return;
+            Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
 
+            customSwitchWithText.IsOnLeft = !customSwitchWithText.IsOnLeft;
         }
 
 
@@ -823,7 +834,9 @@ namespace Client.Windows
             Log.WriteLog(LogLevel.DEBUG, customSwitchWithText.Name + ", IsOnLeft: " + customSwitchWithText.IsOnLeft);
             if (_uploadingServerBussinessLogic != null)
             {
-                if (customSwitchWithText.IsOnLeft)
+                bool start = customSwitchWithText.IsOnLeft;
+
+                if (!start)
                 {
                     _uploadingServerBussinessLogic.Stop();
                 }

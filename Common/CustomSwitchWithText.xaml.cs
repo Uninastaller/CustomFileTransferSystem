@@ -80,6 +80,10 @@ namespace Common
                     // Begin the animation
                     storyboard.Begin();
                 }
+                else
+                {
+                    IsInProgress = false;
+                }
             }
         }
 
@@ -119,7 +123,6 @@ namespace Common
             if (!IsInProgress)
             {
                 IsInProgress = true;
-                IsOnLeft = !IsOnLeft;
                 OnSwitched();
             }
         }
