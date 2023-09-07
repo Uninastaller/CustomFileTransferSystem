@@ -66,13 +66,15 @@ namespace SslTcpSession
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
             _typeOfSession = typeOfSession;
+
+            _gui?.BaseMsgEnque(new CreationMessage(Id, TypeOfSocket.SERVER, _typeOfSession));
         }
 
-        #endregion Ctor
+      #endregion Ctor
 
-        #region PublicMethods
+      #region PublicMethods
 
-        public void DisconnectSession(Guid sessionId)
+      public void DisconnectSession(Guid sessionId)
         {
             FindSession(sessionId)?.Disconnect();
         }
