@@ -10,6 +10,6 @@ namespace Common.ThreadMessages
             ServerDownloadingSessionsInfo = serverDownloadingSessionsInfo;
         }
 
-        public List<ServerDownloadingSessionsInfo>? ServerDownloadingSessionsInfo { get; set; }
+        public List<ServerDownloadingSessionsInfo> ServerDownloadingSessionsInfo { get; set; }
     }
 }

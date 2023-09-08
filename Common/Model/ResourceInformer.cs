@@ -48,23 +48,28 @@ namespace Common.Model
 
       public static string FormatDataTransferRate(long bytesSent)
       {
+         return $"{BytesToFormatedText(bytesSent)}/s";
+      }
+
+      public static string BytesToFormatedText(long bytes)
+      {
          string unit;
          double transferRate;
 
-         if (bytesSent < _kilobyte)
+         if (bytes < _kilobyte)
          {
-            transferRate = bytesSent;
-            unit = "B/s";
+            transferRate = bytes;
+            unit = "B";
          }
-         else if (bytesSent < _megabyte)
+         else if (bytes < _megabyte)
          {
-            transferRate = (double)bytesSent / _kilobyte;
-            unit = "KB/s";
+            transferRate = (double)bytes / _kilobyte;
+            unit = "KB";
          }
          else
          {
-            transferRate = (double)bytesSent / _megabyte;
-            unit = "MB/s";
+            transferRate = (double)bytes / _megabyte;
+            unit = "MB";
          }
 
          return $"{transferRate:F2} {unit}";

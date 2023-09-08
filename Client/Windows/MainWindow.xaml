@@ -8,7 +8,7 @@
                         mc:Ignorable="d"
         Title="MainWindow" 
         Height="600"
-        Width="1400"
+        Width="1500"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -429,8 +429,8 @@
                                             <DataGridTextColumn Header="Id" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Id}"/>
                                             <DataGridTextColumn Header="FileNameOfAcceptedfileRequest" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileNameOfAcceptedfileRequest}"/>
                                             <DataGridTextColumn Header="SessionState" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding SessionState}"/>
-                                            <DataGridTextColumn Header="BytesSent" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding BytesSent}"/>
-                                            <DataGridTextColumn Header="BytesReceived" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding BytesReceived}"/>
+                                            <DataGridTextColumn Header="DataSent" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding DataSendSentFormated}"/>
+                                            <DataGridTextColumn Header="DataReceived" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding DataSendReceivedFormated}"/>
                                         </DataGrid.Columns>
                                     </DataGrid>
 
