@@ -138,6 +138,11 @@ namespace TcpSession
             BytesSent += lenght;
         }
 
+        public List<ServerDownloadingSessionsInfo>? GetDownloadingSessionsInfo()
+        {            
+            return null;
+        }
+
         #endregion PublicMethods
 
         #region PrivateMethods

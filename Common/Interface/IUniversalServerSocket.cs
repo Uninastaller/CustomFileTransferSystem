@@ -1,5 +1,7 @@
 ﻿using Common.Enum;
+using Common.Model;
 using System;
+using System.Collections.Generic;
 
 namespace Common.Interface
 {
@@ -26,5 +28,6 @@ namespace Common.Interface
         public bool Restart();
         public bool Start();
         public void DisconnectSession(Guid sessionId);
+        public List<ServerDownloadingSessionsInfo>? GetDownloadingSessionsInfo();
     }
 }

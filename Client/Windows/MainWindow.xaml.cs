@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -72,6 +73,9 @@ namespace Client.Windows
             swchSocketDisposeState.IsOnLeft = false;
             swchSocketState.IsOnLeft = false;
 
+            // Start Uploading session refresher
+            _uploadingSessionRefresher?.Start();
+
             // Show message
             ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket started!", TimeSpan.FromSeconds(3));
         }
@@ -83,6 +87,9 @@ namespace Client.Windows
 
             // Set starting toogle button to right position
             swchSocketState.IsOnLeft = true;
+
+            // Stopping Uploading session refresher
+            _uploadingSessionRefresher?.Stop();
 
             // Show message
             ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket stopped!", TimeSpan.FromSeconds(3));
@@ -99,18 +106,28 @@ namespace Client.Windows
             // Set disposing toogle button to right position
             swchSocketDisposeState.IsOnLeft = false;
 
+            // Set Socket type to righ position
+            swchSocketType.IsOnLeft = _uploadingServerBussinessLogic?.Type == TypeOfServerSocket.TCP_SERVER ? true : false;
+
+            // Create Uploading session refresher
+            _uploadingSessionRefresher?.Dispose();
+            _uploadingSessionRefresher = new Timer(1000);
+            _uploadingSessionRefresher.Elapsed += UploadingSessionRefresher_Elapsed;
+
             // Disable choosing between tcp and ssl tcp socket
             swchSocketType.IsEnabled = false;
 
             // Enabling Starting socket toogle button
             swchSocketState.IsEnabled = true;
 
-            // Set Socket type to righ position
-            swchSocketType.IsOnLeft = _uploadingServerBussinessLogic?.Type == TypeOfServerSocket.TCP_SERVER ? true : false;
+            // Clearing uploading sessions datagrid
+            dtgUploadingSessions.ItemsSource = null;
 
             // Show message
             ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Socket Created!", TimeSpan.FromSeconds(3));
         }
+
+       
 
         private void DisposeOfUploadingSocket(bool startupCalling = false)
         {
@@ -126,6 +143,14 @@ namespace Client.Windows
 
             // Set disposing toogle button to right position
             swchSocketDisposeState.IsOnLeft = true;
+
+            // Disposing Uploading session refresher
+            if (_uploadingSessionRefresher != null)
+            {
+                _uploadingSessionRefresher.Elapsed -= UploadingSessionRefresher_Elapsed;
+                _uploadingSessionRefresher.Dispose();
+                _uploadingSessionRefresher = null;
+            }            
 
             // Enable choosing between tcp and ssl tcp socket
             swchSocketType.IsEnabled = true;
@@ -148,6 +173,8 @@ namespace Client.Windows
         #endregion PublicFields
 
         #region PrivateFields
+
+        private Timer? _uploadingSessionRefresher;
 
         private ServerSocketState _uploadingServerSocketState = ServerSocketState.STOPPED;
 
@@ -196,6 +223,7 @@ namespace Client.Windows
             contract.Add(MsgIds.DisposeMessage, typeof(DisposeMessage));
             contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
             contract.Add(MsgIds.CreationMessage, typeof(CreationMessage));
+            contract.Add(MsgIds.SesrverDownloadingSessionsInfoMessage, typeof(ServerDownloadingSessionsInfoMessage));
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -225,6 +253,7 @@ namespace Client.Windows
              .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(CreationMessage)), (CreationMessage x) => CreationMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ServerDownloadingSessionsInfoMessage)), (ServerDownloadingSessionsInfoMessage x) => SesrverDownloadingSessionsInfoMessageHandler(x))
              ;
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
@@ -407,6 +436,16 @@ namespace Client.Windows
         }
 
         #endregion TemplateMethods
+
+        private void SesrverDownloadingSessionsInfoMessageHandler(ServerDownloadingSessionsInfoMessage message)
+        {
+            //Log.WriteLog(LogLevel.DEBUG, "SesrverDownloadingSessionsInfoMessageHandler");
+
+            if (message.ServerDownloadingSessionsInfo != null && message.ServerDownloadingSessionsInfo.Count > 0)
+            {
+                dtgUploadingSessions.ItemsSource = message.ServerDownloadingSessionsInfo;
+            }
+        }
 
         private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
         {
@@ -772,8 +811,8 @@ namespace Client.Windows
                     if (!_uploadingServerBussinessLogic.IsStarted)
                     {
                         // Start, if its not started
-                        _uploadingServerBussinessLogic.Start();
-                        Log.WriteLog(LogLevel.INFO, $"Socket for uploading with ip: {iPAddress}, port: {port}, type: {_uploadingServerBussinessLogic.Type} exist and starting!");
+                        //_uploadingServerBussinessLogic.Start();
+                        Log.WriteLog(LogLevel.INFO, $"Socket for uploading with ip: {iPAddress}, port: {port}, type: {_uploadingServerBussinessLogic.Type} exist and stopped!");
                     }
                     else
                     {
@@ -844,6 +883,14 @@ namespace Client.Windows
                 {
                     _uploadingServerBussinessLogic.Start();
                 }
+            }
+        }
+
+        private void UploadingSessionRefresher_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            if (_uploadingServerBussinessLogic != null && _uploadingServerBussinessLogic.ConnectedSessions > 0)
+            {
+                this.BaseMsgEnque(new ServerDownloadingSessionsInfoMessage(_uploadingServerBussinessLogic.GetDownloadingSessionsInfo()));
             }
         }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Common.Enum
 {
-    public enum ServerSessionState
+    public enum SessionState
     {
         NONE,
         FILE_REQUEST,

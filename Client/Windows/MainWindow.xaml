@@ -419,7 +419,21 @@
                                         <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tbServerPortVariable" Grid.Row="10" Grid.Column="1" Text="12345" FontFamily="Arial" FontWeight="Bold" HorizontalAlignment="Left"/>
 
                                     </Grid>
-                                    
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
+                                              Grid.Column="2"
+                                              x:Name="dtgUploadingSessions"
+                                              d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Id" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Id}"/>
+                                            <DataGridTextColumn Header="FileNameOfAcceptedfileRequest" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding FileNameOfAcceptedfileRequest}"/>
+                                            <DataGridTextColumn Header="SessionState" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding SessionState}"/>
+                                            <DataGridTextColumn Header="BytesSent" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding BytesSent}"/>
+                                            <DataGridTextColumn Header="BytesReceived" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding BytesReceived}"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
                                 </Grid>
                                 
                             </TabItem>

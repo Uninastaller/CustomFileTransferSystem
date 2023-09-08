@@ -94,7 +94,7 @@ namespace CentralServer.Windows
                 WindowDesignSet();
             }
 
-            contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientStateChangeMessage));
+            contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientsStateChangeMessage));
             contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
 
             if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 serverPort))
@@ -131,7 +131,7 @@ namespace CentralServer.Windows
             tbServerPortVariable.Text = _serverPort.ToString();
 
             msgSwitch
-             .Case(contract.GetContractId(typeof(ClientStateChangeMessage)), (ClientStateChangeMessage x) => ClientStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientsStateChangeMessage)), (ClientsStateChangeMessage x) => ClientStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x));
 
         }
@@ -242,7 +242,7 @@ namespace CentralServer.Windows
 
         #endregion TemplateMethods
 
-        private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
+        private void ClientStateChangeMessageHandler(ClientsStateChangeMessage message)
         {
             _clients = message.Clients;
             if (_clientsWindow != null && _clientsWindow.IsOpen())
@@ -354,7 +354,7 @@ namespace CentralServer.Windows
                 if (_clientsWindow == null || !_clientsWindow.IsOpen())
                 {
                     _clientsWindow = BaseWindowForWPF.CreateWindow<ClientsWindow>(() => new ClientsWindow(_serverBussinesLogic));
-                    _clientsWindow?.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+                    _clientsWindow?.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
                 }
                 else
                 {

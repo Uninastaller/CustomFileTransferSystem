@@ -70,26 +70,50 @@ namespace SslTcpSession
             _gui?.BaseMsgEnque(new CreationMessage(Id, TypeOfSocket.SERVER, _typeOfSession));
         }
 
-      #endregion Ctor
+        #endregion Ctor
 
-      #region PublicMethods
+        #region PublicMethods
 
-      public void DisconnectSession(Guid sessionId)
+        public void DisconnectSession(Guid sessionId)
         {
             FindSession(sessionId)?.Disconnect();
+        }
+
+        public List<ServerDownloadingSessionsInfo>? GetDownloadingSessionsInfo()
+        {
+            if (Sessions.Count > 0)
+            {
+                List<ServerDownloadingSessionsInfo> list = new List<ServerDownloadingSessionsInfo>();
+                foreach (SslSession session in Sessions.Values)
+                {
+                    if (session is SslDownloadingSession downloadingSession)
+                    {
+                        list.Add(new ServerDownloadingSessionsInfo()
+                        {
+                            Id = session.Id,
+                            SessionState = downloadingSession.SessionState,
+                            FileNameOfAcceptedfileRequest = downloadingSession.FileNameOfAcceptedfileRequest,
+                            BytesReceived = session.BytesReceived,
+                            BytesSent = session.BytesSent,
+                        });
+                    }
+                }
+                return list;
+            }
+            return null;
         }
 
         #endregion PublicMethods
 
         #region PrivateMethods
 
-        private void ClientStateChange(ClientSocketState socketState, string? client, Guid sessionId, ServerSessionState serverSessionState = ServerSessionState.NONE)
+        private void ClientStateChange(ClientSocketState socketState, string? client, Guid sessionId, SessionState serverSessionState = SessionState.NONE)
         {
             if (_clients == null) return;
 
             if (socketState == ClientSocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
-                _clients.Add(sessionId, new ServerClientsModel() { SessionGuid = sessionId, RemoteEndpoint = client, ServerSessionState = serverSessionState});
+                _clients.Add(sessionId, new ServerClientsModel() { SessionGuid = sessionId, RemoteEndpoint = client, ServerSessionState = serverSessionState });
                 Log.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
             }
             else if (socketState == ClientSocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
@@ -148,7 +172,7 @@ namespace SslTcpSession
 
                 filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
 
-                if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslServerSession serverSession)
+                if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslDownloadingSession serverSession)
                 {
                     //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     MessageBoxResult result = MessageBoxResult.Yes;
@@ -156,7 +180,7 @@ namespace SslTcpSession
                     {
                         FlagMessagesGenerator.GenerateAccept(session);
                         serverSession.RequestAccepted = true;
-                        serverSession.FilePathOfAcceptedfileRequest = filePath;
+                        serverSession.FileNameOfAcceptedfileRequest = filePath;
                         return;
                     }
                 }
@@ -167,12 +191,12 @@ namespace SslTcpSession
             session.Dispose();
         }
 
-        private void OnServerSessionStateChange(SslSession session, ServerSessionState serverSessionState)
+        private void OnServerSessionStateChange(SslSession session, SessionState serverSessionState)
         {
             //Log.WriteLog(LogLevel.DEBUG, $"OnServerSessionStateChange: {serverSessionState}, on: {sesion.Socket.RemoteEndPoint}");
             ClientStateChange(ClientSocketState.INNER_STATE_CHANGE, null, session.Id, serverSessionState);
             if (_clients != null && _gui != null)
-                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
         }
 
         #endregion EventHandler
@@ -196,7 +220,7 @@ namespace SslTcpSession
             _gui = null;
         }
 
-        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslServerSession(this); }
+        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslDownloadingSession(this); }
 
         protected override void OnError(SocketError error)
         {
@@ -205,7 +229,7 @@ namespace SslTcpSession
 
         private void OnClientDisconnected(SslSession session)
         {
-            if (session is SslServerSession serverSession)
+            if (session is SslDownloadingSession serverSession)
             {
                 serverSession.ReceiveMessage -= OnReceiveMessage;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
@@ -215,12 +239,12 @@ namespace SslTcpSession
 
             ClientStateChange(ClientSocketState.DISCONNECTED, null, session.Id);
             if (_clients != null && _gui != null)
-                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
         }
 
         protected override void OnConnected(SslSession session)
         {
-            if (session is SslServerSession serverSession)
+            if (session is SslDownloadingSession serverSession)
             {
                 serverSession.ReceiveMessage += OnReceiveMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
@@ -235,7 +259,7 @@ namespace SslTcpSession
 
             ClientStateChange(ClientSocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);
             if (_clients != null && _gui != null)
-                _gui.BaseMsgEnque(new ClientStateChangeMessage() { Clients = _clients });
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
         }
 
         protected override void OnStarted()

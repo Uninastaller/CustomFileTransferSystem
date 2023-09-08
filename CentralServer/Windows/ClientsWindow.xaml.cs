@@ -62,7 +62,7 @@ namespace CentralServer.Windows
             }
 
             contract.Add(MsgIds.WindowStateSetMessage, typeof(WindowStateSetMessage));
-            contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientStateChangeMessage));
+            contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientsStateChangeMessage));
 
             Init();
         }
@@ -81,7 +81,7 @@ namespace CentralServer.Windows
         {
             msgSwitch
              .Case(contract.GetContractId(typeof(WindowStateSetMessage)), (WindowStateSetMessage x) => WindowStateSetMessageHandler(x))
-             .Case(contract.GetContractId(typeof(ClientStateChangeMessage)), (ClientStateChangeMessage x) => ClientStateChangeMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ClientsStateChangeMessage)), (ClientsStateChangeMessage x) => ClientStateChangeMessageHandler(x))
              ;
         }
 
@@ -126,7 +126,7 @@ namespace CentralServer.Windows
             Activate();
         }
 
-        private void ClientStateChangeMessageHandler(ClientStateChangeMessage message)
+        private void ClientStateChangeMessageHandler(ClientsStateChangeMessage message)
         {
             //return;
             _clients = message.Clients;

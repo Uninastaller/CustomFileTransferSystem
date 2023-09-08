@@ -13,5 +13,6 @@
       public static readonly int ServerSocketStateChangeMessage = 9;
       public static readonly int OfferingFilesReceivedMessage = 10;
       public static readonly int CreationMessage = 11;
-   }
+      public static readonly int SesrverDownloadingSessionsInfoMessage = 12;
+    }
 }

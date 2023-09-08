@@ -4,24 +4,24 @@ using Logger;
 using System;
 using System.Net.Sockets;
 
-namespace TcpSession
+namespace SslTcpSession
 {
-    public class TcpServerSession : TcpSession
+    class SslDownloadingSession : SslSession
     {
 
         #region Properties
 
         public bool RequestAccepted { get; set; } = false;
-        public string FilePathOfAcceptedfileRequest { get; set; } = string.Empty;
-        public ServerSessionState ServerSessionState
+        public string FileNameOfAcceptedfileRequest { get; set; } = string.Empty;
+        public SessionState SessionState
         {
-            get => _serverSessionState;
+            get => _sessionState;
 
             set
             {
-                if (value != _serverSessionState)
+                if (value != _sessionState)
                 {
-                    _serverSessionState = value;
+                    _sessionState = value;
                     ServerSessionStateChange?.Invoke(this, value);
                 }
             }
@@ -32,12 +32,11 @@ namespace TcpSession
         #region PublicFields
 
 
-
         #endregion PublicFields
 
         #region PrivateFields
 
-        private ServerSessionState _serverSessionState = ServerSessionState.NONE;
+        private SessionState _sessionState = SessionState.NONE;
 
         #endregion PrivateFields
 
@@ -49,7 +48,7 @@ namespace TcpSession
 
         #region Ctor
 
-        public TcpServerSession(TcpServer server) : base(server)
+        public SslDownloadingSession(SslServer server) : base(server)
         {
             Log.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
 
@@ -87,48 +86,55 @@ namespace TcpSession
 
         #region ProtectedMethods
 
+        protected override void OnHandshaked()
+        {
+            Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} handshaked!");
+
+            //// Send invite message
+            //string message = "Hello from SSL server!";
+            //Send(message);
+        }
+
         protected override void OnDisconnected()
         {
             OnClientDisconnected();
-            Log.WriteLog(LogLevel.INFO, $"Tcp session with Id {Id} disconnected!");
+            Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} disconnected!");
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
+            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+
+            //OnReceiveMessage(message);
             _flagSwitch.Switch(buffer, offset, size);
         }
 
         protected override void OnError(SocketError error)
         {
-            Log.WriteLog(LogLevel.ERROR, $"Tcp session caught an error with code {error}");
+            Log.WriteLog(LogLevel.ERROR, $"Ssl session caught an error with code {error}");
         }
-
-        //protected override void OnConnected()
-        //{
-        //    Console.WriteLine($Tcp session with Id {Id} connected!");
-        //}
 
         #endregion ProtectedMethods
 
         #region Events
 
-        public delegate void ReceiveMessageEventHandler(TcpSession sender, string message);
+        public delegate void ReceiveMessageEventHandler(SslSession sender, string message);
         public event ReceiveMessageEventHandler? ReceiveMessage;
 
-        public delegate void ClientDisconnectedHandler(TcpSession sender);
+        public delegate void ClientDisconnectedHandler(SslSession sender);
         public event ClientDisconnectedHandler? ClientDisconnected;
 
-        public delegate void ClientFileRequestHandler(TcpSession sender, string filePath, long fileSize);
+        public delegate void ClientFileRequestHandler(SslSession sender, string filePath, long fileSize);
         public event ClientFileRequestHandler? ClientFileRequest;
 
-        public delegate void ServerSessionStateChangeEventHandler(TcpSession sender, ServerSessionState serverSessionState);
+        public delegate void ServerSessionStateChangeEventHandler(SslSession sender, SessionState serverSessionState);
         public event ServerSessionStateChangeEventHandler? ServerSessionStateChange;
 
         private void OnNonRegistredMessage(string message)
         {
-            ServerSessionState = ServerSessionState.NONE;
+            SessionState = SessionState.NONE;
             this.Server?.FindSession(this.Id)?.Disconnect();
-            Log.WriteLog(LogLevel.WARNING, $"Warning: Non registered message received, disconnecting client!");
+            Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
         }
 
         private void OnRequestFileHandler(byte[] buffer, long offset, long size)
@@ -136,12 +142,12 @@ namespace TcpSession
             if (FlagMessageEvaluator.EvaluateRequestFileMessage(buffer, offset, size, out string fileName, out Int64 fileSize))
             {
                 OnClientFileRequest(fileName, fileSize);
-                ServerSessionState = ServerSessionState.FILE_REQUEST;
+                SessionState = SessionState.FILE_REQUEST;
             }
             else
             {
                 this.Server?.FindSession(this.Id)?.Disconnect();
-                Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }
         }
 
@@ -150,13 +156,13 @@ namespace TcpSession
             if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePartMessage(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
-                FlagMessagesGenerator.GenerateFilePart(FilePathOfAcceptedfileRequest, this, filePartNumber, partSize);
-                ServerSessionState = ServerSessionState.FILE_PART_REQUEST;
+                FlagMessagesGenerator.GenerateFilePart(FileNameOfAcceptedfileRequest, this, filePartNumber, partSize);
+                SessionState = SessionState.FILE_PART_REQUEST;
             }
             else
             {
                 this.Server?.FindSession(this.Id)?.Disconnect();
-                Log.WriteLog(LogLevel.WARNING, $"Warning: client is sending wrong formats of data, disconnecting!");
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }
         }
 
@@ -170,3 +176,4 @@ namespace TcpSession
 
     }
 }
+

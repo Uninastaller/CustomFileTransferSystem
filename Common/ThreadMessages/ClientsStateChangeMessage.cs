@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace Common.ThreadMessages
 {
-    public class ClientStateChangeMessage : MsgBase<ClientStateChangeMessage>
+    public class ClientsStateChangeMessage : MsgBase<ClientsStateChangeMessage>
     {
-        public ClientStateChangeMessage() : base(typeof(ClientStateChangeMessage))
+        public ClientsStateChangeMessage() : base(typeof(ClientsStateChangeMessage))
         {
         }
 

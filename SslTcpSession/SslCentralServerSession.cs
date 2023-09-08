@@ -16,15 +16,15 @@ namespace SslTcpSession
 
         #region Properties
 
-        public ServerSessionState ServerSessionState
+        public SessionState SessionState
         {
-            get => _serverSessionState;
+            get => _sessionState;
 
             set
             {
-                if (value != _serverSessionState)
+                if (value != _sessionState)
                 {
-                    _serverSessionState = value;
+                    _sessionState = value;
                     ServerSessionStateChange?.Invoke(this, value);
                 }
             }
@@ -39,7 +39,7 @@ namespace SslTcpSession
 
         #region PrivateFields
 
-        private ServerSessionState _serverSessionState = ServerSessionState.NONE;
+        private SessionState _sessionState = SessionState.NONE;
 
         #endregion PrivateFields
 
@@ -88,7 +88,7 @@ namespace SslTcpSession
 
         private async Task SendOfferingFilesToClient()
         {
-            ServerSessionState = ServerSessionState.OFFERING_FILES_SENDING;
+            SessionState = SessionState.OFFERING_FILES_SENDING;
             List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithEndpointsAsync();
             for (int i = 0; i < offeringFiles.Count; i++)
             {
@@ -107,7 +107,7 @@ namespace SslTcpSession
             //int maxRepeatCounter = 3;
             //await Task.Delay(100);
 
-            //ServerSessionState = ServerSessionState.OFFERING_FILES_RECEIVING;
+            //SessionState = SessionState.OFFERING_FILES_RECEIVING;
 
             //// Staf to do after 200ms => waiting without blocking thread
             //while (FlagMessagesGenerator.GenerateOfferingFilesRequest(this) == MethodResult.ERROR && maxRepeatCounter-- >= 0)
@@ -144,12 +144,12 @@ namespace SslTcpSession
         public delegate void ClientDisconnectedHandler(SslSession sender);
         public event ClientDisconnectedHandler? ClientDisconnected;
 
-        public delegate void ServerSessionStateChangeEventHandler(SslSession sender, ServerSessionState serverSessionState);
+        public delegate void ServerSessionStateChangeEventHandler(SslSession sender, SessionState serverSessionState);
         public event ServerSessionStateChangeEventHandler? ServerSessionStateChange;
 
         private void OnNonRegistredMessage(string message)
         {
-            ServerSessionState = ServerSessionState.NONE;
+            SessionState = SessionState.NONE;
             this.Server?.FindSession(this.Id)?.Disconnect();
             Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
         }
@@ -157,12 +157,12 @@ namespace SslTcpSession
         private async void OnOfferingFileHandler(byte[] buffer, long offset, long size)
         {
 
-            if (ServerSessionState == ServerSessionState.NONE)
+            if (SessionState == SessionState.NONE)
             {
-                ServerSessionState = ServerSessionState.OFFERING_FILES_RECEIVING;
+                SessionState = SessionState.OFFERING_FILES_RECEIVING;
             }
 
-            if (ServerSessionState == ServerSessionState.OFFERING_FILES_RECEIVING)
+            if (SessionState == SessionState.OFFERING_FILES_RECEIVING)
             {
                 if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto?> offeringFileDto, out bool endOfMessageGroup))
                 {
@@ -190,7 +190,7 @@ namespace SslTcpSession
         private async void OnOfferingFilesRequestHandler(byte[] buffer, long offset, long size)
         {
             Log.WriteLog(LogLevel.DEBUG, $"Offering File request received");
-            if (ServerSessionState == ServerSessionState.NONE)
+            if (SessionState == SessionState.NONE)
             {
                 await SendOfferingFilesToClient();
                 Log.WriteLog(LogLevel.INFO, $"All Offering File was sended to client! Destroying session");

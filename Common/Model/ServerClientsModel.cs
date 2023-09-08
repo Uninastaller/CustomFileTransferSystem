@@ -11,6 +11,6 @@ namespace Common.Model
     {
         public Guid SessionGuid { get; set; }
         public string RemoteEndpoint { get; set; }
-        public ServerSessionState ServerSessionState { get; set; }
+        public SessionState ServerSessionState { get; set; }
     }
 }
