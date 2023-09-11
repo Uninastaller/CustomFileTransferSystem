@@ -19,7 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigManager", "ConfigMana
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logger", "Logger\Logger.csproj", "{E2B5684B-5DAB-4436-A7F1-4691821B92DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqliteClassLibrary", "SqliteClassLibrary\SqliteClassLibrary.csproj", "{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqliteClassLibrary", "SqliteClassLibrary\SqliteClassLibrary.csproj", "{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CentralServerSetup", "CentralServerSetup\CentralServerSetup.vdproj", "{CFF7B289-ED28-4C5C-97AF-64FA3D3B5B88}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ClientSetup", "ClientSetup\ClientSetup.vdproj", "{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +67,10 @@ Global
 		{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFF7B289-ED28-4C5C-97AF-64FA3D3B5B88}.Debug|Any CPU.ActiveCfg = Debug
+		{CFF7B289-ED28-4C5C-97AF-64FA3D3B5B88}.Release|Any CPU.ActiveCfg = Release
+		{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}.Debug|Any CPU.ActiveCfg = Debug
+		{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
