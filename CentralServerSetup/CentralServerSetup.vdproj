@@ -111,6 +111,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.NetCore.DesktopRuntime.6.0.x64"
+                    {
+                    "Name" = "8:.NET Desktop Runtime 6.0.21 (x64)"
+                    "ProductCode" = "8:Microsoft.NetCore.DesktopRuntime.6.0.x64"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -219,7 +235,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:CentralServerSetup"
         "ProductCode" = "8:{DE73E1F7-849E-4179-9FF1-CDDBF2CA7656}"
-        "PackageCode" = "8:{88E8D6D8-043C-4F43-89A2-262E1531D684}"
+        "PackageCode" = "8:{141CFB62-27DF-49AB-9B6E-1C3A3A9953F2}"
         "UpgradeCode" = "8:{ADCE5464-FFBE-4E0F-B85E-063C7072B2E8}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
