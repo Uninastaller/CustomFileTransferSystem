@@ -32,7 +32,7 @@ namespace Common.Model
       }
 
       public string GetJson() => JsonSerializer.Serialize(this);
-      public static OfferingFileDto? ToObjectFromJson(string jsonString) => JsonSerializer.Deserialize<OfferingFileDto>(jsonString);
+      public static OfferingFileDto?ToObjectFromJson(string jsonString) => JsonSerializer.Deserialize<OfferingFileDto>(jsonString);
 
    }
 

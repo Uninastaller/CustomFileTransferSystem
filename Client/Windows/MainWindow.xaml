@@ -438,6 +438,60 @@
                                 
                             </TabItem>
 
+                            <!--// NODE DISCOVERY TAB //-->
+
+                            <TabItem Style="{StaticResource TabItemStyle}" Header="Nodes">
+
+                                <Grid Margin="5,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadNodesFile" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Reload nodes from local file" Click="btnReloadNodesFile_Click" RenderTransformOrigin="0.5,0.5">
+                                        </Button>
+
+                                    </Grid>
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
+                                          Grid.Column="2"
+                                          x:Name="dtgNodes"
+                                          d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="IpAddress" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Address}"/>
+                                            <DataGridTextColumn Header="Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Port}"/>
+                                            <DataGridTextColumn Header="PublicKey" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding PublicKey}"/>
+
+                                            <!--<DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Button Content="Save Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnSaveFileIdentificator_Click" Tag="{Binding}" x:Name="btnSaveFileIdentificator">
+
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>-->
+
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                </Grid>
+
+                            </TabItem>
+
                         </TabControl>
 
 

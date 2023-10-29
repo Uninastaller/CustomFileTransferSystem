@@ -15,7 +15,14 @@
     <None Remove="Images\Maximize_Default.png" />
     <None Remove="Images\Minimize_Default.png" />
     <None Remove="Images\Pause_Default.png" />
+    <None Remove="Images\Reload_Default.png" />
     <None Remove="Images\UploadingDirectory_Default.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Reload_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

@@ -25,6 +25,10 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CentralServerSetup", "Centr
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ClientSetup", "ClientSetup\ClientSetup.vdproj", "{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockChain", "BlockChain\BlockChain.csproj", "{1AA44F4D-EDFE-4056-A55F-9CEEC347F157}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTests", "ConsoleTests\ConsoleTests.csproj", "{D8572E29-45FE-4AC0-85FC-FF8B42084920}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,14 @@ Global
 		{CFF7B289-ED28-4C5C-97AF-64FA3D3B5B88}.Release|Any CPU.ActiveCfg = Release
 		{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}.Debug|Any CPU.ActiveCfg = Debug
 		{41DC1A83-37CE-4ACB-ACB9-EE19F5B13E30}.Release|Any CPU.ActiveCfg = Release
+		{1AA44F4D-EDFE-4056-A55F-9CEEC347F157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AA44F4D-EDFE-4056-A55F-9CEEC347F157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AA44F4D-EDFE-4056-A55F-9CEEC347F157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AA44F4D-EDFE-4056-A55F-9CEEC347F157}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8572E29-45FE-4AC0-85FC-FF8B42084920}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8572E29-45FE-4AC0-85FC-FF8B42084920}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8572E29-45FE-4AC0-85FC-FF8B42084920}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8572E29-45FE-4AC0-85FC-FF8B42084920}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -95,7 +95,7 @@ namespace Client.Windows
             dtgUploadingSessions.ItemsSource = null;
 
             // Show message
-            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Soket stopped!", TimeSpan.FromSeconds(3));
+            ShowTimedMessage($"Uploading {_uploadingServerBussinessLogic?.Type} Socket stopped!", TimeSpan.FromSeconds(3));
         }
 
         private void CreationOfUploadingSocket()
@@ -253,7 +253,7 @@ namespace Client.Windows
              .Case(contract.GetContractId(typeof(DisposeMessage)), (DisposeMessage x) => DisposeMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(CreationMessage)), (CreationMessage x) => CreationMessageHandler(x))
-             .Case(contract.GetContractId(typeof(ServerDownloadingSessionsInfoMessage)), (ServerDownloadingSessionsInfoMessage x) => SesrverDownloadingSessionsInfoMessageHandler(x))
+             .Case(contract.GetContractId(typeof(ServerDownloadingSessionsInfoMessage)), (ServerDownloadingSessionsInfoMessage x) => ServerDownloadingSessionsInfoMessageHandler(x))
              ;
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
@@ -262,6 +262,7 @@ namespace Client.Windows
             dtgOfferingFiles.ItemsSource = _offeringFiles;
             dtgLocalOfferingFiles.ItemsSource = _localOfferingFiles;
             dtgDownloading.ItemsSource = _downloadModels;
+            dtgNodes.ItemsSource = NodeDiscovery.GetAllNodes();
         }
 
         private void LoadLocalOfferingFiles()
@@ -280,7 +281,7 @@ namespace Client.Windows
                     string jsonString = File.ReadAllText(files[i]);    // Read content of file
 
                     Log.WriteLog(LogLevel.INFO, $"Reading content of file: {files[i]}, content: {jsonString}");
-                    // Validate if conten is valid json
+                    // Validate if content is valid json
                     try
                     {
                         // Attempt to parse the JSON string
@@ -437,9 +438,9 @@ namespace Client.Windows
 
         #endregion TemplateMethods
 
-        private void SesrverDownloadingSessionsInfoMessageHandler(ServerDownloadingSessionsInfoMessage message)
+        private void ServerDownloadingSessionsInfoMessageHandler(ServerDownloadingSessionsInfoMessage message)
         {
-            //Log.WriteLog(LogLevel.DEBUG, "SesrverDownloadingSessionsInfoMessageHandler");
+            //Log.WriteLog(LogLevel.DEBUG, "ServerDownloadingSessionsInfoMessageHandler");
 
             if (tbMyTabControl.SelectedIndex == 3)
             {
@@ -900,6 +901,13 @@ namespace Client.Windows
             {
                 this.BaseMsgEnque(new ServerDownloadingSessionsInfoMessage(_uploadingServerBussinessLogic.GetDownloadingSessionsInfo()));
             }
+        }
+
+        private void btnReloadNodesFile_Click(object sender, RoutedEventArgs e)
+        {
+            NodeDiscovery.LoadNodes();
+            dtgNodes.ItemsSource = null;
+            dtgNodes.ItemsSource = NodeDiscovery.GetAllNodes();
         }
 
         #endregion Events
