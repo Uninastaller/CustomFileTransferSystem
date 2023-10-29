@@ -473,17 +473,17 @@
                                             <DataGridTextColumn Header="Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Port}"/>
                                             <DataGridTextColumn Header="PublicKey" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding PublicKey}"/>
 
-                                            <!--<DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
+                                            <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Button Content="Save Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnSaveFileIdentificator_Click" Tag="{Binding}" x:Name="btnSaveFileIdentificator">
+                                                            <Button Content="Node discovery" Style="{StaticResource DataGridButtonStyle}" Click="btnNodeDiscovery_Click" Tag="{Binding}" x:Name="btnNodeDiscovery">
 
                                                             </Button>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>-->
+                                            </DataGridTemplateColumn>
 
                                         </DataGrid.Columns>
                                     </DataGrid>

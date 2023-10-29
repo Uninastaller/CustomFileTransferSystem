@@ -55,6 +55,8 @@ namespace SslTcpSession
             _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
             _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
             _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
+            _flagSwitch.Register(SocketMessageFlag.NODE_LIST_REQUEST, OnNodeListRequestHandler);
+
         }
 
         #endregion Ctor
@@ -164,6 +166,12 @@ namespace SslTcpSession
                 this.Server?.FindSession(this.Id)?.Disconnect();
                 Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }
+        }
+
+        private void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
+        {            
+            Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
+            SessionState = SessionState.NODE_LIST_SENDING;
         }
 
         #endregion Events

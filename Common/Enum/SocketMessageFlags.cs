@@ -13,7 +13,10 @@ namespace Common.Enum
         FILE_PART_REQUEST,
 
         [StringValue("a.C")]
-        OFFERING_FILE,
+        OFFERING_FILES_REQUEST,
+
+        [StringValue("a.D")]
+        NODE_LIST_REQUEST,
 
 
 
@@ -28,7 +31,10 @@ namespace Common.Enum
         FILE_PART,
 
         [StringValue("b.D")]
-        OFFERING_FILES_REQUEST,
+        OFFERING_FILE,
+
+        [StringValue("b.E")]
+        NODE_LIST,
 
 
 

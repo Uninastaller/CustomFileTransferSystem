@@ -905,9 +905,29 @@ namespace Client.Windows
 
         private void btnReloadNodesFile_Click(object sender, RoutedEventArgs e)
         {
-            NodeDiscovery.LoadNodes();
-            dtgNodes.ItemsSource = null;
-            dtgNodes.ItemsSource = NodeDiscovery.GetAllNodes();
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+                NodeDiscovery.LoadNodes();
+                dtgNodes.ItemsSource = null;
+                dtgNodes.ItemsSource = NodeDiscovery.GetAllNodes();
+
+                ShowTimedMessage("Nodes reloaded from local file!", TimeSpan.FromSeconds(2));
+            }
+        }
+
+        private void btnNodeDiscovery_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is Node node)
+            {
+                if (IPAddress.TryParse(node.Address, out IPAddress? nodeIpAdress) && nodeIpAdress != null)
+                {
+                    button.IsEnabled = false;
+                    new SslClientBussinesLogic(_contextForCentralServerConnect, nodeIpAdress, node.Port, this,
+                        typeOfSession: TypeOfSession.NODE_DISCOVERY, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
+                }
+            }
         }
 
         #endregion Events

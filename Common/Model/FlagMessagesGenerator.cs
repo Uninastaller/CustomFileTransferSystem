@@ -162,6 +162,21 @@ namespace Common.Model
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
+        public static MethodResult GenerateNodeListRequest(ISession session)
+        {
+            byte[] request = GenerateMessage(SocketMessageFlag.NODE_LIST_REQUEST);
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Offering file request was generated to client: {session.Endpoint}");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file request to client: {session.Endpoint}");
+            }
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
         public static MethodResult GenerateOfferingFile(string offeringFileDtoJson, bool endingOfMessage, ISession session)
         {
             // Message has 3 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT, END_OF_MESSAGE

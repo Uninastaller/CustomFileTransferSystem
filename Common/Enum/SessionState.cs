@@ -12,6 +12,7 @@ namespace Common.Enum
         FILE_REQUEST,
         FILE_PART_REQUEST,
         OFFERING_FILES_RECEIVING,
-        OFFERING_FILES_SENDING
+        OFFERING_FILES_SENDING,
+        NODE_LIST_SENDING
     }
 }
