@@ -39,6 +39,16 @@ namespace ConfigManager
             _nodes = new ConcurrentDictionary<string, Node>();
         }
 
+        public static string LoadNodesAsString()
+        {
+            string nodesFilePath = MyConfigManager.GetConfigValue("StoredNodesFilePath");
+            if (File.Exists(nodesFilePath))
+            {
+                return File.ReadAllText(nodesFilePath);
+            }
+            return string.Empty; 
+        }
+
         public static bool SaveNodes()
         {
             try

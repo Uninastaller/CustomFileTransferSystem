@@ -224,6 +224,7 @@ namespace Client.Windows
             contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
             contract.Add(MsgIds.CreationMessage, typeof(CreationMessage));
             contract.Add(MsgIds.SesrverDownloadingSessionsInfoMessage, typeof(ServerDownloadingSessionsInfoMessage));
+            contract.Add(MsgIds.NodeListReceivedMessage, typeof(NodeListReceivedMessage));
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -254,6 +255,7 @@ namespace Client.Windows
              .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x))
              .Case(contract.GetContractId(typeof(CreationMessage)), (CreationMessage x) => CreationMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerDownloadingSessionsInfoMessage)), (ServerDownloadingSessionsInfoMessage x) => ServerDownloadingSessionsInfoMessageHandler(x))
+             .Case(contract.GetContractId(typeof(NodeListReceivedMessage)), (NodeListReceivedMessage x) => NodeListReceivedMessageHandler(x.NodeDict))
              ;
 
             tbTitle.Text = $"Custom File Transfer System [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
@@ -448,6 +450,14 @@ namespace Client.Windows
             }
         }
 
+        private void NodeListReceivedMessageHandler(Dictionary<string, Node> nodeDict)
+        {
+            Log.WriteLog(LogLevel.DEBUG, "NodeListReceivedMessageHandler");
+            NodeDiscovery.UpdateNodeList(nodeDict);
+            NodeDiscovery.SaveNodes();
+            ShowTimedMessageAndEnableUI("NodeList received!", TimeSpan.FromSeconds(2), dtgNodes);
+        }
+
         private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
         {
             Log.WriteLog(LogLevel.DEBUG, $"ServerSocketStateChangeMessageHandler TypeOfSession: {message.TypeOfSession}, ServerSocketState: {message.ServerSocketState}");
@@ -498,6 +508,14 @@ namespace Client.Windows
             {
                 // Uploading server socket disposed
                 DisposeOfUploadingSocket();
+            }
+            else if (message.TypeOfSession == TypeOfSession.NODE_DISCOVERY && message.TypeOfSocket == TypeOfSocket.CLIENT)
+            {
+                if (!message.IsPurposeFullfilled)
+                {
+                    ShowTimedMessage("NodeList not receive, connection to node could not be made!", TimeSpan.FromSeconds(4));
+                }
+                dtgNodes.IsEnabled = true;
             }
         }
 
@@ -923,7 +941,7 @@ namespace Client.Windows
             {
                 if (IPAddress.TryParse(node.Address, out IPAddress? nodeIpAdress) && nodeIpAdress != null)
                 {
-                    button.IsEnabled = false;
+                    dtgNodes.IsEnabled = false;
                     new SslClientBussinesLogic(_contextForCentralServerConnect, nodeIpAdress, node.Port, this,
                         typeOfSession: TypeOfSession.NODE_DISCOVERY, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
                 }

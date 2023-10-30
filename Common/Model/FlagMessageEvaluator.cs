@@ -1,4 +1,5 @@
 ﻿using Common.Enum;
+using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
@@ -104,6 +105,31 @@ namespace Common.Model
                     {
                         Log.WriteLog(LogLevel.WARNING, $"Offering file with content: {messageParts[1]} received and but not valid! " + ex.Message);
                     }
+                }
+            }
+            return succes;
+        }
+
+        public static bool EvaluateNodeListFileMessage(byte[] buffer, long offset, long size, out Dictionary<string, Node> NodeDict)
+        {
+
+            NodeDict = new Dictionary<string, Node>();
+            bool succes = false;
+
+            // Message has 2 parts: FLAG, NODE_LIST_FILE_ON_JSON_FORMAT
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+
+            if (messageParts.Length == 2)
+            {
+                try
+                {
+                    NodeDict = JsonSerializer.Deserialize<Dictionary<string, Node>>(messageParts[1]);
+                    succes = true;
+                }
+                catch (JsonException ex)
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Node list file with content: {messageParts[1]} received and but not valid! " + ex.Message);
                 }
             }
             return succes;

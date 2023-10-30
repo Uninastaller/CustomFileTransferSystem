@@ -1,5 +1,6 @@
 ﻿using Common.Enum;
 using Common.Model;
+using ConfigManager;
 using Logger;
 using System;
 using System.Net.Sockets;
@@ -172,6 +173,7 @@ namespace SslTcpSession
         {            
             Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
             SessionState = SessionState.NODE_LIST_SENDING;
+            FlagMessagesGenerator.GenerateNodeList(NodeDiscovery.LoadNodesAsString(), this);
         }
 
         #endregion Events

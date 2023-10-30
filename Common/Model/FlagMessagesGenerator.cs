@@ -168,11 +168,27 @@ namespace Common.Model
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Offering file request was generated to client: {session.Endpoint}");
+                Log.WriteLog(LogLevel.DEBUG, $"Node list file request was generated to client: {session.Endpoint}");
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Unable to send offering file request to client: {session.Endpoint}");
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send node file request to client: {session.Endpoint}");
+            }
+            return succes ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
+        public static MethodResult GenerateNodeList(string nodesAsString, ISession session)
+        {
+            // Message has 2 parts: FLAG, NODE_LIST_FILE_ON_JSON_FORMAT
+            byte[] request = GenerateMessage(SocketMessageFlag.NODE_LIST, new object[] { nodesAsString } );
+            bool succes = session.SendAsync(request, 0, request.Length);
+            if (succes)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"node list file was generated to client: {session.Endpoint}");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send node list file to client: {session.Endpoint}");
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }

@@ -2,6 +2,7 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
+using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
@@ -70,6 +71,8 @@ namespace SslTcpSession
         private long _disconnectTime = 0;
 
         private bool _stopAndDispose = false;
+
+        private Int16 _maxDisconnectTime = 10;
 
         #endregion PrivateFields
 
@@ -257,7 +260,7 @@ namespace SslTcpSession
                     RequestFilePart();
                 }
             }
-            else if (++_disconnectTime == 10)
+            else if (++_disconnectTime == _maxDisconnectTime)
             {
                 Log.WriteLog(LogLevel.WARNING, "Unable to connect to the server. Disposing socked!");
                 StopAndDispose();
@@ -304,22 +307,19 @@ namespace SslTcpSession
 
         private void OnNodeListHandler(byte[] buffer, long offset, long size)
         {
-            if (State == ClientBussinesLogicState.OFFERING_FILES_RECEIVING)
+            if (State == ClientBussinesLogicState.NODE_LIST_RECEIVING)
             {
-                State = ClientBussinesLogicState.OFFERING_FILES_RECEIVING;
-                if (FlagMessageEvaluator.EvaluateOfferingFileMessage(buffer, offset, size, out List<OfferingFileDto> offeringFileDto, out bool endOfMessageGroup))
+                State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
+                if (FlagMessageEvaluator.EvaluateNodeListFileMessage(buffer, offset, size, out Dictionary<string, Node> nodeDict))
                 {
-                    _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFileDto));
-                    if (endOfMessageGroup)
-                    {
-                        StopAndDispose();
-                        Log.WriteLog(LogLevel.INFO, $"All Offering Files received, disposing socket!");
-                    }
+                    _gui?.BaseMsgEnque(new NodeListReceivedMessage(nodeDict));
+                    Log.WriteLog(LogLevel.DEBUG, $"Valid node list file received.");
+                    StopAndDispose();
                 }
             }
             else
             {
-                Log.WriteLog(LogLevel.WARNING, $"Offering File received, but session is not in default state, so message can not be proceed!");
+                Log.WriteLog(LogLevel.WARNING, $"Node list File received, but session is not in state that can receive this message, so message can not be proceed!");
             }
         }
 
@@ -389,7 +389,7 @@ namespace SslTcpSession
             TransferSendRate = 0;
             //_fileReceiver = null;
             base.Dispose(disposingManagedResources);
-            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, (_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart == -1)));
+            _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, (_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart == -1) || (_typeOfSession == TypeOfSession.NODE_DISCOVERY && _disconnectTime < _maxDisconnectTime)));
             //_gui = null;
         }
 
