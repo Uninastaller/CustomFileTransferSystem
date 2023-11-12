@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -144,7 +145,7 @@ namespace SslTcpSession
         {
             Log.WriteLog(LogLevel.DEBUG, "CreateRequestForNodeListToNode");
             State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
-            FlagMessagesGenerator.GenerateNodeListRequest(this);
+            FlagMessagesGenerator.GenerateNodeListRequest(this, JsonSerializer.Serialize(NodeDiscovery.GetMyNode(Address, Port)));
         }
 
         private void CreateAndSendOfferingFilesToCentralServer()

@@ -240,3 +240,23 @@ bool: Represents true or false values. Memory: Typically 1 byte.
                                             
                                         </DataGrid.Columns>
                                     </DataGrid>
+
+
+
+ChatGPT
+Áno, kryptografické podpisy hrajú kľúčovú úlohu v PBFT (Practical Byzantine Fault Tolerance) protokole. Poďme sa pozrieť na to, kde a ako sú v PBFT používané kryptografické podpisy:
+
+Fáza predloženia (Pre-Prepare):
+
+Veducí uzol (leader) vytvorí návrh na nový blok a odosiela ho ostatným uzlom vo fáze "Pre-Prepare". Tento návrh je podpísaný kryptografickým podpisom veducieho uzlu.
+Kryptografický podpis zabezpečuje, že ostatné uzly v sieti vedia, že správa pochádza od skutočného veducieho uzla a že nebola počas prenosu zmenená.
+Fáza schválenia (Prepare):
+
+Ostatné uzly, po prijatí návrhu, overia podpis veducieho uzla. Po overení vytvoria svoj vlastný podpis potvrdzujúci, že súhlasia s návrhom, a túto potvrdenú správu (s ich vlastným kryptografickým podpisom) rozosielajú ostatným uzlom.
+Fáza potvrdenia (Commit):
+
+Po prijatí dostatočného počtu potvrdení (zvyčajne 2/3 +1) od ostatných uzlov, uzly vytvoria ďalší podpis potvrdzujúci, že sú pripravené zaradiť nový blok do blockchainu. Táto správa je tiež podpísaná ich vlastným kryptografickým podpisom.
+Fáza finalizácie:
+
+Keď uzol prijme dostatočné množstvo potvrdzujúcich správ, zaradí nový blok do svojho blockchainu. Podpisy na potvrzujúcich správach zabezpečujú, že uzol vie, že väčšina siete súhlasí s pridaním nového bloku.
+Celý tento proces zabezpečuje konsenzus v distribuovanej sieti aj v prítomnosti byzantských chýb (t.j., nečestných alebo zlyhávajúcich uzlov). Kryptografické podpisy sú neoddeliteľnou súčasťou tohto procesu, pretože zabezpečujú autentifikáciu, integritu a neodvolateľnosť komunikácie medzi uzlami.

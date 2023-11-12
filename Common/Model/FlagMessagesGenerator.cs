@@ -1,9 +1,12 @@
 ﻿using Common.Enum;
 using Common.Interface;
+using ConfigManager;
 using Logger;
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace Common.Model
 {
@@ -161,10 +164,10 @@ namespace Common.Model
             }
             return succes ? MethodResult.SUCCES : MethodResult.ERROR;
         }
-
-        public static MethodResult GenerateNodeListRequest(ISession session)
+        // Message has 2 parts: FLAG, NODE_ON_JSON_FORMAT
+        public static MethodResult GenerateNodeListRequest(ISession session, string myNodeAsJson)
         {
-            byte[] request = GenerateMessage(SocketMessageFlag.NODE_LIST_REQUEST);
+            byte[] request = GenerateMessage(SocketMessageFlag.NODE_LIST_REQUEST, new object[] { myNodeAsJson });
             bool succes = session.SendAsync(request, 0, request.Length);
             if (succes)
             {

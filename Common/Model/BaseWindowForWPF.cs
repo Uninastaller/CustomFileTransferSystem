@@ -65,7 +65,6 @@ namespace Common.Model
             {
                 if (_concurrentQueue.TryDequeue(out BaseMsg? baseMsgFromQueue))
                 {
-                    //Logger.WriteLog("New message received", LoggerInfo.msgReceivLocal, baseMsgFromQueue.GetType().Name);
                     // calling of registered method for ai
                     msgSwitch.Switch(baseMsgFromQueue.ai, baseMsgFromQueue);
                 }

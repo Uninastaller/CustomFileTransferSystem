@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace ConfigManager
 {
@@ -27,7 +26,7 @@ namespace ConfigManager
                     var nodes = JsonSerializer.Deserialize<Dictionary<string, Node>>(File.ReadAllText(nodesFilePath));
                     if (nodes != null)
                     {
-                        _nodes =  new ConcurrentDictionary<string, Node>(nodes);
+                        _nodes = new ConcurrentDictionary<string, Node>(nodes);
                         return;
                     }
                 }
@@ -46,7 +45,7 @@ namespace ConfigManager
             {
                 return File.ReadAllText(nodesFilePath);
             }
-            return string.Empty; 
+            return string.Empty;
         }
 
         public static bool SaveNodes()
@@ -63,9 +62,12 @@ namespace ConfigManager
             }
         }
 
-        public static bool AddNode(Node node)
+        public static void AddNode(Node node)
         {
-            return _nodes.TryAdd(node.Id, node);
+            if (!_nodes.TryAdd(node.Id, node))
+            {
+                _nodes[node.Id].PublicKey = node.PublicKey;
+            }
         }
 
         public static bool RemoveNode(string nodeId)
@@ -85,13 +87,17 @@ namespace ConfigManager
 
         public static void UpdateNodeList(Dictionary<string, Node> externalNodes)
         {
-            foreach(var node in externalNodes.Values)
+            foreach (var node in externalNodes.Values)
             {
-                if (!AddNode(node))
-                {
-                    _nodes[node.Id].PublicKey = node.PublicKey;
-                }
+                AddNode(node);
             }
+        }
+
+        public static Node GetMyNode(IPEndPoint endpoint) => GetMyNode(endpoint.Address.ToString(), endpoint.Port);
+
+        public static Node GetMyNode(string address, int port)
+        {
+            return new Node() { Address = address, Port = port, PublicKey = Certificats.ExtractPublicKey(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node)) };
         }
 
     }

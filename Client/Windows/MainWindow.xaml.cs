@@ -948,6 +948,14 @@ namespace Client.Windows
             }
         }
 
+        private void btnNodeSynchronization_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+            }
+        }
+
         #endregion Events
 
         #region OverridedMethods

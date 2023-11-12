@@ -170,10 +170,15 @@ namespace SslTcpSession
         }
 
         private void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
-        {            
-            Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
-            SessionState = SessionState.NODE_LIST_SENDING;
-            FlagMessagesGenerator.GenerateNodeList(NodeDiscovery.LoadNodesAsString(), this);
+        {
+            if (FlagMessageEvaluator.EvaluateNodeListRequestMessage(buffer, offset, size, out Node senderNode))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
+                SessionState = SessionState.NODE_LIST_SENDING;
+                FlagMessagesGenerator.GenerateNodeList(NodeDiscovery.LoadNodesAsString(), this);
+                NodeDiscovery.AddNode(senderNode);
+                NodeDiscovery.SaveNodes();
+            }
         }
 
         #endregion Events

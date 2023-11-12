@@ -3,6 +3,7 @@ using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 
@@ -129,7 +130,31 @@ namespace Common.Model
                 }
                 catch (JsonException ex)
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"Node list file with content: {messageParts[1]} received and but not valid! " + ex.Message);
+                    Log.WriteLog(LogLevel.WARNING, $"Node list file with content: {messageParts[1]} received but not valid! " + ex.Message);
+                }
+            }
+            return succes;
+        }
+
+        public static bool EvaluateNodeListRequestMessage(byte[] buffer, long offset, long size, [MaybeNullWhen(false)] out Node senderNode)
+        {
+            bool succes = false;
+            senderNode = null;
+
+            // Message has 2 parts: FLAG, NODE_ON_JSON_FORMAT
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+
+            if (messageParts.Length == 2)
+            {
+                try
+                {
+                    senderNode = JsonSerializer.Deserialize<Node>(messageParts[1]);
+                    succes = true;
+                }
+                catch (JsonException ex)
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Node request with content: {messageParts[1]} received but not valid! " + ex.Message);
                 }
             }
             return succes;
