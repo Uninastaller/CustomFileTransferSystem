@@ -6,6 +6,7 @@ using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -144,8 +145,14 @@ namespace SslTcpSession
         private void CreateRequestForNodeListToNode()
         {
             Log.WriteLog(LogLevel.DEBUG, "CreateRequestForNodeListToNode");
+
+            //string myIp = NetworkUtils.GetPublicIPAddress().Result.ToString();
+            string myIp = NetworkUtils.GetLocalIPAddress()?.ToString() ?? string.Empty;
+            int myPort;
+            if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out myPort) || string.IsNullOrEmpty(myIp)) return;
+
             State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
-            FlagMessagesGenerator.GenerateNodeListRequest(this, JsonSerializer.Serialize(NodeDiscovery.GetMyNode(Address, Port)));
+            FlagMessagesGenerator.GenerateNodeListRequest(this, JsonSerializer.Serialize(NodeDiscovery.GetMyNode(myIp, myPort)));
         }
 
         private void CreateAndSendOfferingFilesToCentralServer()
