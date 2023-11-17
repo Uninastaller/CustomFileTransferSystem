@@ -455,7 +455,9 @@ namespace Client.Windows
             Log.WriteLog(LogLevel.DEBUG, "NodeListReceivedMessageHandler");
             NodeDiscovery.UpdateNodeList(nodeDict);
             NodeDiscovery.SaveNodes();
-            ShowTimedMessageAndEnableUI("NodeList received!", TimeSpan.FromSeconds(2), dtgNodes);
+            //ShowTimedMessageAndEnableUI("NodeList received!", TimeSpan.FromSeconds(2), dtgNodes);
+            ShowTimedMessage("NodeList received!", TimeSpan.FromSeconds(2));
+
         }
 
         private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
@@ -479,45 +481,46 @@ namespace Client.Windows
             }
         }
 
-        private void DisposeMessageHandler(DisposeMessage message)
-        {
-            Log.WriteLog(LogLevel.DEBUG, $"DisposeMessageHandler " +
-                $"id:{message.SessionGuid}, TypeOfSocket: {message.TypeOfSocket}, TypeOfSession: {message.TypeOfSession}, IsPurposeFullfilled: {message.IsPurposeFullfilled}");
-
-            if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.CLIENT)
+            private void DisposeMessageHandler(DisposeMessage message)
             {
-                // Loop through each downloadModel
-                foreach (var downloadModel in _downloadModels)
-                {
-                    // Find the client with the matching Id
-                    var clientToRemove = downloadModel.Clients.FirstOrDefault(client => (client.Id == message.SessionGuid && client.IsDisposed));
+                Log.WriteLog(LogLevel.DEBUG, $"DisposeMessageHandler " +
+                    $"id:{message.SessionGuid}, TypeOfSocket: {message.TypeOfSocket}, TypeOfSession: {message.TypeOfSession}, IsPurposeFullfilled: {message.IsPurposeFullfilled}");
 
-                    // If found, remove it from the list
-                    if (clientToRemove != null)
+                if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.CLIENT)
+                {
+                    // Loop through each downloadModel
+                    foreach (var downloadModel in _downloadModels)
                     {
-                        downloadModel.Clients.Remove(clientToRemove);
-                        if (message.IsPurposeFullfilled)
+                        // Find the client with the matching Id
+                        var clientToRemove = downloadModel.Clients.FirstOrDefault(client => (client.Id == message.SessionGuid && client.IsDisposed));
+
+                        // If found, remove it from the list
+                        if (clientToRemove != null)
                         {
-                            downloadModel.IsDownloading = false;
+                            downloadModel.Clients.Remove(clientToRemove);
+                            if (message.IsPurposeFullfilled)
+                            {
+                                downloadModel.IsDownloading = false;
+                            }
+                            Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}, with IsPurposeFullfilled: {message.IsPurposeFullfilled}");
                         }
-                        Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}, with IsPurposeFullfilled: {message.IsPurposeFullfilled}");
                     }
                 }
-            }
-            if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.SERVER)
-            {
-                // Uploading server socket disposed
-                DisposeOfUploadingSocket();
-            }
-            else if (message.TypeOfSession == TypeOfSession.NODE_DISCOVERY && message.TypeOfSocket == TypeOfSocket.CLIENT)
-            {
-                if (!message.IsPurposeFullfilled)
+                if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.SERVER)
                 {
-                    ShowTimedMessage("NodeList not receive, connection to node could not be made!", TimeSpan.FromSeconds(4));
+                    // Uploading server socket disposed
+                    DisposeOfUploadingSocket();
                 }
-                dtgNodes.IsEnabled = true;
+                else if (message.TypeOfSession == TypeOfSession.NODE_DISCOVERY && message.TypeOfSocket == TypeOfSocket.CLIENT)
+                {
+                    if (!message.IsPurposeFullfilled)
+                    {
+                        ShowTimedMessage("NodeList not receive, connection to node could not be made!", TimeSpan.FromSeconds(4));
+                    }
+                    //dtgNodes.IsEnabled = true;
+                    NodeSynchronization.ReleaseSem();
+                }
             }
-        }
 
         private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
@@ -942,17 +945,24 @@ namespace Client.Windows
                 if (IPAddress.TryParse(node.Address, out IPAddress? nodeIpAdress) && nodeIpAdress != null)
                 {
                     dtgNodes.IsEnabled = false;
-                    new SslClientBussinesLogic(_contextForCentralServerConnect, nodeIpAdress, node.Port, this,
+                    new SslClientBussinesLogic(_contextForP2pAsClient, nodeIpAdress, node.Port, this,
                         typeOfSession: TypeOfSession.NODE_DISCOVERY, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
                 }
             }
         }
 
-        private void btnNodeSynchronization_Click(object sender, RoutedEventArgs e)
+        private async void btnNodeSynchronization_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button)
             {
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+                dtgNodes.IsEnabled = false;
+                btnNodeSynchronization.IsEnabled = false;
+                await NodeSynchronization.ExecuteSynchronization(_contextForP2pAsClient, this);
+                ShowTimedMessage("Synchronization Complete!", TimeSpan.FromSeconds(5));
+                dtgNodes.IsEnabled = true;
+                btnNodeSynchronization.IsEnabled = true;
             }
         }
 
