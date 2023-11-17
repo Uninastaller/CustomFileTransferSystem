@@ -182,7 +182,7 @@ namespace Client.Windows
         private const string _cftsFileExtensions = ".cfts";
 
         //private IUniversalClientSocket? _socketToCentralServer;
-        private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClient.pfx";
+        private readonly string _certificateNameForCentralServerConnect = "MyTestCertificateClientForCentralServer.pfx";
         private readonly string _certificateNameForP2pAsClient = "MyTestCertificateClient.pfx";
         private readonly string _certificateNameForP2pAsServer = "MyTestCertificateServer.pfx";
 
@@ -226,9 +226,9 @@ namespace Client.Windows
             contract.Add(MsgIds.SesrverDownloadingSessionsInfoMessage, typeof(ServerDownloadingSessionsInfoMessage));
             contract.Add(MsgIds.NodeListReceivedMessage, typeof(NodeListReceivedMessage));
 
-            _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForCentralServerConnect), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsServer), ""), (sender, certificate, chain, sslPolicyErrors) => true);
-            _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, new X509Certificate2(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _certificateNameForP2pAsClient), ""), (sender, certificate, chain, sslPolicyErrors) => true);
+            _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForCentralServerConnect, Certificats.CertificateType.ClientConnectionWithCentralServer), (sender, certificate, chain, sslPolicyErrors) => true);
+            _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForP2pAsServer, Certificats.CertificateType.Server), (sender, certificate, chain, sslPolicyErrors) => true);
+            _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForP2pAsClient, Certificats.CertificateType.Client), (sender, certificate, chain, sslPolicyErrors) => true);
 
             Init();
 

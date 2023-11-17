@@ -15,7 +15,9 @@ namespace ConfigManager
         {
             Server,
             Client,
-            Node
+            Node,
+            CentralServer,
+            ClientConnectionWithCentralServer
         }
 
         public static X509Certificate2 GetCertificate(string subjectName, CertificateType certType)
@@ -40,6 +42,12 @@ namespace ConfigManager
                         request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
                         break;
                     case CertificateType.Client:
+                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }, false));
+                        break;
+                    case CertificateType.CentralServer:
+                        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+                        break;
+                    case CertificateType.ClientConnectionWithCentralServer:
                         request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.2") }, false));
                         break;
                     case CertificateType.Node:
