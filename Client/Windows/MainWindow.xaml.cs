@@ -233,6 +233,9 @@ namespace Client.Windows
 
             tbSuccessMessage.Visibility = Visibility.Collapsed;
             DisposeOfUploadingSocket(startupCalling: true);
+            
+            // Set to ssl from the start
+            swchSocketType.IsOnLeft = false;
         }
 
         #endregion Ctor

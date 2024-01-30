@@ -1,4 +1,5 @@
-﻿using Common.Interface;
+﻿using Common.Enum;
+using Common.Interface;
 using ConfigManager;
 using Logger;
 using System.IO;
@@ -141,7 +142,13 @@ namespace Common.Model
 
       public static void CreateJsonFile(string ipAddress, int port, FileInfo fileInfo)
       {
-         var offeringFileDto = new OfferingFileDto($"{ipAddress}:{port}", Enum.TypeOfServerSocket.TCP_SERVER)
+         bool useSsl = true;
+         if (!MyConfigManager.TryGetBoolConfigValue("CreateSslOfferingFiles", out useSsl))
+         {
+            Log.WriteLog(LogLevel.WARNING, $"Could not find useSsl propertie in config, using default: {useSsl}");
+         }
+
+         var offeringFileDto = new OfferingFileDto($"{ipAddress}:{port}", useSsl ? TypeOfServerSocket.TCP_SERVER_SSL : TypeOfServerSocket.TCP_SERVER)
          {
             FileName = fileInfo.Name,
             FileSize = fileInfo.Length,
