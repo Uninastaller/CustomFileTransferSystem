@@ -6,7 +6,6 @@ using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -115,9 +114,9 @@ namespace SslTcpSession
                 _flagSwitch.Register(SocketMessageFlag.NODE_LIST, OnNodeListHandler);
             }
 
-            ConnectAsync();
-
             _gui = gui;
+
+            ConnectAsync();
 
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
@@ -233,7 +232,10 @@ namespace SslTcpSession
         private void RequestFile()
         {
             if (FlagMessagesGenerator.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+            {
                 State = ClientBussinesLogicState.REQUEST_SENDED;
+                Log.WriteLog(LogLevel.INFO, $"Request for file {_requestingFileName} was successfully send to client: {Endpoint}");
+            }
         }
 
         private void StopAndDispose()

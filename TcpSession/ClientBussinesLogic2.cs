@@ -82,7 +82,7 @@ namespace TcpSession
             _requestingFileSize = fileSize;
             _fileReceiver = fileReceiver;
 
-            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler); // nezabudni presunut do dolneho konstruktora
+            _flagSwitch.SetCaching(fileReceiver.PartSize, OnFilePartHandler);
 
             State = ClientBussinesLogicState.REQUESTING_FILE;
         }
@@ -105,8 +105,6 @@ namespace TcpSession
             _timer = new Timer(1000); // Set the interval to 1 second
             _timer.Elapsed += OneSecondHandler;
             _timer.Start();
-
-
         }
 
         #endregion Ctor
@@ -151,7 +149,7 @@ namespace TcpSession
                     break;
                 case MethodResult.ERROR:
                     State = ClientBussinesLogicState.REQUEST_ACCEPTED;
-                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
+                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retries in few seconds");
                     break;
             }
         }
@@ -181,7 +179,7 @@ namespace TcpSession
                     break;
                 case MethodResult.ERROR:
                     State = ClientBussinesLogicState.REQUEST_ACCEPTED;
-                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retrie in few seconds");
+                    Log.WriteLog(LogLevel.WARNING, $"Problem in generating request for file part, switching to state: {State}! Automatically retries in few seconds");
                     break;
             }
         }
@@ -189,7 +187,10 @@ namespace TcpSession
         private void RequestFile()
         {
             if (FlagMessagesGenerator.GenerateRequestForFile(_requestingFileName, _requestingFileSize, this) == MethodResult.SUCCES)
+            {
                 State = ClientBussinesLogicState.REQUEST_SENDED;
+                Log.WriteLog(LogLevel.INFO, $"Request for file {_requestingFileName} was successfully send to client: {Endpoint}");
+            }
         }
 
         private void StopAndDispose()
@@ -242,7 +243,7 @@ namespace TcpSession
 
             if (State == ClientBussinesLogicState.REQUEST_SENDED)
             {
-                Log.WriteLog(LogLevel.DEBUG, "Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
+                Log.WriteLog(LogLevel.DEBUG, $"Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
                 MessageBox.Show("Request for file was rejected!");
                 StopAndDispose();
             }

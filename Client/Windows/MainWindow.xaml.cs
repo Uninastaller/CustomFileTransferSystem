@@ -16,7 +16,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Timers;
 using System.Windows;
@@ -481,46 +480,47 @@ namespace Client.Windows
             }
         }
 
-            private void DisposeMessageHandler(DisposeMessage message)
+        private void DisposeMessageHandler(DisposeMessage message)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"DisposeMessageHandler " +
+                $"id:{message.SessionGuid}, TypeOfSocket: {message.TypeOfSocket}, TypeOfSession: {message.TypeOfSession}, IsPurposeFullfilled: {message.IsPurposeFullfilled}");
+
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.CLIENT)
             {
-                Log.WriteLog(LogLevel.DEBUG, $"DisposeMessageHandler " +
-                    $"id:{message.SessionGuid}, TypeOfSocket: {message.TypeOfSocket}, TypeOfSession: {message.TypeOfSession}, IsPurposeFullfilled: {message.IsPurposeFullfilled}");
-
-                if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.CLIENT)
+                // Loop through each downloadModel
+                foreach (var downloadModel in _downloadModels)
                 {
-                    // Loop through each downloadModel
-                    foreach (var downloadModel in _downloadModels)
-                    {
-                        // Find the client with the matching Id
-                        var clientToRemove = downloadModel.Clients.FirstOrDefault(client => (client.Id == message.SessionGuid && client.IsDisposed));
+                    // Find the client with the matching Id
+                    var clientToRemove = downloadModel.Clients.FirstOrDefault(client => (client.Id == message.SessionGuid && client.IsDisposed));
 
-                        // If found, remove it from the list
-                        if (clientToRemove != null)
+                    // If found, remove it from the list
+                    if (clientToRemove != null)
+                    {
+                        downloadModel.Clients.Remove(clientToRemove);
+                        if (message.IsPurposeFullfilled)
                         {
-                            downloadModel.Clients.Remove(clientToRemove);
-                            if (message.IsPurposeFullfilled)
-                            {
-                                downloadModel.IsDownloading = false;
-                            }
-                            Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}, with IsPurposeFullfilled: {message.IsPurposeFullfilled}");
+                            downloadModel.RefreshWaitForLast = true;
+                            downloadModel.IsDownloading = false;
                         }
+                        Log.WriteLog(LogLevel.DEBUG, $"Client socket: {clientToRemove.Id} disposed for downloading: {downloadModel.FileIndentificator}, with IsPurposeFullfilled: {message.IsPurposeFullfilled}");
                     }
-                }
-                if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.SERVER)
-                {
-                    // Uploading server socket disposed
-                    DisposeOfUploadingSocket();
-                }
-                else if (message.TypeOfSession == TypeOfSession.NODE_DISCOVERY && message.TypeOfSocket == TypeOfSocket.CLIENT)
-                {
-                    if (!message.IsPurposeFullfilled)
-                    {
-                        ShowTimedMessage("NodeList not receive, connection to node could not be made!", TimeSpan.FromSeconds(4));
-                    }
-                    //dtgNodes.IsEnabled = true;
-                    NodeSynchronization.ReleaseSem();
                 }
             }
+            if (message.TypeOfSession == TypeOfSession.DOWNLOADING && message.TypeOfSocket == TypeOfSocket.SERVER)
+            {
+                // Uploading server socket disposed
+                DisposeOfUploadingSocket();
+            }
+            else if (message.TypeOfSession == TypeOfSession.NODE_DISCOVERY && message.TypeOfSocket == TypeOfSocket.CLIENT)
+            {
+                if (!message.IsPurposeFullfilled)
+                {
+                    ShowTimedMessage("NodeList not receive, connection to node could not be made!", TimeSpan.FromSeconds(4));
+                }
+                //dtgNodes.IsEnabled = true;
+                NodeSynchronization.ReleaseSem();
+            }
+        }
 
         private void ClientSocketStateChangeMessageHandler(ClientSocketStateChangeMessage message)
         {
@@ -801,7 +801,6 @@ namespace Client.Windows
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
                 downloadModelObject.IsDownloading = false;
             }
-
         }
 
         private void swchSocketDisposeState_Switched(object sender, EventArgs e)
