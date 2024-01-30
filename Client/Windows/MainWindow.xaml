@@ -75,7 +75,7 @@
                             ToolTip="Open downloading directory"/>
 
                         <Button Style="{StaticResource SettingsButtonStyle}" x:Name="btnSettings" Content="" Click="btnSettings_Click" Grid.Column="3" Margin="0,0,0,0"
-                            ToolTip="Open windows with connected clients"/>
+                            ToolTip="Open config file in notepad"/>
 
                     </Grid>
                 </Border>
@@ -317,9 +317,13 @@
                                             <RowDefinition Height="30"/>
                                             <RowDefinition Height="15"/>
                                             <RowDefinition Height="30"/>
-                                        </Grid.RowDefinitions>                                        
-                                        
-                                    </Grid>
+                                        </Grid.RowDefinitions>
+
+                                        <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadLocalOfferingFilesFile" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Reload offering filles from local files" Click="btnReloadLocalOfferingFilesFile_Click">
+                                        </Button>
+
+                                    </Grid>                                   
 
                                     <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
                                               Grid.Column="2"
@@ -461,7 +465,7 @@
                                         </Grid.RowDefinitions>
 
                                         <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadNodesFile" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
-                                            ToolTip="Reload nodes from local file" Click="btnReloadNodesFile_Click" RenderTransformOrigin="0.5,0.5">
+                                            ToolTip="Reload nodes from local file" Click="btnReloadNodesFile_Click">
                                         </Button>
                                         <Button Style="{StaticResource SynchronizeButtonStyle}" x:Name="btnNodeSynchronization" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
                                                 ToolTip="Start Synchronization with all nodes" Click="btnNodeSynchronization_Click">

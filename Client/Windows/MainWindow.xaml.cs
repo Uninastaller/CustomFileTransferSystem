@@ -272,6 +272,9 @@ namespace Client.Windows
       private void LoadLocalOfferingFiles()
       {
          Log.WriteLog(LogLevel.DEBUG, "LoadLocalOfferingFiles");
+
+         _localOfferingFiles.Clear();
+
          string filesDirectory = Path.Combine(MyConfigManager.GetConfigValue("DownloadingDirectory"), _cftsDirectoryName);
          if (Directory.Exists(filesDirectory))
          {
@@ -971,6 +974,11 @@ namespace Client.Windows
       private void btnSettings_Click(object sender, RoutedEventArgs e)
       {
          MyConfigManager.OpenConfigFile();
+      }
+
+      private void btnReloadLocalOfferingFilesFile_Click(object sender, RoutedEventArgs e)
+      {
+         LoadLocalOfferingFiles();
       }
 
       #endregion Events
