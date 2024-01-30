@@ -73,6 +73,9 @@
                         <Button Style="{StaticResource ClientsButtonStyle}" x:Name="btnClientsWindow" Content="" Click="btnClientsWindow_Click" Grid.Column="2" Margin="0,0,0,0"
                             ToolTip="Open windows with connected clients"/>
 
+                        <Button Style="{StaticResource SettingsButtonStyle}" x:Name="btnSettings" Content="" Click="btnSettings_Click" Grid.Column="3" Margin="0,0,0,0"
+                            ToolTip="Open windows with connected clients"/>
+                        
                     </Grid>
                 </Border>
 
