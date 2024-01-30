@@ -827,7 +827,7 @@ namespace Client.Windows
                 }
 
                 // Check for valid port
-                if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out int port))
+                if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out Int32 port))
                 {
                     Log.WriteLog(LogLevel.ERROR, "Invalid port!");
                     return;

@@ -54,7 +54,7 @@ namespace Common.Model
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(partNumberBytes);
 
-            byte[] buffer = new byte[partSize + flag.Length + sizeof(long)];
+            byte[] buffer = new byte[flag.Length + sizeof(long) + partSize];
             int bytesRead = 0;
             long offset = partNumber * partSize;
 
