@@ -2,6 +2,7 @@
 using Common.Interface;
 using Logger;
 using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -173,8 +174,12 @@ namespace Common.Model
          {
             Log.WriteLog(LogLevel.WARNING, "Saved Status File dont exist, or is Invalid, starting downloading from beginning");
          }
-         int megabyte = 0x100000;
-         int filePartSize = megabyte;
+         Int32 filePartSize;
+         if (!ConfigManager.MyConfigManager.TryGetIntConfigValue("DownloadingFilePartSize", out filePartSize))
+         {
+            int megabyte = 0x100000;
+            filePartSize = megabyte;
+         }
          return new FileReceiver(fileSize, filePartSize, downloadingFile);
       }
 
