@@ -98,6 +98,11 @@ namespace TcpSession
          return list;
       }
 
+      public ISession? GetSessionById(Guid sessionID)
+      {
+         return this.FindSession(sessionID);
+      }
+
       #endregion PublicMethods
 
       #region PrivateMethods

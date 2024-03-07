@@ -9,7 +9,7 @@ namespace BlockChain
         public Int32 Index { get; set; }
         public DateTime Timestamp { get; set; }
         public string FileHash { get; set; } = string.Empty; // For integrity check
-        public Guid FileID { get; set; } = Guid.NewGuid(); // Unique identifier for the file
+        public Guid FileID { get; set; } // Unique identifier for the file
         public List<EndPoint> FileLocations { get; set; }  = new List<EndPoint>();
         public TransactionType Transaction { get; set; }
         public string Hash { get; set; } = string.Empty;

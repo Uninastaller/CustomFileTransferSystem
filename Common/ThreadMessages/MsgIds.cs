@@ -15,5 +15,6 @@
         public static readonly int CreationMessage = 11;
         public static readonly int SesrverDownloadingSessionsInfoMessage = 12;
         public static readonly int NodeListReceivedMessage = 13;
+        public static readonly int RequestForOfferingFilesMessage = 14;
     }
 }

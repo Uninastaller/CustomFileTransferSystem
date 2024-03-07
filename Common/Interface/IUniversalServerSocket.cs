@@ -29,5 +29,6 @@ namespace Common.Interface
         public bool Start();
         public void DisconnectSession(Guid sessionId);
         public List<ServerDownloadingSessionsInfo>? GetDownloadingSessionsInfo();
+        ISession? GetSessionById(Guid sessionID);
     }
 }

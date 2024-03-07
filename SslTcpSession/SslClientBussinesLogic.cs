@@ -280,7 +280,7 @@ namespace SslTcpSession
          }
          else if (++_disconnectTime == _maxDisconnectTime)
          {
-            Log.WriteLog(LogLevel.WARNING, "Unable to connect to the server. Disposing socked!");
+            Log.WriteLog(LogLevel.WARNING, $"Unable to connect to the server: {this.Endpoint}. Disposing socked!");
             StopAndDispose();
          }
 

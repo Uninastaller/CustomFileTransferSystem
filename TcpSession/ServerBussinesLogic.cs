@@ -38,17 +38,20 @@ namespace TcpSession
 
         public long TransferReceiveRate => 0;
 
-        #endregion Properties
+      #endregion Properties
 
-        #region PublicFields
+      #region PublicFields
 
+      public ISession? GetSessionById(Guid sessionID)
+      {
+         return null;
+      }
 
+      #endregion PublicFields
 
-        #endregion PublicFields
+      #region PrivateFields
 
-        #region PrivateFields
-
-        private TcpListener? _listener;
+      private TcpListener? _listener;
         private bool _isAccepting;
         private bool _isStarted;
         private IPAddress _address;

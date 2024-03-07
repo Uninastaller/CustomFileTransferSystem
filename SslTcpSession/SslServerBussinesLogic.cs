@@ -100,6 +100,11 @@ namespace SslTcpSession
          return list;
       }
 
+      public ISession? GetSessionById(Guid sessionID)
+      {
+         return this.FindSession(sessionID);
+      }
+
       #endregion PublicMethods
 
       #region PrivateMethods
@@ -233,6 +238,13 @@ namespace SslTcpSession
             serverSession.ClientFileRequest -= OnClientFileRequest;
             serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
          }
+         else if (session is SslCentralServerSession centralServerSession)
+         {
+            centralServerSession.ClientDisconnected -= OnClientDisconnected;
+            centralServerSession.ServerSessionStateChange -= OnServerSessionStateChange;
+            centralServerSession.NewOfferingFiles -= OnNewOfferingFiles;
+            centralServerSession.RequestForOfferingFiles -= OnRequestForOfferingFiles;
+         }
 
          ClientStateChange(ClientSocketState.DISCONNECTED, null, session.Id);
          if (_clients != null && _gui != null)
@@ -252,11 +264,23 @@ namespace SslTcpSession
          {
             centralServerSession.ClientDisconnected += OnClientDisconnected;
             centralServerSession.ServerSessionStateChange += OnServerSessionStateChange;
+            centralServerSession.NewOfferingFiles += OnNewOfferingFiles;
+            centralServerSession.RequestForOfferingFiles += OnRequestForOfferingFiles;
          }
 
          ClientStateChange(ClientSocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);
          if (_clients != null && _gui != null)
             _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
+      }
+
+      private void OnRequestForOfferingFiles(Guid sessionId)
+      {
+         _gui?.BaseMsgEnque(new RequestForOfferingFilesMessage() { SessionId = sessionId });
+      }
+
+      private void OnNewOfferingFiles(List<OfferingFileDto> offeringFilesDto)
+      {
+         _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFilesDto));
       }
 
       protected override void OnStarted()

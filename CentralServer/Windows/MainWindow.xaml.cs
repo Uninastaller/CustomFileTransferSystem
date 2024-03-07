@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -94,6 +95,8 @@ namespace CentralServer.Windows
 
          contract.Add(MsgIds.ClientStateChangeMessage, typeof(ClientsStateChangeMessage));
          contract.Add(MsgIds.ServerSocketStateChangeMessage, typeof(ServerSocketStateChangeMessage));
+         contract.Add(MsgIds.OfferingFilesReceivedMessage, typeof(OfferingFilesReceivedMessage));
+         contract.Add(MsgIds.RequestForOfferingFilesMessage, typeof(RequestForOfferingFilesMessage));
 
          if (MyConfigManager.TryGetConfigValue<Int32>("CeentralServerPort", out Int32 serverPort))
          {
@@ -130,8 +133,9 @@ namespace CentralServer.Windows
 
          msgSwitch
           .Case(contract.GetContractId(typeof(ClientsStateChangeMessage)), (ClientsStateChangeMessage x) => ClientStateChangeMessageHandler(x))
-          .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x));
-
+          .Case(contract.GetContractId(typeof(ServerSocketStateChangeMessage)), (ServerSocketStateChangeMessage x) => ServerSocketStateChangeMessageHandler(x))
+          .Case(contract.GetContractId(typeof(OfferingFilesReceivedMessage)), (OfferingFilesReceivedMessage x) => OfferingFilesReceivedMessageHandler(x.OfferingFiles))
+          .Case(contract.GetContractId(typeof(RequestForOfferingFilesMessage)), (RequestForOfferingFilesMessage x) => RequestForOfferingFilesMessageHandler(x.SessionId));
       }
 
       #region TemplateMethods
@@ -252,6 +256,29 @@ namespace CentralServer.Windows
       private void ServerSocketStateChangeMessageHandler(ServerSocketStateChangeMessage message)
       {
          CentralServerSocketState = message.ServerSocketState;
+      }
+
+      private async void OfferingFilesReceivedMessageHandler(List<OfferingFileDto> offeringFilesDto)
+      {
+         foreach (OfferingFileDto offeringFileDto in offeringFilesDto)
+         {
+            await SqliteDataAccess.InsertOrUpdateOfferingFileDtoAsync(offeringFileDto);
+         }
+      }
+
+      private async void RequestForOfferingFilesMessageHandler(Guid sessionID)
+      {
+         ISession? session = _serverBussinesLogic.GetSessionById(sessionID);
+         if (session != null)
+         {
+            List<OfferingFileDto> offeringFiles = await SqliteDataAccess.GetAllOfferingFilesWithEndpointsAsync();
+            for (int i = 0; i < offeringFiles.Count; i++)
+            {
+               FlagMessagesGenerator.GenerateOfferingFile(offeringFiles[i].GetJson(), i == offeringFiles.Count - 1, session);
+            }
+            Log.WriteLog(LogLevel.DEBUG, "All offeringFiles were send, disconnecting session!");
+            session.Disconnect();
+         }
       }
 
       #endregion PrivateMethods

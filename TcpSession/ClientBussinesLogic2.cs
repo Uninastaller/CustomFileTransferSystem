@@ -227,8 +227,8 @@ namespace TcpSession
             }
             else if (++_disconnectTime == 10)
             {
-                Log.WriteLog(LogLevel.WARNING, "Unable to connect to the server. Disposing socked!");
-                StopAndDispose();
+            Log.WriteLog(LogLevel.WARNING, $"Unable to connect to the server: {this.Endpoint}. Disposing socked!");
+            StopAndDispose();
             }
 
             TransferSendRate = BytesSent - _secondOldBytesSent;
