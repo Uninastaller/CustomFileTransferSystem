@@ -3,16 +3,25 @@ using ConfigManager;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using Common.Model;
+
+
+IPAddress publicAddress = await NetworkUtils.GetPublicIPAddress();
+IPAddress madeAdress = IPAddress.Parse($"192.168.1.241");
+
 
 Blockchain MyChain = new Blockchain();
 
 string fileHash = "abc";
 
-Guid a = MyChain.Add_AddRequest(fileHash);
+MyChain.Add_AddRequest(fileHash, out Guid a);
 
-MyChain.Add_Add(a, fileHash);
+string publicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("", Certificats.CertificateType.Node));
+bool b = MyChain.Chain[1].VerifyHash(publicKey);
 
-Console.WriteLine($"Valid: {MyChain.IsValid()}");
+//MyChain.Add_Add(a, fileHash, new IPEndPoint(publicAddress, 8080));
+
+//Console.WriteLine($"Valid: {MyChain.IsBlockChainValid()}");
 
 //MyConfigManager.StartApplication();
 

@@ -97,7 +97,7 @@ namespace ConfigManager
 
         public static Node GetMyNode(string address, int port)
         {
-            return new Node() { Address = address, Port = port, PublicKey = Certificats.ExtractPublicKey(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node)) };
+            return new Node() { Address = address, Port = port, PublicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node)) };
         }
 
     }
