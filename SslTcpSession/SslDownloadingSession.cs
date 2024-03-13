@@ -184,8 +184,9 @@ namespace SslTcpSession
 
             for(int i = 0; i < nodes.Count; i++)
             {
-               FlagMessagesGenerator.GenerateNodeMessage(nodes[i].GetJson(), i == nodes.Count - 1, this);
+               FlagMessagesGenerator.GenerateNodeMessage(nodes[i].GetJson(), false, this);
             }
+            FlagMessagesGenerator.GenerateNodeMessage(NodeDiscovery.GetMyNode().GetJson(), true, this);
 
             NodeDiscovery.AddNode(senderNode);
             NodeDiscovery.SaveNodes();
