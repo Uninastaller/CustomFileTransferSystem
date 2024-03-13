@@ -34,6 +34,8 @@
 
     <SolidColorBrush x:Key="ToogleButtonBackgroundColor" Color="#80741b0c"/>
 
+    <SolidColorBrush x:Key="TextBoxBackground" Color="BurlyWood"/>
+
     <!--#endregion Colors-->
 
     <!--#region SuccessMessageStyle-->
@@ -211,6 +213,35 @@
 
     <!--#endregion SynchronizeButtonStyle-->
 
+    <!--#region AddButtonStyle-->
+
+    <Style x:Key="AddButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Add_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion AddButtonStyle-->
+
     <!--#region MinimizeButtonImage-->
 
     <Style x:Key="MinimizeButtonStyle" TargetType="{x:Type Button}">
@@ -297,6 +328,35 @@
     </Style>
 
     <!--#endregion ReloadButtonStyle-->
+
+    <!--#region MyNodeButtonStyle-->
+
+    <Style x:Key="MyNodeButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/MyNode_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion MyNodeButtonStyle-->
 
     <!--#region DatabaseButtonStyle-->
 
@@ -414,6 +474,35 @@
 
     <!--#endregion DownloadButtonStyle-->
 
+    <!--#region SaveButtonStyle-->
+
+    <Style x:Key="SaveButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <!-- Rectangle whose color will change -->
+                        <Rectangle x:Name="ColoredRect" Fill="{StaticResource ImageButtonsColorDefault}">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="pack://application:,,,/Common;component/Images/Save_Default.png" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorMouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="ColoredRect" Property="Fill" Value="{StaticResource ImageButtonsColorDisable}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--#endregion SaveButtonStyle-->
+
     <!--#region UploadingDirectoryButtonStyle-->
 
     <Style x:Key="UploadingDirectoryButtonStyle" TargetType="{x:Type Button}">
@@ -521,6 +610,16 @@
     </Style>
 
     <!--#endregion TextBlockStyle1-->
+
+    <!--#region TextBoxStyle-->
+
+    <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}">
+        <Setter Property="TextWrapping" Value="NoWrap"/>
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextColorDefault}"/>
+    </Style>
+
+    <!--#endregion TextBoxStyle-->
 
     <!--#region ButtonStyle1-->
 

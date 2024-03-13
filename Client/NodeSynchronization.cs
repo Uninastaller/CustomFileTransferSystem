@@ -2,6 +2,7 @@
 using Common.Interface;
 using ConfigManager;
 using SslTcpSession;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -23,11 +24,11 @@ namespace Client
             }
             _semaphore = new SemaphoreSlim(maximumParallelRunningSockets);
             List<Task> tasks = new List<Task>();
-            HashSet<string> processedNodes = new HashSet<string>(); // Sledovanie už spracovaných uzlov
+            HashSet<Guid> processedNodes = new HashSet<Guid>(); // Sledovanie už spracovaných uzlov
 
             while (true)
             {
-                var nodesToProcess = NodeDiscovery.GetAllNodes().Where(node => !processedNodes.Contains(node.Id)).ToList();
+            List<Node> nodesToProcess = NodeDiscovery.GetAllNodes().Where(node => !processedNodes.Contains(node.Id)).ToList();
 
                 if (!nodesToProcess.Any())
                 {

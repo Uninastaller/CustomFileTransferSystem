@@ -10,7 +10,7 @@ namespace Common.Model
 {
     public class NetworkUtils
     {
-        public static IPAddress? GetLocalIPAddress()
+        public static IPAddress GetLocalIPAddress()
         {
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (IPAddress ip in host.AddressList)
@@ -21,7 +21,7 @@ namespace Common.Model
                 }
             }
             Log.WriteLog(LogLevel.ERROR, "No network adapters with an IPv4 address in the system!");
-            return null;
+            return IPAddress.None;
         }
 
         public static async Task<IPAddress> GetPublicIPAddress()
@@ -41,7 +41,7 @@ namespace Common.Model
             {
                 // Handle any exceptions that might occur during the request
                 Log.WriteLog(LogLevel.ERROR, $"Error while fetching public IP address: {ex.Message}");
-                return null;
+                return IPAddress.None;
             }
         }
 

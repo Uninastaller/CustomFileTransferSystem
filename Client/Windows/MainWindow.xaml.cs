@@ -197,6 +197,7 @@ namespace Client.Windows
 
       private IUniversalServerSocket? _uploadingServerBussinessLogic;
 
+      private IWindowEnqueuer? _nodeSettingsWindow;
 
       #endregion PrivateFields
 
@@ -224,6 +225,7 @@ namespace Client.Windows
          contract.Add(MsgIds.CreationMessage, typeof(CreationMessage));
          contract.Add(MsgIds.SesrverDownloadingSessionsInfoMessage, typeof(ServerDownloadingSessionsInfoMessage));
          contract.Add(MsgIds.NodeListReceivedMessage, typeof(NodeListReceivedMessage));
+         contract.Add(MsgIds.NodeSettingWindowMessage, typeof(NodeSettingWindowMessage));
 
          _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForCentralServerConnect, Certificats.CertificateType.ClientConnectionWithCentralServer), (sender, certificate, chain, sslPolicyErrors) => true);
          _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForP2pAsServer, Certificats.CertificateType.Server), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -455,7 +457,7 @@ namespace Client.Windows
          }
       }
 
-      private void NodeListReceivedMessageHandler(Dictionary<string, Node> nodeDict)
+      private void NodeListReceivedMessageHandler(Dictionary<Guid, Node> nodeDict)
       {
          Log.WriteLog(LogLevel.DEBUG, "NodeListReceivedMessageHandler");
          NodeDiscovery.UpdateNodeList(nodeDict);
@@ -979,6 +981,76 @@ namespace Client.Windows
       private void btnReloadLocalOfferingFilesFile_Click(object sender, RoutedEventArgs e)
       {
          LoadLocalOfferingFiles();
+      }
+
+
+      private void btnMyNode_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+            NodeSettingWindowMessage message = new NodeSettingWindowMessage(NodeDiscovery.GetMyNode(), NodeSettingsWindowState.MY_NODE);
+
+            if (_nodeSettingsWindow == null || !_nodeSettingsWindow.IsOpen())
+            {
+               _nodeSettingsWindow = BaseWindowForWPF.CreateWindow<NodeSettingsWindow>(() => new NodeSettingsWindow(message));
+            }
+            else
+            {
+               _nodeSettingsWindow.BaseMsgEnque(message);
+               _nodeSettingsWindow.BaseMsgEnque(new WindowStateSetMessage());
+            }
+         }
+      }
+
+      private void btnAddNode_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+            NodeSettingWindowMessage message = new NodeSettingWindowMessage(new Node(), NodeSettingsWindowState.ADD_FOREIGN_NODE);
+
+            if (_nodeSettingsWindow == null || !_nodeSettingsWindow.IsOpen())
+            {
+               _nodeSettingsWindow = BaseWindowForWPF.CreateWindow<NodeSettingsWindow>(() => new NodeSettingsWindow(message));
+            }
+            else
+            {
+               _nodeSettingsWindow.BaseMsgEnque(message);
+               _nodeSettingsWindow.BaseMsgEnque(new WindowStateSetMessage());
+            }
+         }         
+      }
+
+
+      private void btnNodeModify_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button && button.Tag is Node node)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+            NodeSettingWindowMessage message = new NodeSettingWindowMessage(node, NodeSettingsWindowState.CHANGE_FOREIGN_NODE);
+
+            if (_nodeSettingsWindow == null || !_nodeSettingsWindow.IsOpen())
+            {
+               _nodeSettingsWindow = BaseWindowForWPF.CreateWindow<NodeSettingsWindow>(() => new NodeSettingsWindow(message));
+            }
+            else
+            {
+               _nodeSettingsWindow.BaseMsgEnque(message);
+               _nodeSettingsWindow.BaseMsgEnque(new WindowStateSetMessage());
+            }
+         }
+      }
+
+      private void btnNodeRemove_Click(object sender, RoutedEventArgs e)
+      {
+         if (sender is Button button && button.Tag is Node node)
+         {
+            Log.WriteLog(LogLevel.DEBUG, button.Name);
+            NodeDiscovery.RemoveNode(node.Id);
+            NodeDiscovery.SaveNodes();
+         }
       }
 
       #endregion Events

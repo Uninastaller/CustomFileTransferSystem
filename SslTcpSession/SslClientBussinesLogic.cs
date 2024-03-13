@@ -151,7 +151,7 @@ namespace SslTcpSession
          if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out myPort) || string.IsNullOrEmpty(myIp)) return;
 
          State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
-         FlagMessagesGenerator.GenerateNodeListRequest(this, JsonSerializer.Serialize(NodeDiscovery.GetMyNode(myIp, myPort)));
+         FlagMessagesGenerator.GenerateNodeListRequest(this, JsonSerializer.Serialize(NodeDiscovery.GetMyNode()));
       }
 
       private void CreateAndSendOfferingFilesToCentralServer()
@@ -328,7 +328,7 @@ namespace SslTcpSession
          if (State == ClientBussinesLogicState.NODE_LIST_RECEIVING)
          {
             State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
-            if (FlagMessageEvaluator.EvaluateNodeListFileMessage(buffer, offset, size, out Dictionary<string, Node> nodeDict))
+            if (FlagMessageEvaluator.EvaluateNodeListFileMessage(buffer, offset, size, out Dictionary<Guid, Node> nodeDict))
             {
                _gui?.BaseMsgEnque(new NodeListReceivedMessage(nodeDict));
                Log.WriteLog(LogLevel.DEBUG, $"Valid node list file received.");

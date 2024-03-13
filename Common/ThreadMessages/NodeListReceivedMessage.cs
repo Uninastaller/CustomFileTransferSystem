@@ -1,16 +1,17 @@
 ﻿using Common.Model;
 using ConfigManager;
+using System;
 using System.Collections.Generic;
 
 namespace Common.ThreadMessages
 {
     public class NodeListReceivedMessage : MsgBase<NodeListReceivedMessage>
     {
-        public NodeListReceivedMessage(Dictionary<string, Node> nodeDict) : base(typeof(NodeListReceivedMessage))
+        public NodeListReceivedMessage(Dictionary<Guid, Node> nodeDict) : base(typeof(NodeListReceivedMessage))
         {
             NodeDict = nodeDict;
         }
 
-        public Dictionary<string, Node> NodeDict { get; set; }
+        public Dictionary<Guid, Node> NodeDict { get; set; }
     }
 }

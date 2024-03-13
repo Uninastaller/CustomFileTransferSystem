@@ -115,10 +115,10 @@ namespace Common.Model
          return succes;
       }
 
-      public static bool EvaluateNodeListFileMessage(byte[] buffer, long offset, long size, out Dictionary<string, Node> NodeDict)
+      public static bool EvaluateNodeListFileMessage(byte[] buffer, long offset, long size, out Dictionary<Guid, Node> NodeDict)
       {
 
-         NodeDict = new Dictionary<string, Node>();
+         NodeDict = new Dictionary<Guid, Node>();
          bool succes = false;
 
          // Message has 2 parts: FLAG, NODE_LIST_FILE_ON_JSON_FORMAT
@@ -129,8 +129,11 @@ namespace Common.Model
          {
             try
             {
-               NodeDict = JsonSerializer.Deserialize<Dictionary<string, Node>>(messageParts[1]);
-               succes = true;
+               NodeDict = JsonSerializer.Deserialize<Dictionary<Guid, Node>>(messageParts[1]);
+               if (NodeDict != null)
+               {
+                  succes = true;
+               }
             }
             catch (JsonException ex)
             {

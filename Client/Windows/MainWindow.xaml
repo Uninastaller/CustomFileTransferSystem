@@ -462,13 +462,23 @@
                                             <RowDefinition Height="30"/>
                                             <RowDefinition Height="15"/>
                                             <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
 
                                         <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadNodesFile" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
                                             ToolTip="Reload nodes from local file" Click="btnReloadNodesFile_Click">
                                         </Button>
                                         <Button Style="{StaticResource SynchronizeButtonStyle}" x:Name="btnNodeSynchronization" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
-                                                ToolTip="Start Synchronization with all nodes" Click="btnNodeSynchronization_Click">
+                                            ToolTip="Start Synchronization with all nodes" Click="btnNodeSynchronization_Click">
+                                        </Button>
+                                        <Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="My Node" Click="btnMyNode_Click">
+                                        </Button>
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnAddNode" Content="" Grid.Row="7" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Add node" Click="btnAddNode_Click">
                                         </Button>
 
                                     </Grid>
@@ -479,6 +489,7 @@
                                           d:ItemsSource="{d:SampleData ItemCount=4}">
 
                                         <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ID" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Id}"/>
                                             <DataGridTextColumn Header="IpAddress" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Address}"/>
                                             <DataGridTextColumn Header="Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Port}"/>
                                             <DataGridTextColumn Header="PublicKey" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding PublicKey}"/>
@@ -487,9 +498,11 @@
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Button Content="Node discovery" Style="{StaticResource DataGridButtonStyle}" Click="btnNodeDiscovery_Click" Tag="{Binding}" x:Name="btnNodeDiscovery">
+                                                            <!--<Button Content="Node discovery" Style="{StaticResource DataGridButtonStyle}" Click="btnNodeDiscovery_Click" Tag="{Binding}" x:Name="btnNodeDiscovery">
 
-                                                            </Button>
+                                                            </Button>-->
+                                                            <Button Content="Modify" Style="{StaticResource DataGridButtonStyle}" Click="btnNodeModify_Click" Tag="{Binding}" x:Name="btnNodeModify"/>
+                                                            <Button Content="Remove" Style="{StaticResource DataGridButtonStyle}" Click="btnNodeRemove_Click" Tag="{Binding}" x:Name="btnNodeRemove"/>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>

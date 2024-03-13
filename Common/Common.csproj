@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Add_Default.png" />
     <None Remove="Images\Clients_Default.png" />
     <None Remove="Images\Close_Default.png" />
     <None Remove="Images\Database_Default.png" />
@@ -14,21 +15,30 @@
     <None Remove="Images\Download_Default.png" />
     <None Remove="Images\Maximize_Default.png" />
     <None Remove="Images\Minimize_Default.png" />
+    <None Remove="Images\MyNode_Default.png" />
     <None Remove="Images\Pause_Default.png" />
     <None Remove="Images\Reload_Default.png" />
+    <None Remove="Images\Save_Default.png" />
     <None Remove="Images\Settings_Default.png" />
     <None Remove="Images\Synchronization_Default.png" />
     <None Remove="Images\UploadingDirectory_Default.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Images\Reload_Default.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
+    <ProjectReference Include="..\ConfigManager\ConfigManager.csproj" />
+    <ProjectReference Include="..\Logger\Logger.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Logger\Logger.csproj" />
+    <Resource Include="Images\Add_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\MyNode_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Reload_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +64,9 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Pause_Default.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\Save_Default.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\Settings_Default.png">

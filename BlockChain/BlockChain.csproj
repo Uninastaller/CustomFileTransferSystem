@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConfigManager\ConfigManager.csproj" />
-    <ProjectReference Include="..\Logger\Logger.csproj" />
   </ItemGroup>
 
 </Project>
