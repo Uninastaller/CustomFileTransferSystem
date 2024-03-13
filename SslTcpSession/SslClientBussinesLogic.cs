@@ -7,6 +7,7 @@ using Logger;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -312,14 +313,17 @@ namespace SslTcpSession
                _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFileDto));
                if (endOfMessageGroup)
                {
-                  StopAndDispose();
                   Log.WriteLog(LogLevel.INFO, $"All Offering Files received, disposing socket!");
+                  StopAndDispose();
                }
             }
+            Log.WriteLog(LogLevel.DEBUG, $"Invalid offering files list file received, disconnecting.");
+            StopAndDispose();
          }
          else
          {
             Log.WriteLog(LogLevel.WARNING, $"Offering File received, but session is not in default state, so message can not be proceed!");
+            StopAndDispose();
          }
       }
 
@@ -328,16 +332,23 @@ namespace SslTcpSession
          if (State == ClientBussinesLogicState.NODE_LIST_RECEIVING)
          {
             State = ClientBussinesLogicState.NODE_LIST_RECEIVING;
-            if (FlagMessageEvaluator.EvaluateNodeListFileMessage(buffer, offset, size, out Dictionary<Guid, Node> nodeDict))
+            if (FlagMessageEvaluator.EvaluateNodeMessage(buffer, offset, size, out List<Node> nodeList, out bool endOfMessageGroup))
             {
-               _gui?.BaseMsgEnque(new NodeListReceivedMessage(nodeDict));
+               _gui?.BaseMsgEnque(new NodeListReceivedMessage(nodeList.ToDictionary(obj => obj.Id, obj => obj)));
                Log.WriteLog(LogLevel.DEBUG, $"Valid node list file received.");
-               StopAndDispose();
+               if (endOfMessageGroup)
+               {
+                  Log.WriteLog(LogLevel.INFO, $"All nodes Files received, disposing socket!");
+                  StopAndDispose();
+               }
             }
+            Log.WriteLog(LogLevel.DEBUG, $"Invalid node list file received, disconnecting.");
+            StopAndDispose();
          }
          else
          {
             Log.WriteLog(LogLevel.WARNING, $"Node list File received, but session is not in state that can receive this message, so message can not be proceed!");
+            StopAndDispose();
          }
       }
 

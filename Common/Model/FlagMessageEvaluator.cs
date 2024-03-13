@@ -79,7 +79,7 @@ namespace Common.Model
          bool succes = false;
          endOdMessageGroup = false;
 
-         // Message has 2 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT
+         // Message has 3 parts: FLAG, OFFERING_FILE_ON_JSON_FORMAT, END_OF_MESSAGE
          string messageBlock = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
          string[] messages = messageBlock.Split(new string[] { SocketMessageFlag.END_OF_MESSAGE.GetStringValue() }, StringSplitOptions.None);
@@ -115,29 +115,43 @@ namespace Common.Model
          return succes;
       }
 
-      public static bool EvaluateNodeListFileMessage(byte[] buffer, long offset, long size, out Dictionary<Guid, Node> NodeDict)
+      public static bool EvaluateNodeMessage(byte[] buffer, long offset, long size, out List<Node> nodeList, out bool endOdMessageGroup)
       {
 
-         NodeDict = new Dictionary<Guid, Node>();
+         nodeList = new List<Node>();
          bool succes = false;
+         endOdMessageGroup = false;
 
-         // Message has 2 parts: FLAG, NODE_LIST_FILE_ON_JSON_FORMAT
-         string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-         string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+         // Message has 3 parts: FLAG, NODE_LIST_FILE_ON_JSON_FORMAT, END_OF_MESSAGE, END_OF_MESSAGE
+         string messageBlock = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+         string[] messages = messageBlock.Split(new string[] { SocketMessageFlag.END_OF_MESSAGE.GetStringValue() }, StringSplitOptions.None);
 
-         if (messageParts.Length == 2)
+         foreach (string message in messages)
          {
-            try
+            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+
+            if (messages.Length == 3)
             {
-               NodeDict = JsonSerializer.Deserialize<Dictionary<Guid, Node>>(messageParts[1]);
-               if (NodeDict != null)
+               try
                {
+                  Node? node = Node.ToObjectFromJson(messageParts[1]);
+                  if (node != null)
+                  {
+                     nodeList.Add(node);
+                     Log.WriteLog(LogLevel.INFO, $"Node with ID: {node.Id} received and validated!");
+                  }
+
+                  if (messageParts[2].Equals(SocketMessageFlag.END_OF_MESSAGE_GROUP.GetStringValue()))
+                  {
+                     endOdMessageGroup = true;
+                  }
+
                   succes = true;
                }
-            }
-            catch (JsonException ex)
-            {
-               Log.WriteLog(LogLevel.WARNING, $"Node list file with content: {messageParts[1]} received but not valid! " + ex.Message);
+               catch (JsonException ex)
+               {
+                  Log.WriteLog(LogLevel.WARNING, $"Node file with content: {messages[1]} received but not valid! " + ex.Message);
+               }
             }
          }
          return succes;
