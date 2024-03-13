@@ -130,7 +130,7 @@ namespace Common.Model
          {
             string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
 
-            if (messages.Length == 3)
+            if (messageParts.Length == 3)
             {
                try
                {

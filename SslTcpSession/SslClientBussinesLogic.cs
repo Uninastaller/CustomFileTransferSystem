@@ -317,8 +317,11 @@ namespace SslTcpSession
                   StopAndDispose();
                }
             }
-            Log.WriteLog(LogLevel.DEBUG, $"Invalid offering files list file received, disconnecting.");
-            StopAndDispose();
+            else
+            {
+               Log.WriteLog(LogLevel.DEBUG, $"Invalid offering files list file received, disconnecting.");
+               StopAndDispose();
+            }
          }
          else
          {
@@ -342,8 +345,11 @@ namespace SslTcpSession
                   StopAndDispose();
                }
             }
-            Log.WriteLog(LogLevel.DEBUG, $"Invalid node list file received, disconnecting.");
-            StopAndDispose();
+            else
+            {
+               Log.WriteLog(LogLevel.DEBUG, $"Invalid node list file received, disconnecting.");
+               StopAndDispose();
+            }
          }
          else
          {

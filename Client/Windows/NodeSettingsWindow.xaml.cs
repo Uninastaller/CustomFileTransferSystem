@@ -90,7 +90,7 @@ namespace Client.Windows
                Log.WriteLog(LogLevel.ERROR, "Invalid port!");
                return;
             }
-            tbIpAddress.Text = port.ToString();
+            tbPort.Text = port.ToString();
          }
       }
 
@@ -100,7 +100,7 @@ namespace Client.Windows
          if (sender is Button button)
          {
             Log.WriteLog(LogLevel.DEBUG, button.Name);
-            tbIpAddress.Text = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node));
+            tbPublicKey.Text = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node));
          }
       }
 
@@ -116,7 +116,8 @@ namespace Client.Windows
                   {
                      Id = guid,
                      Port = port,
-                     Address = tbIpAddress.Text
+                     Address = tbIpAddress.Text,
+                     PublicKey = tbPublicKey.Text,
                   };
 
                   if (State == NodeSettingsWindowState.MY_NODE)
