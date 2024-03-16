@@ -13,15 +13,24 @@ IPAddress madeAdress = IPAddress.Parse($"192.168.1.241");
 NodeDiscovery.SetIpAdresses(NetworkUtils.GetLocalIPAddress(), publicAddress);
 NodeDiscovery.StartApplication();
 
+
+
+Console.WriteLine("Start");
+
+
+
+
 Blockchain MyChain = new Blockchain();
 
-string fileHash = "abc";
-bool success = false;
+Console.WriteLine(MyChain.Add_AddCredit(50));
+Console.WriteLine(MyChain.Add_AddCredit(15.7));
+Console.WriteLine(MyChain.Add_AddCredit(2));
 
-success = MyChain.Add_AddFileRequest(fileHash, out Guid a);
+string fileHash = "abc";
+Console.WriteLine(MyChain.Add_AddFileRequest(fileHash, out Guid a));
 
 string publicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("", Certificats.CertificateType.Node));
-success = MyChain.Chain[1].VerifyHash(publicKey);
+bool success = MyChain.Chain[1].VerifyHash(publicKey);
 
 //MyChain.Add_Add(a, fileHash, new IPEndPoint(publicAddress, 8080));
 

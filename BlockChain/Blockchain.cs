@@ -5,6 +5,10 @@ namespace BlockChain
 {
    public class Blockchain
    {
+
+      private static readonly double _newFileCreditPrice = 10;
+      private static readonly double _savedFileReward = 2.5;
+
       public List<Block> Chain { get; } = new List<Block>();
 
       public Blockchain()
@@ -69,12 +73,14 @@ namespace BlockChain
             return AddBlockResponses.FILE_IS_FLAGED_TO_BE_REMOVED;
          }
 
-         double newCreditValue = 0;
+         double creditValue = 0;
          Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
          if (creditBlock != null)
          {
-            newCreditValue = creditBlock.NewCreditVaue;
+            creditValue = creditBlock.NewCreditVaue;
          }
+
+         creditValue += _savedFileReward;
 
          Block newBlock = new Block
          {
@@ -85,8 +91,8 @@ namespace BlockChain
             Transaction = TransactionType.AddFile,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
-            CreditChange = 0,
-            NewCreditVaue = newCreditValue
+            CreditChange = _savedFileReward,
+            NewCreditVaue = creditValue
          };
 
          if (block.Transaction == TransactionType.AddFileRequest)
@@ -156,7 +162,7 @@ namespace BlockChain
 
       private Block? FindLatestFileUpdate(Guid fileId)
       {
-         for (int i = Chain.Count() - 1; i >= 0; i++)
+         for (int i = Chain.Count() - 1; i >= 0; i--)
          {
             if (Chain[i].FileID == fileId)
             {
@@ -173,7 +179,7 @@ namespace BlockChain
 
       private Block? FindActualCreditValueOfNode(Guid nodeId)
       {
-         for (int i = Chain.Count() - 1; i >= 0; i++)
+         for (int i = Chain.Count() - 1; i >= 0; i--)
          {
             if (Chain[i].NodeId == nodeId)
             {
@@ -187,11 +193,20 @@ namespace BlockChain
       {
          fileId = Guid.NewGuid();
 
-         double newCreditValue = 0;
+         double creditValue = 0;
          Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
          if (creditBlock != null)
          {
-            newCreditValue = creditBlock.NewCreditVaue;
+            creditValue = creditBlock.NewCreditVaue;
+         }
+
+         if (creditValue < _newFileCreditPrice)
+         {
+            return AddBlockResponses.NOT_ENOUGHT_CREDIT;
+         }
+         else
+         {
+            creditValue -= _newFileCreditPrice;
          }
 
          Block newBlock = new Block
@@ -203,8 +218,8 @@ namespace BlockChain
             Transaction = TransactionType.AddFileRequest,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
-            CreditChange = 0,
-            NewCreditVaue = newCreditValue
+            CreditChange = -_newFileCreditPrice,
+            NewCreditVaue = creditValue
          };
 
          newBlock.ComputeHash();
@@ -280,16 +295,71 @@ namespace BlockChain
 
       public BlockFromBlockChainValidationResult IsNewBlockValid(Block newBlock)
       {
+
+         BlockFromBlockChainValidationResult result;
+
+         // Check for index ind previous hash
+         result = CheckPreviousHash(newBlock);
+         if (result != BlockFromBlockChainValidationResult.VALID)
+         {
+            return result;
+         }
+
+         // Check for valid sign
+         result = CheckSignedHash(newBlock);
+         if (result != BlockFromBlockChainValidationResult.VALID)
+         {
+            return result;
+         }
+
+         // Check for right new credit value calculation
+         result = CheckCreditChange(newBlock);
+         if (result != BlockFromBlockChainValidationResult.VALID)
+         {
+            return result;
+         }
+
+         // Check transaction
+         switch (newBlock.Transaction)
+         {
+            case TransactionType.AddFile:
+               return ValidateAddFile(newBlock);
+            case TransactionType.AddFileRequest:
+               return ValidateAddFileRequest(newBlock);
+            case TransactionType.RemoveFile:
+               return ValidateRemoveFile(newBlock);
+            case TransactionType.RemoveFileRequest:
+               return ValidateRemoveFileRequest(newBlock);
+            case TransactionType.AddCredit:
+               return ValidateAddCredit(newBlock);
+            default:
+               break;
+         }
+
+         return BlockFromBlockChainValidationResult.UNABLE_TO_DECIDE;
+      }
+
+      private BlockFromBlockChainValidationResult CheckPreviousHash(Block blockToCheck)
+      {
          // Check pevious hash
-         if (newBlock.PreviousHash != Chain[Chain.Count - 1].Hash)
+         if (Chain.Count < blockToCheck.Index - 1)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_BLOCK_INDEX;
+         }
+
+         if (blockToCheck.PreviousHash != Chain[blockToCheck.Index-1].Hash)
          {
             return BlockFromBlockChainValidationResult.INVALID_PREVIOUS_HASH;
          }
+         return BlockFromBlockChainValidationResult.VALID;
+      }
 
+      private BlockFromBlockChainValidationResult CheckSignedHash(Block blockToCheck)
+      {
          // Check signed hash
-         if (NodeDiscovery.GetNode(newBlock.NodeId, out Node? node))
+         if (NodeDiscovery.GetNode(blockToCheck.NodeId, out Node? node))
          {
-            if (!newBlock.VerifyHash(node.PublicKey))
+            if (!blockToCheck.VerifyHash(node.PublicKey))
             {
                return BlockFromBlockChainValidationResult.INVALID_SIGN;
             }
@@ -298,23 +368,76 @@ namespace BlockChain
          {
             return BlockFromBlockChainValidationResult.UNABLE_TO_DECIDE;
          }
+         return BlockFromBlockChainValidationResult.VALID;
+      }
 
-         // Check transaction
-         switch (newBlock.Transaction)
+      private BlockFromBlockChainValidationResult CheckCreditChange(Block blockToCheck)
+      {
+         // Find latest block with this nodeId and chcek if latest credit + change credit value = new credit value
+         double oldCreditValue = 0;
+         Block? block = FindActualCreditValueOfNode(blockToCheck.NodeId);
+         if (block != null)
          {
-            case TransactionType.AddFile:
-               break;
-            case TransactionType.AddFileRequest:
-               return BlockFromBlockChainValidationResult.VALID;
-            case TransactionType.RemoveFile:
-               break;
-            case TransactionType.RemoveFileRequest:
-               return BlockFromBlockChainValidationResult.VALID;
-            default:
-               break;
+            oldCreditValue = block.NewCreditVaue;
+         }
+         if (blockToCheck.NewCreditVaue != oldCreditValue + blockToCheck.CreditChange)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_CREDIT_CALCULATION;
          }
 
-         return BlockFromBlockChainValidationResult.UNABLE_TO_DECIDE;
+         return BlockFromBlockChainValidationResult.VALID;
+      }
+
+      private BlockFromBlockChainValidationResult ValidateAddCredit(Block newBlock)
+      {
+         if (newBlock.CreditChange <= 0)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockFromBlockChainValidationResult.VALID;
+      }
+
+      private BlockFromBlockChainValidationResult ValidateAddFileRequest(Block newBlock)
+      {
+         // Check for right price for operation
+         if (newBlock.CreditChange != -_newFileCreditPrice)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockFromBlockChainValidationResult.VALID;
+      }
+
+      private BlockFromBlockChainValidationResult ValidateAddFile(Block newBlock)
+      {
+         // Check for right price for operation
+         if (newBlock.CreditChange != _savedFileReward)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockFromBlockChainValidationResult.VALID;
+      }
+
+      private BlockFromBlockChainValidationResult ValidateRemoveFile(Block newBlock)
+      {
+         if (newBlock.CreditChange != 0)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockFromBlockChainValidationResult.VALID;
+      }
+
+      private BlockFromBlockChainValidationResult ValidateRemoveFileRequest(Block newBlock)
+      {
+         if (newBlock.CreditChange != 0)
+         {
+            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockFromBlockChainValidationResult.VALID;
       }
    }
 }

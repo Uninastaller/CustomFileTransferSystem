@@ -15,6 +15,6 @@ namespace BlockChain
       FILE_IS_FLAGED_TO_BE_REMOVED = 4,
       YOUR_ENDPOINT_IS_NOT_ON_LIST = 5,
       YOUR_ENDPOINT_IS_ALREADY_ON_LIST = 6,
-
+      NOT_ENOUGHT_CREDIT = 7,
    }
 }

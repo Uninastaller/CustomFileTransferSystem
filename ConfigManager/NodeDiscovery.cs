@@ -25,8 +25,8 @@ namespace ConfigManager
 
       public static void StartApplication()
       {
-         LoadNodes();
          LoadMyNode();
+         LoadNodes();
       }
 
       public static void SetIpAdresses(IPAddress localIpAddress, IPAddress publicIpAddress)
@@ -53,8 +53,16 @@ namespace ConfigManager
             {
                _nodes = new ConcurrentDictionary<Guid, Node>();
             }
+            finally
+            {
+               AddNode(_myNode);
+            }
          }
-         _nodes = new ConcurrentDictionary<Guid, Node>();
+         else
+         {
+            _nodes = new ConcurrentDictionary<Guid, Node>();
+            AddNode(_myNode);
+         }
       }
 
       public static void LoadMyNode()
