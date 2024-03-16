@@ -129,7 +129,7 @@ namespace Client.Windows
                      NodeDiscovery.AddNode(node);
                      NodeDiscovery.SaveNodes();
                   }
- 
+
                   this.Close();
                }
                else

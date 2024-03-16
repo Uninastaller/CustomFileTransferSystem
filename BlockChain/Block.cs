@@ -16,13 +16,16 @@ namespace BlockChain
       public TransactionType Transaction { get; set; }
       public string Hash { get; private set; } = string.Empty;
       public string PreviousHash { get; set; } = string.Empty;
+      public Guid NodeId { get; set; }
+      public double CreditChange { get; set; }
+      public double NewCreditVaue { get; set; }
       public string SignedHash {  get; private set; } = string.Empty;
 
       public void ComputeHash()
       {
          using (SHA256 sha256 = SHA256.Create())
          {
-            Hash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes($"{Index}{Timestamp}{FileHash}{FileID}{string.Join(",", FileLocations)}{Transaction}{PreviousHash}")));
+            Hash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes($"{Index}{Timestamp}{FileHash}{FileID}{string.Join(",", FileLocations)}{Transaction}{PreviousHash}{NodeId}{CreditChange}{NewCreditVaue}")));
          }
       }
 

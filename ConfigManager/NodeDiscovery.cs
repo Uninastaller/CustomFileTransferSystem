@@ -146,7 +146,7 @@ namespace ConfigManager
       {
          if (!_nodes.TryAdd(node.Id, node))
          {
-            _nodes[node.Id].PublicKey = node.PublicKey;
+            //_nodes[node.Id].PublicKey = node.PublicKey;
             _nodes[node.Id].Port = node.Port;
             _nodes[node.Id].Address = node.Address;
          }

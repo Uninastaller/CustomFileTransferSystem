@@ -8,9 +8,10 @@ namespace BlockChain
 {
     public enum TransactionType
     {
-        Add,
-        AddRequest,
-        Remove,
-        RemoveRequest
+        AddFile,
+        AddFileRequest,
+        RemoveFile,
+        RemoveFileRequest,
+        AddCredit
     }
 }
