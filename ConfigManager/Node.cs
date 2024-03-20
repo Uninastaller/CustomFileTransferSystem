@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Text.Json;
 
 namespace ConfigManager
@@ -13,6 +14,16 @@ namespace ConfigManager
 
       public string GetJson() => JsonSerializer.Serialize(this);
       public static Node? ToObjectFromJson(string jsonString) => JsonSerializer.Deserialize<Node>(jsonString);
+      public EndPoint? GetNodeEndpoint()
+      {
+
+         if (!IPAddress.TryParse(Address, out IPAddress? address))
+         {
+            return null;
+         }
+
+         return new IPEndPoint(address, Port);
+      }
 
    }
 }

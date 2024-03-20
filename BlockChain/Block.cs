@@ -1,7 +1,6 @@
 ﻿using ConfigManager;
 using System.Net;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace BlockChain
@@ -12,22 +11,43 @@ namespace BlockChain
       public DateTime Timestamp { get; set; }
       public string FileHash { get; set; } = string.Empty; // For integrity check
       public Guid FileID { get; set; } // Unique identifier for the file
-      public List<EndPoint> FileLocations { get; set; } = new List<EndPoint>();
+      public List<EndPoint>? FileLocations { get; set; }
       public TransactionType Transaction { get; set; }
       public string Hash { get; private set; } = string.Empty;
       public string PreviousHash { get; set; } = string.Empty;
       public Guid NodeId { get; set; }
       public double CreditChange { get; set; }
       public double NewCreditVaue { get; set; }
-      public string SignedHash {  get; private set; } = string.Empty;
+      public string SignedHash { get; private set; } = string.Empty;
 
       public void ComputeHash()
       {
+         var sb = new StringBuilder();
+         sb.Append(Index);
+         sb.Append(Timestamp.ToString("o")); // Universal time format
+         sb.Append(FileHash);
+         sb.Append(FileID);
+
+         if (FileLocations != null)
+         {
+            foreach (var location in FileLocations)
+            {
+               sb.Append(location.ToString());
+            }
+         }
+
+         sb.Append(Transaction);
+         sb.Append(PreviousHash);
+         sb.Append(NodeId);
+         sb.Append(CreditChange);
+         sb.Append(NewCreditVaue);
+
          using (SHA256 sha256 = SHA256.Create())
          {
-            Hash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes($"{Index}{Timestamp}{FileHash}{FileID}{string.Join(",", FileLocations)}{Transaction}{PreviousHash}{NodeId}{CreditChange}{NewCreditVaue}")));
+            Hash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString())));
          }
       }
+
 
       public void SignHash(string subjectName = "NodeXY")
       {

@@ -1,5 +1,6 @@
 ﻿using ConfigManager;
 using System.Net;
+using System.Text.Json;
 
 namespace BlockChain
 {
@@ -27,12 +28,8 @@ namespace BlockChain
          };
       }
 
-      public AddBlockResponses Add_AddCredit(double creditValueToAdd)
+      public BlockValidationResult Add_AddCredit(double creditValueToAdd)
       {
-         if (creditValueToAdd <= 0)
-         {
-            return AddBlockResponses.INVALID_CREDIT_VALUE_TO_ADD;
-         }
 
          double newCreditValue = 0;
          Block? block = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
@@ -48,7 +45,7 @@ namespace BlockChain
             Index = Chain.Count,
             Timestamp = DateTime.UtcNow,
             PreviousHash = Chain[Chain.Count - 1].Hash,
-            Transaction = TransactionType.AddCredit,
+            Transaction = TransactionType.ADD_CREDIT,
             NodeId = NodeDiscovery.GetMyNode().Id,
             CreditChange = creditValueToAdd,
             NewCreditVaue = newCreditValue,
@@ -56,21 +53,33 @@ namespace BlockChain
 
          newBlock.ComputeHash();
          newBlock.SignHash();
-         return AddBlock(newBlock);
+         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public AddBlockResponses Add_AddFile(Guid fileId, string fileHash, EndPoint myEndPoint)
+      public BlockValidationResult Add_AddFile(Guid fileId, string fileHash, EndPoint myEndPoint)
       {
 
          Block? block = FindLatestFileUpdate(fileId);
          if (block == null || !block.FileHash.Equals(fileHash))
          {
-            return AddBlockResponses.FILE_DOES_NOT_EXIST;
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
-         if (IsFileFlaggedToBeRemoved(fileId))
+         List<EndPoint>? endPoints = null;
+         if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            return AddBlockResponses.FILE_IS_FLAGED_TO_BE_REMOVED;
+            endPoints = new List<EndPoint>() { myEndPoint };
+         }
+         else if (block.Transaction == TransactionType.ADD_FILE || block.Transaction == TransactionType.REMOVE_FILE)
+         {
+            if (block.FileLocations == null) return BlockValidationResult.UNDEFINED_SITUATION;
+            if (block.FileLocations.Exists(ep => ep.Equals(myEndPoint)))
+            {
+               return BlockValidationResult.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
+            }
+
+            endPoints = block.FileLocations.ToList();
+            endPoints.Add(myEndPoint);
          }
 
          double creditValue = 0;
@@ -88,42 +97,39 @@ namespace BlockChain
             Timestamp = DateTime.UtcNow,
             FileHash = fileHash,
             PreviousHash = Chain[Chain.Count - 1].Hash,
-            Transaction = TransactionType.AddFile,
+            Transaction = TransactionType.ADD_FILE,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
             CreditChange = _savedFileReward,
-            NewCreditVaue = creditValue
+            NewCreditVaue = creditValue,
+            FileLocations = endPoints,
          };
-
-         if (block.Transaction == TransactionType.AddFileRequest)
-         {
-            newBlock.FileLocations = new List<EndPoint>() { myEndPoint };
-         }
-         else if (block.Transaction == TransactionType.AddFile || block.Transaction == TransactionType.RemoveFile)
-         {
-
-            if (block.FileLocations.Exists(ep => ep.ToString().Equals(myEndPoint.ToString())))
-            {
-               return AddBlockResponses.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
-            }
-
-            newBlock.FileLocations = block.FileLocations.ToList();
-            newBlock.FileLocations.Add(myEndPoint);
-         }
 
          newBlock.ComputeHash();
          newBlock.SignHash();
 
-         return AddBlock(newBlock);
+         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public AddBlockResponses Add_RemoveFile(Guid fileId, string fileHash, EndPoint endPoint)
+      public BlockValidationResult Add_RemoveFile(Guid fileId, string fileHash, EndPoint endPoint)
       {
 
          Block? block = FindLatestFileUpdate(fileId);
-         if (block == null || block.Transaction == TransactionType.AddFileRequest)
+         if (block == null || block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            return AddBlockResponses.FILE_DOES_NOT_EXIST;
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
+         }
+
+         if (block.FileLocations == null)
+         {
+            return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
+         }
+         List<EndPoint> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => ep.Equals(endPoint));
+
+         if (removed.HasValue && removed <= 0)
+         {
+            return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
          }
 
          double newCreditValue = 0;
@@ -139,25 +145,17 @@ namespace BlockChain
             Timestamp = DateTime.UtcNow,
             FileHash = fileHash,
             PreviousHash = Chain[Chain.Count - 1].Hash,
-            Transaction = TransactionType.RemoveFile,
+            Transaction = TransactionType.REMOVE_FILE,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
             CreditChange = 0,
-            NewCreditVaue = newCreditValue
+            NewCreditVaue = newCreditValue,
+            FileLocations = endPoints,
          };
 
-
-         newBlock.FileLocations = block.FileLocations.ToList();
-         int? removed = newBlock.FileLocations.RemoveAll(ep => ep.ToString().Equals(endPoint));
-
-         if (removed.HasValue && removed > 0)
-         {
-            newBlock.ComputeHash();
-            newBlock.SignHash();
-            return AddBlock(newBlock);
-         }
-
-         return AddBlockResponses.YOUR_ENDPOINT_IS_NOT_ON_LIST;
+         newBlock.ComputeHash();
+         newBlock.SignHash();
+         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
       private Block? FindLatestFileUpdate(Guid fileId)
@@ -174,7 +172,7 @@ namespace BlockChain
 
       private bool IsFileFlaggedToBeRemoved(Guid fileId)
       {
-         return Chain.Exists(block => block.FileID == fileId && block.Transaction == TransactionType.RemoveFileRequest);
+         return Chain.Exists(block => block.FileID == fileId && block.Transaction == TransactionType.REMOVE_FILE_REQUEST);
       }
 
       private Block? FindActualCreditValueOfNode(Guid nodeId)
@@ -189,7 +187,7 @@ namespace BlockChain
          return null;
       }
 
-      public AddBlockResponses Add_AddFileRequest(string fileHash, out Guid fileId)
+      public BlockValidationResult Add_AddFileRequest(string fileHash, out Guid fileId)
       {
          fileId = Guid.NewGuid();
 
@@ -202,7 +200,7 @@ namespace BlockChain
 
          if (creditValue < _newFileCreditPrice)
          {
-            return AddBlockResponses.NOT_ENOUGHT_CREDIT;
+            return BlockValidationResult.NOT_ENOUGHT_CREDIT;
          }
          else
          {
@@ -215,7 +213,7 @@ namespace BlockChain
             Timestamp = DateTime.UtcNow,
             FileHash = fileHash,
             PreviousHash = Chain[Chain.Count - 1].Hash,
-            Transaction = TransactionType.AddFileRequest,
+            Transaction = TransactionType.ADD_FILE_REQUEST,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
             CreditChange = -_newFileCreditPrice,
@@ -225,20 +223,15 @@ namespace BlockChain
          newBlock.ComputeHash();
          newBlock.SignHash();
 
-         return AddBlock(newBlock);
+         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public AddBlockResponses Add_RemoveFileRequest(Guid fileId)
+      public BlockValidationResult Add_RemoveFileRequest(Guid fileId)
       {
          Block? fileBlock = Chain.FirstOrDefault(b => b.FileID == fileId);
          if (fileBlock == null)
          {
-            return AddBlockResponses.FILE_DOES_NOT_EXIST;
-         }
-
-         if (IsFileFlaggedToBeRemoved(fileId))
-         {
-            return AddBlockResponses.FILE_IS_FLAGED_TO_BE_REMOVED;
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
          double newCreditValue = 0;
@@ -254,7 +247,7 @@ namespace BlockChain
             Timestamp = DateTime.UtcNow,
             FileHash = fileBlock.FileHash,
             PreviousHash = Chain[Chain.Count - 1].Hash,
-            Transaction = TransactionType.RemoveFileRequest,
+            Transaction = TransactionType.REMOVE_FILE_REQUEST,
             FileLocations = fileBlock.FileLocations,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
@@ -264,18 +257,18 @@ namespace BlockChain
 
          fileBlock.ComputeHash();
          newBlock.SignHash();
-         return AddBlock(newBlock);
+         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
 
       }
 
-      public AddBlockResponses AddBlock(Block newBlock)
+      public BlockValidationResult AddBlock(Block newBlock, Node fromNode)
       {
-         if (IsNewBlockValid(newBlock) == BlockFromBlockChainValidationResult.VALID)
+         BlockValidationResult result = IsNewBlockValid(newBlock, fromNode);
+         if (result == BlockValidationResult.VALID)
          {
             Chain.Add(newBlock);
-            return AddBlockResponses.SUCCES;
          }
-         return AddBlockResponses.VALIDATION_TEST_FAILD;
+         return result;
       }
 
       public bool IsBlockChainValid()
@@ -293,28 +286,28 @@ namespace BlockChain
          return true;
       }
 
-      public BlockFromBlockChainValidationResult IsNewBlockValid(Block newBlock)
+      public BlockValidationResult IsNewBlockValid(Block newBlock, Node fromNode)
       {
 
-         BlockFromBlockChainValidationResult result;
+         BlockValidationResult result;
 
-         // Check for index ind previous hash
+         // Check for index and previous hash
          result = CheckPreviousHash(newBlock);
-         if (result != BlockFromBlockChainValidationResult.VALID)
+         if (result != BlockValidationResult.VALID)
          {
             return result;
          }
 
          // Check for valid sign
          result = CheckSignedHash(newBlock);
-         if (result != BlockFromBlockChainValidationResult.VALID)
+         if (result != BlockValidationResult.VALID)
          {
             return result;
          }
 
          // Check for right new credit value calculation
          result = CheckCreditChange(newBlock);
-         if (result != BlockFromBlockChainValidationResult.VALID)
+         if (result != BlockValidationResult.VALID)
          {
             return result;
          }
@@ -322,56 +315,56 @@ namespace BlockChain
          // Check transaction
          switch (newBlock.Transaction)
          {
-            case TransactionType.AddFile:
-               return ValidateAddFile(newBlock);
-            case TransactionType.AddFileRequest:
+            case TransactionType.ADD_FILE:
+               return ValidateAddFile(newBlock, fromNode);
+            case TransactionType.ADD_FILE_REQUEST:
                return ValidateAddFileRequest(newBlock);
-            case TransactionType.RemoveFile:
+            case TransactionType.REMOVE_FILE:
                return ValidateRemoveFile(newBlock);
-            case TransactionType.RemoveFileRequest:
+            case TransactionType.REMOVE_FILE_REQUEST:
                return ValidateRemoveFileRequest(newBlock);
-            case TransactionType.AddCredit:
+            case TransactionType.ADD_CREDIT:
                return ValidateAddCredit(newBlock);
             default:
                break;
          }
 
-         return BlockFromBlockChainValidationResult.UNABLE_TO_DECIDE;
+         return BlockValidationResult.UNABLE_TO_DECIDE;
       }
 
-      private BlockFromBlockChainValidationResult CheckPreviousHash(Block blockToCheck)
+      private BlockValidationResult CheckPreviousHash(Block blockToCheck)
       {
          // Check pevious hash
          if (Chain.Count < blockToCheck.Index - 1)
          {
-            return BlockFromBlockChainValidationResult.INVALID_BLOCK_INDEX;
+            return BlockValidationResult.INVALID_BLOCK_INDEX;
          }
 
-         if (blockToCheck.PreviousHash != Chain[blockToCheck.Index-1].Hash)
+         if (blockToCheck.PreviousHash != Chain[blockToCheck.Index - 1].Hash)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PREVIOUS_HASH;
+            return BlockValidationResult.INVALID_PREVIOUS_HASH;
          }
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult CheckSignedHash(Block blockToCheck)
+      private BlockValidationResult CheckSignedHash(Block blockToCheck)
       {
          // Check signed hash
          if (NodeDiscovery.GetNode(blockToCheck.NodeId, out Node? node))
          {
             if (!blockToCheck.VerifyHash(node.PublicKey))
             {
-               return BlockFromBlockChainValidationResult.INVALID_SIGN;
+               return BlockValidationResult.INVALID_SIGN;
             }
          }
          else
          {
-            return BlockFromBlockChainValidationResult.UNABLE_TO_DECIDE;
+            return BlockValidationResult.UNABLE_TO_DECIDE;
          }
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult CheckCreditChange(Block blockToCheck)
+      private BlockValidationResult CheckCreditChange(Block blockToCheck)
       {
          // Find latest block with this nodeId and chcek if latest credit + change credit value = new credit value
          double oldCreditValue = 0;
@@ -380,64 +373,184 @@ namespace BlockChain
          {
             oldCreditValue = block.NewCreditVaue;
          }
+         if (blockToCheck.NewCreditVaue < 0)
+         {
+            return BlockValidationResult.NEGATIVE_VALUE_OF_CREDIT;
+         }
          if (blockToCheck.NewCreditVaue != oldCreditValue + blockToCheck.CreditChange)
          {
-            return BlockFromBlockChainValidationResult.INVALID_CREDIT_CALCULATION;
+            return BlockValidationResult.INVALID_CREDIT_CALCULATION;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult ValidateAddCredit(Block newBlock)
+      /////////////////////////// VALIDATION
+
+      private BlockValidationResult ValidateAddCredit(Block newBlock)
       {
          if (newBlock.CreditChange <= 0)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+            return BlockValidationResult.INVALID_PRICE_CALCULATION;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult ValidateAddFileRequest(Block newBlock)
+      private BlockValidationResult ValidateAddFileRequest(Block newBlock)
       {
          // Check for right price for operation
          if (newBlock.CreditChange != -_newFileCreditPrice)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+            return BlockValidationResult.INVALID_PRICE_CALCULATION;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult ValidateAddFile(Block newBlock)
+      private BlockValidationResult ValidateAddFile(Block newBlock, Node fromNode)
       {
+
+         // Check if block with that fileId exist
+         Block? block = FindLatestFileUpdate(newBlock.FileID);
+         if (block == null || !block.FileHash.Equals(newBlock.FileHash))
+         {
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
+         }
+
+         // Check if this file is not flaged to remove
+         if (IsFileFlaggedToBeRemoved(newBlock.FileID))
+         {
+            return BlockValidationResult.FILE_IS_FLAGED_TO_BE_REMOVED;
+         }
+
+         // Create virtual new end point list
+         List<EndPoint>? endPoints = null;
+         // If its Add file request - create new list
+         if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
+         {
+            endPoints = new List<EndPoint>();
+         }
+         // If anyting else, take old list
+         else
+         {
+            endPoints = block.FileLocations;
+            // Check if its not null
+            if (endPoints == null)
+            {
+               return BlockValidationResult.INVALID_FILE_LOCATIONS;
+            }
+         }
+         // Try to extract endpoint from node
+         EndPoint? newEndPoint = fromNode.GetNodeEndpoint();
+         if (newEndPoint == null)
+         {
+            return BlockValidationResult.INVALID_NODE_ENDPOINT;
+         }
+         // Check if endpoint is not already there
+         if (block.FileLocations != null && block.FileLocations.Exists(ep => ep.Equals(newEndPoint)))
+         {
+            return BlockValidationResult.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
+         }
+         // Add end point to list
+         endPoints.Add(newEndPoint);
+         // Check if virtual new end point list is the same as provided
+         if (!CompareAddressAndPortOfEndPointLists(endPoints, newBlock.FileLocations))
+         {
+            return BlockValidationResult.INVALID_FILE_LOCATIONS;
+         }
+
          // Check for right price for operation
          if (newBlock.CreditChange != _savedFileReward)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+            return BlockValidationResult.INVALID_PRICE_CALCULATION;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult ValidateRemoveFile(Block newBlock)
+      private BlockValidationResult ValidateRemoveFile(Block newBlock)
       {
-         if (newBlock.CreditChange != 0)
+         Block? block = FindLatestFileUpdate(newBlock.FileID);
+         if (block == null || block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         if (block.FileLocations == null)
+         {
+            return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
+         }
+
+         if (newBlock.CreditChange != 0)
+         {
+            return BlockValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockValidationResult.VALID;
       }
 
-      private BlockFromBlockChainValidationResult ValidateRemoveFileRequest(Block newBlock)
+      private BlockValidationResult ValidateRemoveFileRequest(Block newBlock)
       {
-         if (newBlock.CreditChange != 0)
+
+         Block? fileBlock = Chain.FirstOrDefault(b => b.FileID == newBlock.FileID);
+         if (fileBlock == null)
          {
-            return BlockFromBlockChainValidationResult.INVALID_PRICE_CALCULATION;
+            return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
-         return BlockFromBlockChainValidationResult.VALID;
+         if (IsFileFlaggedToBeRemoved(newBlock.FileID))
+         {
+            return BlockValidationResult.FILE_IS_FLAGED_TO_BE_REMOVED;
+         }
+
+         if (newBlock.CreditChange != 0)
+         {
+            return BlockValidationResult.INVALID_PRICE_CALCULATION;
+         }
+
+         return BlockValidationResult.VALID;
+      }
+
+      public string ToJson(bool prettyPrinted = false)
+      {
+         JsonSerializerOptions options = new JsonSerializerOptions
+         {
+            WriteIndented = prettyPrinted
+         };
+
+         return JsonSerializer.Serialize(Chain, options);
+      }
+
+      private bool CompareAddressAndPortOfEndPointLists(List<EndPoint>? list1, List<EndPoint>? list2)
+      {
+         if(list1 == null || list2 == null) return false;
+
+         // Rýchle zlyhanie, ak sú zoznamy rôznych veľkostí
+         if (list1.Count != list2.Count) return false;
+
+         // Konvertujeme list1 na HashSet pre efektívne vyhľadávanie
+         HashSet<string> hashSet = new HashSet<string>(list1.Select(ep => EndPointToString(ep)));
+
+         // Porovnávame každý EndPoint v list2, či existuje v HashSet
+         foreach (var endPoint in list2)
+         {
+            var epString = EndPointToString(endPoint);
+            if (!hashSet.Contains(epString)) return false;
+         }
+
+         return true; // Všetky EndPointy boli nájdené
+      }
+
+      // Pomocná metóda na konverziu EndPoint na reťazec
+      private string EndPointToString(EndPoint endPoint)
+      {
+         if (endPoint is IPEndPoint ipEndPoint)
+         {
+            return $"{ipEndPoint.Address}:{ipEndPoint.Port}";
+         }
+         // Tu by ste mohli pridať ďalšie prípady pre iné typy EndPoint, ak je to potrebné
+         throw new ArgumentException("Unsupported EndPoint type", nameof(endPoint));
       }
    }
 }

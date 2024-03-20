@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 using Common.Model;
+using System.Runtime.CompilerServices;
 
 MyConfigManager.StartApplication();
 
@@ -13,7 +14,8 @@ IPAddress madeAdress = IPAddress.Parse($"192.168.1.241");
 NodeDiscovery.SetIpAdresses(NetworkUtils.GetLocalIPAddress(), publicAddress);
 NodeDiscovery.StartApplication();
 
-
+IPEndPoint? myLocalEndpoint = NetworkUtils.GetMyLocalEndpont();
+if (myLocalEndpoint == null) return;
 
 Console.WriteLine("Start");
 
@@ -27,7 +29,15 @@ Console.WriteLine(MyChain.Add_AddCredit(15.7));
 Console.WriteLine(MyChain.Add_AddCredit(2));
 
 string fileHash = "abc";
-Console.WriteLine(MyChain.Add_AddFileRequest(fileHash, out Guid a));
+Console.WriteLine(MyChain.Add_RemoveFileRequest(Guid.NewGuid()));
+Console.WriteLine(MyChain.Add_AddFileRequest(fileHash, out Guid fileGuid));
+Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_RemoveFileRequest(fileGuid));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
+
 
 string publicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("", Certificats.CertificateType.Node));
 bool success = MyChain.Chain[1].VerifyHash(publicKey);
@@ -46,6 +56,8 @@ bool success = MyChain.Chain[1].VerifyHash(publicKey);
 
 //var b = Certificats.GetCertificate("Node02", Certificats.CertificateType.Node);
 //var c = Certificats.ExtractPublicKey(b);
+
+Console.WriteLine(MyChain.ToJson(true));
 
 Console.ReadLine();
 //MyConfigManager.EndApplication();
