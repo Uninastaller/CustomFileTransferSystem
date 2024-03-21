@@ -1,5 +1,5 @@
 ﻿using ConfigManager;
-using System.Net;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace BlockChain
@@ -56,7 +56,7 @@ namespace BlockChain
          return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public BlockValidationResult Add_AddFile(Guid fileId, string fileHash, EndPoint myEndPoint)
+      public BlockValidationResult Add_AddFile(Guid fileId, string fileHash, IpAndPortEndPoint myEndPoint)
       {
 
          Block? block = FindLatestFileUpdate(fileId);
@@ -65,10 +65,10 @@ namespace BlockChain
             return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
-         List<EndPoint>? endPoints = null;
+         List<IpAndPortEndPoint>? endPoints = null;
          if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            endPoints = new List<EndPoint>() { myEndPoint };
+            endPoints = new List<IpAndPortEndPoint>() { myEndPoint };
          }
          else if (block.Transaction == TransactionType.ADD_FILE || block.Transaction == TransactionType.REMOVE_FILE)
          {
@@ -111,7 +111,7 @@ namespace BlockChain
          return AddBlock(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public BlockValidationResult Add_RemoveFile(Guid fileId, string fileHash, EndPoint endPoint)
+      public BlockValidationResult Add_RemoveFile(Guid fileId, string fileHash, IpAndPortEndPoint endPointToRemove)
       {
 
          Block? block = FindLatestFileUpdate(fileId);
@@ -124,8 +124,8 @@ namespace BlockChain
          {
             return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
          }
-         List<EndPoint> endPoints = block.FileLocations.ToList();
-         int? removed = endPoints.RemoveAll(ep => ep.Equals(endPoint));
+         List<IpAndPortEndPoint> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => new IpAndPortEndPointComparer().Equals(ep, endPointToRemove));
 
          if (removed.HasValue && removed <= 0)
          {
@@ -425,11 +425,11 @@ namespace BlockChain
          }
 
          // Create virtual new end point list
-         List<EndPoint>? endPoints = null;
+         List<IpAndPortEndPoint>? endPoints = null;
          // If its Add file request - create new list
          if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            endPoints = new List<EndPoint>();
+            endPoints = new List<IpAndPortEndPoint>();
          }
          // If anyting else, take old list
          else
@@ -442,8 +442,7 @@ namespace BlockChain
             }
          }
          // Try to extract endpoint from node
-         EndPoint? endPointToAdd = fromNode.GetNodeEndpoint();
-         if (endPointToAdd == null)
+         if (!fromNode.TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endPointToAdd))
          {
             return BlockValidationResult.INVALID_NODE_ENDPOINT;
          }
@@ -455,7 +454,7 @@ namespace BlockChain
          // Add end point to list
          endPoints.Add(endPointToAdd);
          // Check if virtual new end point list is the same as provided
-         if (!CompareAddressAndPortOfEndPointLists(endPoints, newBlock.FileLocations))
+         if (!CompareIpAndPointsLists(endPoints, newBlock.FileLocations))
          {
             return BlockValidationResult.INVALID_FILE_LOCATIONS;
          }
@@ -483,14 +482,12 @@ namespace BlockChain
          }
 
          // Try to extract endpoint from node
-         EndPoint? endPointToRemove = fromNode.GetNodeEndpoint();
-         if (endPointToRemove == null)
+         if (!fromNode.TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endPointToRemove))
          {
             return BlockValidationResult.INVALID_NODE_ENDPOINT;
          }
-
-         List<EndPoint> endPoints = block.FileLocations.ToList();
-         int? removed = endPoints.RemoveAll(ep => ep.Equals(endPointToRemove));
+         List<IpAndPortEndPoint> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => new IpAndPortEndPointComparer().Equals(ep, endPointToRemove));
 
          if (removed.HasValue && removed <= 0)
          {
@@ -498,7 +495,7 @@ namespace BlockChain
          }
 
          // Check if virtual new end point list is the same as provided
-         if (!CompareAddressAndPortOfEndPointLists(endPoints, newBlock.FileLocations))
+         if (!CompareIpAndPointsLists(endPoints, newBlock.FileLocations))
          {
             return BlockValidationResult.INVALID_FILE_LOCATIONS;
          }
@@ -543,35 +540,42 @@ namespace BlockChain
          return JsonSerializer.Serialize(Chain, options);
       }
 
-      private bool CompareAddressAndPortOfEndPointLists(List<EndPoint>? list1, List<EndPoint>? list2)
+      public static bool FromJson(string json, [MaybeNullWhen(false)] out List<Block> chain)
       {
-         if(list1 == null || list2 == null) return false;
+         try
+         {
+            chain = JsonSerializer.Deserialize<List<Block>>(json);
+            if (chain != null)
+            {
+               return true;
+            }
+            else return false;
+         }
+         catch
+         {
+            chain = null;
+            return false;
+         }
+      }
+
+      private bool CompareIpAndPointsLists(List<IpAndPortEndPoint>? list1, List<IpAndPortEndPoint>? list2)
+      {
+         if (list1 == null || list2 == null) return false;
 
          // Rýchle zlyhanie, ak sú zoznamy rôznych veľkostí
          if (list1.Count != list2.Count) return false;
 
          // Konvertujeme list1 na HashSet pre efektívne vyhľadávanie
-         HashSet<string> hashSet = new HashSet<string>(list1.Select(ep => EndPointToString(ep)));
+         HashSet<string> hashSet = new HashSet<string>(list1.Select(ep => ep.ToString()));
 
          // Porovnávame každý EndPoint v list2, či existuje v HashSet
-         foreach (var endPoint in list2)
+         foreach (IpAndPortEndPoint endPoint in list2)
          {
-            var epString = EndPointToString(endPoint);
+            string epString = endPoint.ToString();
             if (!hashSet.Contains(epString)) return false;
          }
 
          return true; // Všetky EndPointy boli nájdené
-      }
-
-      // Pomocná metóda na konverziu EndPoint na reťazec
-      private string EndPointToString(EndPoint endPoint)
-      {
-         if (endPoint is IPEndPoint ipEndPoint)
-         {
-            return $"{ipEndPoint.Address}:{ipEndPoint.Port}";
-         }
-         // Tu by ste mohli pridať ďalšie prípady pre iné typy EndPoint, ak je to potrebné
-         throw new ArgumentException("Unsupported EndPoint type", nameof(endPoint));
       }
    }
 }

@@ -11,7 +11,7 @@ namespace BlockChain
       public DateTime Timestamp { get; set; }
       public string FileHash { get; set; } = string.Empty; // For integrity check
       public Guid FileID { get; set; } // Unique identifier for the file
-      public List<EndPoint>? FileLocations { get; set; }
+      public List<IpAndPortEndPoint>? FileLocations { get; set; }
       public TransactionType Transaction { get; set; }
       public string Hash { get; private set; } = string.Empty;
       public string PreviousHash { get; set; } = string.Empty;
@@ -30,7 +30,7 @@ namespace BlockChain
 
          if (FileLocations != null)
          {
-            foreach (var location in FileLocations)
+            foreach (IpAndPortEndPoint location in FileLocations)
             {
                sb.Append(location.ToString());
             }
@@ -48,7 +48,6 @@ namespace BlockChain
          }
       }
 
-
       public void SignHash(string subjectName = "NodeXY")
       {
          SignedHash = Certificats.SignString(Certificats.GetCertificate(subjectName, Certificats.CertificateType.Node), Hash);
@@ -58,6 +57,5 @@ namespace BlockChain
       {
          return Certificats.VerifyString(Hash, SignedHash, publicKeyAsString);
       }
-
    }
 }

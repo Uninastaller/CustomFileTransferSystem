@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
 
@@ -23,6 +24,16 @@ namespace ConfigManager
          }
 
          return new IPEndPoint(address, Port);
+      }
+      public bool TryGetNodeCustomEndpoint([MaybeNullWhen(false)] out IpAndPortEndPoint endPoint)
+      {
+         if (!IPAddress.TryParse(Address, out IPAddress? address))
+         {
+            endPoint = null;
+            return false;
+         }
+         endPoint = new IpAndPortEndPoint() { Port = Port, IpAddress = address.ToString() };
+         return true;
       }
 
    }

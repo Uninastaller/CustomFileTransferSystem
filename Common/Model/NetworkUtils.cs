@@ -57,6 +57,19 @@ namespace Common.Model
          return new IPEndPoint(GetLocalIPAddress(), port);
       }
 
+      public static bool TryGetMyLocalCustomEndpoint([MaybeNullWhen(false)] out IpAndPortEndPoint endpoint)
+      {
+         if (!MyConfigManager.TryGetIntConfigValue("UploadingServerPort", out Int32 port))
+         {
+            Log.WriteLog(LogLevel.ERROR, "Invalid port!");
+            endpoint = null;
+            return false;
+         }
+
+         endpoint = new IpAndPortEndPoint() { Port = port, IpAddress = GetLocalIPAddress().ToString() };
+         return true;
+      }
+
       public static bool TryGetIPEndPointFromString(string ipAddressAndPort, [MaybeNullWhen(false)] out IPEndPoint iPEndPoint)
       {
          iPEndPoint = null;

@@ -15,7 +15,7 @@ NodeDiscovery.SetIpAdresses(NetworkUtils.GetLocalIPAddress(), publicAddress);
 NodeDiscovery.StartApplication();
 
 IPEndPoint? myLocalEndpoint = NetworkUtils.GetMyLocalEndpont();
-if (myLocalEndpoint == null) return;
+if (!NetworkUtils.TryGetMyLocalCustomEndpoint(out IpAndPortEndPoint? customLocalEndPoint)) return;
 
 Console.WriteLine("Start");
 
@@ -31,12 +31,12 @@ Console.WriteLine(MyChain.Add_AddCredit(2));
 string fileHash = "abc";
 Console.WriteLine(MyChain.Add_RemoveFileRequest(Guid.NewGuid()));
 Console.WriteLine(MyChain.Add_AddFileRequest(fileHash, out Guid fileGuid));
-Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, myLocalEndpoint));
-Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
-Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
-Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, customLocalEndPoint));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, customLocalEndPoint));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, customLocalEndPoint));
+Console.WriteLine(MyChain.Add_RemoveFile(fileGuid, fileHash, customLocalEndPoint));
 Console.WriteLine(MyChain.Add_RemoveFileRequest(fileGuid));
-Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, myLocalEndpoint));
+Console.WriteLine(MyChain.Add_AddFile(fileGuid, fileHash, customLocalEndPoint));
 
 
 string publicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("", Certificats.CertificateType.Node));
@@ -58,6 +58,7 @@ bool success = MyChain.Chain[1].VerifyHash(publicKey);
 //var c = Certificats.ExtractPublicKey(b);
 
 Console.WriteLine(MyChain.ToJson(true));
+Console.WriteLine(Blockchain.FromJson(MyChain.ToJson(true), out List<Block>? chain));
 
 Console.ReadLine();
 //MyConfigManager.EndApplication();
