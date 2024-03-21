@@ -320,7 +320,7 @@ namespace BlockChain
             case TransactionType.ADD_FILE_REQUEST:
                return ValidateAddFileRequest(newBlock);
             case TransactionType.REMOVE_FILE:
-               return ValidateRemoveFile(newBlock);
+               return ValidateRemoveFile(newBlock, fromNode);
             case TransactionType.REMOVE_FILE_REQUEST:
                return ValidateRemoveFileRequest(newBlock);
             case TransactionType.ADD_CREDIT:
@@ -442,18 +442,18 @@ namespace BlockChain
             }
          }
          // Try to extract endpoint from node
-         EndPoint? newEndPoint = fromNode.GetNodeEndpoint();
-         if (newEndPoint == null)
+         EndPoint? endPointToAdd = fromNode.GetNodeEndpoint();
+         if (endPointToAdd == null)
          {
             return BlockValidationResult.INVALID_NODE_ENDPOINT;
          }
          // Check if endpoint is not already there
-         if (block.FileLocations != null && block.FileLocations.Exists(ep => ep.Equals(newEndPoint)))
+         if (block.FileLocations != null && block.FileLocations.Exists(ep => ep.Equals(endPointToAdd)))
          {
             return BlockValidationResult.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
          }
          // Add end point to list
-         endPoints.Add(newEndPoint);
+         endPoints.Add(endPointToAdd);
          // Check if virtual new end point list is the same as provided
          if (!CompareAddressAndPortOfEndPointLists(endPoints, newBlock.FileLocations))
          {
@@ -469,7 +469,7 @@ namespace BlockChain
          return BlockValidationResult.VALID;
       }
 
-      private BlockValidationResult ValidateRemoveFile(Block newBlock)
+      private BlockValidationResult ValidateRemoveFile(Block newBlock, Node fromNode)
       {
          Block? block = FindLatestFileUpdate(newBlock.FileID);
          if (block == null || block.Transaction == TransactionType.ADD_FILE_REQUEST)
@@ -480,6 +480,27 @@ namespace BlockChain
          if (block.FileLocations == null)
          {
             return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
+         }
+
+         // Try to extract endpoint from node
+         EndPoint? endPointToRemove = fromNode.GetNodeEndpoint();
+         if (endPointToRemove == null)
+         {
+            return BlockValidationResult.INVALID_NODE_ENDPOINT;
+         }
+
+         List<EndPoint> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => ep.Equals(endPointToRemove));
+
+         if (removed.HasValue && removed <= 0)
+         {
+            return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
+         }
+
+         // Check if virtual new end point list is the same as provided
+         if (!CompareAddressAndPortOfEndPointLists(endPoints, newBlock.FileLocations))
+         {
+            return BlockValidationResult.INVALID_FILE_LOCATIONS;
          }
 
          if (newBlock.CreditChange != 0)
