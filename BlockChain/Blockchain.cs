@@ -53,7 +53,7 @@ namespace BlockChain
 
          newBlock.ComputeHash();
          newBlock.SignHash();
-         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
+         return SendToLeaderNode(newBlock, NodeDiscovery.GetMyNode());
       }
 
       public BlockValidationResult Add_AddFile(Guid fileId, string fileHash, IpAndPortEndPoint myEndPoint)
@@ -108,7 +108,7 @@ namespace BlockChain
          newBlock.ComputeHash();
          newBlock.SignHash();
 
-         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
+         return SendToLeaderNode(newBlock, NodeDiscovery.GetMyNode());
       }
 
       public BlockValidationResult Add_RemoveFile(Guid fileId, string fileHash, IpAndPortEndPoint endPointToRemove)
@@ -155,7 +155,7 @@ namespace BlockChain
 
          newBlock.ComputeHash();
          newBlock.SignHash();
-         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
+         return SendToLeaderNode(newBlock, NodeDiscovery.GetMyNode());
       }
 
       private Block? FindLatestFileUpdate(Guid fileId)
@@ -223,7 +223,7 @@ namespace BlockChain
          newBlock.ComputeHash();
          newBlock.SignHash();
 
-         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
+         return SendToLeaderNode(newBlock, NodeDiscovery.GetMyNode());
       }
 
       public BlockValidationResult Add_RemoveFileRequest(Guid fileId)
@@ -257,16 +257,17 @@ namespace BlockChain
 
          fileBlock.ComputeHash();
          newBlock.SignHash();
-         return AddBlock(newBlock, NodeDiscovery.GetMyNode());
+         return SendToLeaderNode(newBlock, NodeDiscovery.GetMyNode());
 
       }
 
-      public BlockValidationResult AddBlock(Block newBlock, Node fromNode)
+      public BlockValidationResult SendToLeaderNode(Block newBlock, Node fromNode)
       {
          BlockValidationResult result = IsNewBlockValid(newBlock, fromNode);
          if (result == BlockValidationResult.VALID)
          {
-            Chain.Add(newBlock);
+            //Chain.Add(newBlock);
+            // TO DO SENT DO LEADER NODE
          }
          return result;
       }
