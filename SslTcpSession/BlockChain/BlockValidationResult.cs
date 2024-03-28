@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlockChain
+namespace SslTcpSession.BlockChain
 {
    public enum BlockValidationResult
    {
@@ -24,5 +24,8 @@ namespace BlockChain
       NOT_ENOUGHT_CREDIT = 13,
       UNDEFINED_SITUATION = 14,
       NEGATIVE_VALUE_OF_CREDIT = 15,
+      CHAIN_IS_NOT_READY = 16,
+      UNABLE_TO_CHOOSE_PRIMARY_REPLICA = 17,
+      BLOCK_IS_VALID_BUT_PRIMARY_REPLICA_CAN_NOT_BE_REACHED = 18,
    }
 }

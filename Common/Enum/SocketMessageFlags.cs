@@ -43,7 +43,12 @@ namespace Common.Enum
         END_OF_MESSAGE,
 
         [StringValue("e.G")]
-        END_OF_MESSAGE_GROUP
+        END_OF_MESSAGE_GROUP,
+
+
+        // pBFT
+        [StringValue("c.A")]
+        PBFT_REQUEST,
 
     }
 

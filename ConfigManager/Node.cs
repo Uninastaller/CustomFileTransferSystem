@@ -1,40 +1,51 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace ConfigManager
 {
-   public class Node
-   {
-      //public string Id => $"{Address}:{Port}";
-      public Guid Id { get; set; }
-      public string Address { get; set; } = string.Empty;
-      public int Port { get; set; }
-      public string PublicKey { get; set; } = string.Empty;
+    public class Node
+    {
+        public Guid Id { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public int Port { get; set; }
+        public string PublicKey { get; set; } = string.Empty;
 
-      public string GetJson() => JsonSerializer.Serialize(this);
-      public static Node? ToObjectFromJson(string jsonString) => JsonSerializer.Deserialize<Node>(jsonString);
-      public EndPoint? GetNodeEndpoint()
-      {
+        public string GetJson() => JsonSerializer.Serialize(this);
+        public static Node? ToObjectFromJson(string jsonString) => JsonSerializer.Deserialize<Node>(jsonString);
+        public EndPoint? GetNodeEndpoint()
+        {
 
-         if (!IPAddress.TryParse(Address, out IPAddress? address))
-         {
-            return null;
-         }
+            if (!IPAddress.TryParse(Address, out IPAddress? address))
+            {
+                return null;
+            }
 
-         return new IPEndPoint(address, Port);
-      }
-      public bool TryGetNodeCustomEndpoint([MaybeNullWhen(false)] out IpAndPortEndPoint endPoint)
-      {
-         if (!IPAddress.TryParse(Address, out IPAddress? address))
-         {
-            endPoint = null;
-            return false;
-         }
-         endPoint = new IpAndPortEndPoint() { Port = Port, IpAddress = address.ToString() };
-         return true;
-      }
+            return new IPEndPoint(address, Port);
+        }
+        public bool TryGetNodeCustomEndpoint([MaybeNullWhen(false)] out IpAndPortEndPoint endPoint)
+        {
+            if (!IPAddress.TryParse(Address, out IPAddress? address))
+            {
+                endPoint = null;
+                return false;
+            }
+            endPoint = new IpAndPortEndPoint() { Port = Port, IpAddress = address.ToString() };
+            return true;
+        }
+        public string GenerateNodeSpecificHash(string lastBlockHash)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                string input = lastBlockHash + Id.ToString();
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = sha256.ComputeHash(inputBytes);
+                return Convert.ToBase64String(hashBytes);
+            }
+        }
 
-   }
+    }
 }

@@ -2,6 +2,7 @@
 using Common.Model;
 using ConfigManager;
 using Logger;
+using SslTcpSession.BlockChain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,198 +10,221 @@ using System.Net.Sockets;
 
 namespace SslTcpSession
 {
-   class SslDownloadingSession : SslSession
-   {
+    class SslDownloadingSession : SslSession
+    {
 
-      #region Properties
+        #region Properties
 
-      public bool RequestAccepted { get; set; } = false;
-      public string FileNameOfAcceptedfileRequest { get; set; } = string.Empty;
-      public SessionState SessionState
-      {
-         get => _sessionState;
+        public bool RequestAccepted { get; set; } = false;
+        public string FileNameOfAcceptedfileRequest { get; set; } = string.Empty;
+        public SessionState SessionState
+        {
+            get => _sessionState;
 
-         set
-         {
-            if (value != _sessionState)
+            set
             {
-               _sessionState = value;
-               ServerSessionStateChange?.Invoke(this, value);
+                if (value != _sessionState)
+                {
+                    _sessionState = value;
+                    ServerSessionStateChange?.Invoke(this, value);
+                }
             }
-         }
-      }
+        }
 
-      #endregion Properties
+        #endregion Properties
 
-      #region PublicFields
-
-
-      #endregion PublicFields
-
-      #region PrivateFields
-
-      private SessionState _sessionState = SessionState.NONE;
-
-      #endregion PrivateFields
-
-      #region ProtectedFields
+        #region PublicFields
 
 
+        #endregion PublicFields
 
-      #endregion ProtectedFields
+        #region PrivateFields
 
-      #region Ctor
+        private SessionState _sessionState = SessionState.NONE;
 
-      public SslDownloadingSession(SslServer server) : base(server)
-      {
-         Log.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
+        #endregion PrivateFields
 
-         _flagSwitch.OnNonRegistered(OnNonRegistredMessage);
-         _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
-         _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
-         _flagSwitch.Register(SocketMessageFlag.NODE_LIST_REQUEST, OnNodeListRequestHandler);
-
-      }
-
-      #endregion Ctor
-
-      #region PublicMethods
+        #region ProtectedFields
 
 
 
-      #endregion PublicMethods
+        #endregion ProtectedFields
 
-      #region PrivateMethods
+        #region Ctor
 
-      private void OnClientFileRequest(string filePath, long fileSize)
-      {
-         ClientFileRequest?.Invoke(this, filePath, fileSize);
-      }
+        public SslDownloadingSession(SslServer server) : base(server)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
 
-      private void OnClientDisconnected()
-      {
-         ClientDisconnected?.Invoke(this);
-      }
+            _flagSwitch.OnNonRegistered(OnNonRegisteredMessage);
+            _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
+            _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
+            _flagSwitch.Register(SocketMessageFlag.NODE_LIST_REQUEST, OnNodeListRequestHandler);
+            _flagSwitch.Register(SocketMessageFlag.PBFT_REQUEST, OnPbftRequestHandler);
 
-      private void OnReceiveMessage(string message)
-      {
-         ReceiveMessage?.Invoke(this, message);
-      }
+        }
 
-      #endregion PrivateMethods
+        #endregion Ctor
 
-      #region ProtectedMethods
+        #region PublicMethods
 
-      protected override void OnHandshaked()
-      {
-         Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} handshaked!");
 
-         //// Send invite message
-         //string message = "Hello from SSL server!";
-         //Send(message);
-      }
 
-      protected override void OnDisconnected()
-      {
-         OnClientDisconnected();
-         Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} disconnected!");
-      }
+        #endregion PublicMethods
 
-      protected override void OnReceived(byte[] buffer, long offset, long size)
-      {
-         //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+        #region PrivateMethods
 
-         //OnReceiveMessage(message);
-         _flagSwitch.Switch(buffer, offset, size);
-      }
+        private void OnClientFileRequest(string filePath, long fileSize)
+        {
+            ClientFileRequest?.Invoke(this, filePath, fileSize);
+        }
 
-      protected override void OnError(SocketError error)
-      {
-         Log.WriteLog(LogLevel.ERROR, $"Ssl session caught an error with code {error}");
-      }
+        private void OnClientDisconnected()
+        {
+            ClientDisconnected?.Invoke(this);
+        }
 
-      #endregion ProtectedMethods
+        private void OnReceiveMessage(string message)
+        {
+            ReceiveMessage?.Invoke(this, message);
+        }
 
-      #region Events
+        #endregion PrivateMethods
 
-      public delegate void ReceiveMessageEventHandler(SslSession sender, string message);
-      public event ReceiveMessageEventHandler? ReceiveMessage;
+        #region ProtectedMethods
 
-      public delegate void ClientDisconnectedHandler(SslSession sender);
-      public event ClientDisconnectedHandler? ClientDisconnected;
+        protected override void OnHandshaked()
+        {
+            Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} handshaked!");
 
-      public delegate void ClientFileRequestHandler(SslSession sender, string filePath, long fileSize);
-      public event ClientFileRequestHandler? ClientFileRequest;
+            //// Send invite message
+            //string message = "Hello from SSL server!";
+            //Send(message);
+        }
 
-      public delegate void ServerSessionStateChangeEventHandler(SslSession sender, SessionState serverSessionState);
-      public event ServerSessionStateChangeEventHandler? ServerSessionStateChange;
+        protected override void OnDisconnected()
+        {
+            OnClientDisconnected();
+            Log.WriteLog(LogLevel.INFO, $"Ssl session with Id {Id} disconnected!");
+        }
 
-      private void OnNonRegistredMessage(string message)
-      {
-         SessionState = SessionState.NONE;
-         this.Server?.FindSession(this.Id)?.Disconnect();
-         Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
-      }
+        protected override void OnReceived(byte[] buffer, long offset, long size)
+        {
+            //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-      private void OnRequestFileHandler(byte[] buffer, long offset, long size)
-      {
-         if (FlagMessageEvaluator.EvaluateRequestFileMessage(buffer, offset, size, out string fileName, out Int64 fileSize))
-         {
-            OnClientFileRequest(fileName, fileSize);
-            SessionState = SessionState.FILE_REQUEST;
-         }
-         else
-         {
+            //OnReceiveMessage(message);
+            _flagSwitch.Switch(buffer, offset, size);
+        }
+
+        protected override void OnError(SocketError error)
+        {
+            Log.WriteLog(LogLevel.ERROR, $"Ssl session caught an error with code {error}");
+        }
+
+        #endregion ProtectedMethods
+
+        #region Events
+
+        public delegate void ReceiveMessageEventHandler(SslSession sender, string message);
+        public event ReceiveMessageEventHandler? ReceiveMessage;
+
+        public delegate void ClientDisconnectedHandler(SslSession sender);
+        public event ClientDisconnectedHandler? ClientDisconnected;
+
+        public delegate void ClientFileRequestHandler(SslSession sender, string filePath, long fileSize);
+        public event ClientFileRequestHandler? ClientFileRequest;
+
+        public delegate void ServerSessionStateChangeEventHandler(SslSession sender, SessionState serverSessionState);
+        public event ServerSessionStateChangeEventHandler? ServerSessionStateChange;
+
+        private void OnNonRegisteredMessage(string message)
+        {
+            Log.WriteLog(LogLevel.WARNING, $"Non registered message received, disconnecting client!");
+            SessionState = SessionState.NONE;
             this.Server?.FindSession(this.Id)?.Disconnect();
-            Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
-         }
-      }
+        }
 
-      private void OnRequestFilePartHandler(byte[] buffer, long offset, long size)
-      {
-         if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePartMessage(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
-         {
-            Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
-            FlagMessagesGenerator.GenerateFilePart(FileNameOfAcceptedfileRequest, this, filePartNumber, partSize);
-            SessionState = SessionState.FILE_PART_REQUEST;
-         }
-         else
-         {
-            this.Server?.FindSession(this.Id)?.Disconnect();
-            Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
-         }
-      }
-
-      private void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
-      {
-         if (FlagMessageEvaluator.EvaluateNodeListRequestMessage(buffer, offset, size, out Node senderNode))
-         {
-            Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
-            SessionState = SessionState.NODE_LIST_SENDING;
-
-            //NodeDiscovery.LoadNodes();
-
-            List<Node> nodes = NodeDiscovery.GetAllNodes().ToList();
-
-            for(int i = 0; i < nodes.Count; i++)
+        private void OnRequestFileHandler(byte[] buffer, long offset, long size)
+        {
+            if (FlagMessageEvaluator.EvaluateRequestFileMessage(buffer, offset, size, out string fileName, out Int64 fileSize))
             {
-               FlagMessagesGenerator.GenerateNodeMessage(nodes[i].GetJson(), false, this);
+                OnClientFileRequest(fileName, fileSize);
+                SessionState = SessionState.FILE_REQUEST;
             }
-            FlagMessagesGenerator.GenerateNodeMessage(NodeDiscovery.GetMyNode().GetJson(), true, this);
+            else
+            {
+                this.Server?.FindSession(this.Id)?.Disconnect();
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+            }
+        }
 
-            NodeDiscovery.AddNode(senderNode);
-            NodeDiscovery.SaveNodes();
-         }
-      }
+        private void OnRequestFilePartHandler(byte[] buffer, long offset, long size)
+        {
+            if (RequestAccepted && FlagMessageEvaluator.EvaluateRequestFilePartMessage(buffer, offset, size, out Int64 filePartNumber, out Int32 partSize))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received file part request for part: {filePartNumber}, with size: {partSize}, from client: {Socket.RemoteEndPoint}!");
+                FlagMessagesGenerator.GenerateFilePart(FileNameOfAcceptedfileRequest, this, filePartNumber, partSize);
+                SessionState = SessionState.FILE_PART_REQUEST;
+            }
+            else
+            {
+                this.Server?.FindSession(this.Id)?.Disconnect();
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+            }
+        }
 
-      #endregion Events
+        private void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
+        {
+            if (FlagMessageEvaluator.EvaluateNodeListRequestMessage(buffer, offset, size, out Node? senderNode))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received NodeList request from client: {Socket.RemoteEndPoint}!");
+                SessionState = SessionState.NODE_LIST_SENDING;
 
-      #region OverridedMethods
+                //NodeDiscovery.LoadNodes();
+
+                List<Node> nodes = NodeDiscovery.GetAllNodes().ToList();
+
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    FlagMessagesGenerator.GenerateNodeMessage(nodes[i].GetJson(), false, this);
+                }
+                FlagMessagesGenerator.GenerateNodeMessage(NodeDiscovery.GetMyNode().GetJson(), true, this);
+
+                NodeDiscovery.AddNode(senderNode);
+                NodeDiscovery.SaveNodes();
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+            }
+        }
+
+        private void OnPbftRequestHandler(byte[] buffer, long offset, long size)
+        {
+            if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? receivedBlock))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {Socket.RemoteEndPoint}!" +
+                    $" Session should be closed by client, but to be sure... disconnecting client!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+
+
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+            }
+        }
+
+        #endregion Events
+
+        #region OverridedMethods
 
 
 
-      #endregion OverridedMethods
+        #endregion OverridedMethods
 
-   }
+    }
 }
 
