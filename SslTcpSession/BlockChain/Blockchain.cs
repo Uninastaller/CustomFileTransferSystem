@@ -282,8 +282,11 @@ namespace SslTcpSession.BlockChain
                return BlockValidationResult.UNABLE_TO_CHOOSE_PRIMARY_REPLICA;
             }
 
+
             // send to primary replica
-            bool success = await SslPbftTmpClientBusinessLogic.SendPbftRequestAndDispose(iPAddress, primaryReplica.Port, newBlock.ToJson());
+            bool success = await SslPbftTmpClientBusinessLogic.SendPbftRequestAndDispose(iPAddress, primaryReplica.Port,
+               newBlock, NodeDiscovery.GetHashFromActiveNodes());
+
             if (!success) result = BlockValidationResult.BLOCK_IS_VALID_BUT_PRIMARY_REPLICA_CAN_NOT_BE_REACHED;
             //Chain.Add(newBlock);
 
@@ -341,6 +344,15 @@ namespace SslTcpSession.BlockChain
          primaryReplica = sortedNodes[primaryReplikaIndex].Node;
 
          return primaryReplica != null;
+      }
+
+      public static bool VerifyPrimaryReplica(Guid replicaId, int view)
+      {
+         if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica, view))
+         {
+            return false;
+         }
+         return replicaId == primaryReplica.Id;
       }
 
       public static bool IsBlockChainValid()

@@ -207,7 +207,7 @@ namespace SslTcpSession
 
       protected override void OnDispose()
       {
-         _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, _typeOfSession, true));
+         _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, _typeOfSession, true, this.Endpoint));
 
          if (_timer != null)
          {

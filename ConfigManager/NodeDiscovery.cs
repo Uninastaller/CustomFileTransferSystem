@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace ConfigManager
@@ -12,21 +14,17 @@ namespace ConfigManager
    static public class NodeDiscovery
    {
       private static ConcurrentDictionary<Guid, Node> _nodes = new ConcurrentDictionary<Guid, Node>();
+      private static ConcurrentDictionary<Guid, Node> _currentlyVerifiedActiveNodes = new ConcurrentDictionary<Guid, Node>();
       private static Node _myNode = new Node();
 
       public static IPAddress LocalIpAddress { get; private set; } = IPAddress.None;
       public static IPAddress PublicIpAddress { get; private set; } = IPAddress.None;
 
-      //static NodeDiscovery()
-      //{
-      //   LoadNodes();
-      //   LoadMyNode();
-      //}
-
       public static void StartApplication()
       {
          LoadMyNode();
          LoadNodes();
+         UpdateCurrentlyVerifiedActiveNodeList(GetMyNode());
       }
 
       public static void SetIpAdresses(IPAddress localIpAddress, IPAddress publicIpAddress)
@@ -81,11 +79,12 @@ namespace ConfigManager
             catch
             { }
          }
-         else if(CreateNewNodeForMe(out Node node))
+         else if (CreateNewNodeForMe(out Node node))
          {
             _myNode = node;
             SaveMyNode();
          }
+         UpdateCurrentlyVerifiedActiveNodeList(GetMyNode());
       }
 
       private static bool CreateNewNodeForMe(out Node node)
@@ -175,6 +174,11 @@ namespace ConfigManager
          return _nodes.Values;
       }
 
+      public static IEnumerable<Node> GetAllCurrentlyVerifiedActiveNodes()
+      {
+         return _currentlyVerifiedActiveNodes.Values;
+      }
+
       public static void UpdateNodeList(Dictionary<Guid, Node> externalNodes)
       {
          foreach (var node in externalNodes.Values)
@@ -183,13 +187,60 @@ namespace ConfigManager
          }
       }
 
-      //public static Node GetMyNode(IPEndPoint endpoint) => GetMyNode(endpoint.Address.ToString(), endpoint.Port);
+      public static void UpdateCurrentlyVerifiedActiveNodeList(Node verifiedActiveNode)
+      {
+         if (!_currentlyVerifiedActiveNodes.TryAdd(verifiedActiveNode.Id, verifiedActiveNode))
+         {
+            //_currentlyVerifiedActiveNodes[verifiedActiveNode.Id].PublicKey = verifiedActiveNode.PublicKey;
+            _currentlyVerifiedActiveNodes[verifiedActiveNode.Id].Port = verifiedActiveNode.Port;
+            _currentlyVerifiedActiveNodes[verifiedActiveNode.Id].Address = verifiedActiveNode.Address;
+         }
+      }
 
-      //public static Node GetMyNode(string address, int port)
-      //{
-      //   return new Node() { Address = address, Port = port, PublicKey = Certificats.ExportPublicKeyToJSON(Certificats.GetCertificate("NodeXY", Certificats.CertificateType.Node)) };
-      //}
+      public static void UpdateCurrentlyVerifiedActiveNodeList(EndPoint nodeEndpoint)
+      {
+         string? stringFormat = nodeEndpoint.ToString();
+         if (stringFormat != null)
+         {
+            Node node = _nodes.FirstOrDefault(pair => stringFormat.Equals($"{pair.Value.Address}:{pair.Value.Port}")).Value;
+            if (node != null)
+            {
+               UpdateCurrentlyVerifiedActiveNodeList(node);
+            }
+         }
+      }
+
       public static Node GetMyNode() => _myNode;
+
+      public static void ClearCurrentlyVerifiedActiveNodes()
+      {
+         _currentlyVerifiedActiveNodes.Clear();
+         UpdateCurrentlyVerifiedActiveNodeList(GetMyNode());
+      }
+
+      public static IEnumerable<NodeForGrid> GetNodesForGrid()
+      {
+         return _nodes.Select(n => new NodeForGrid(n.Value)
+         {
+            Active = _currentlyVerifiedActiveNodes.ContainsKey(n.Key)
+         });
+      }
+
+      public static string GetHashFromActiveNodes()
+      {
+         IEnumerable<string> sortedGuids = _currentlyVerifiedActiveNodes.Keys.OrderBy(guid => guid).Select(guid => guid.ToString());
+
+         StringBuilder sb = new StringBuilder();
+         foreach (string guid in sortedGuids)
+         {
+            sb.Append(guid);
+         }
+
+         using (SHA256 sha256 = SHA256.Create())
+         {
+            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(sb.ToString())));
+         }
+      }
 
    }
 }

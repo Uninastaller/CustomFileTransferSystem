@@ -856,7 +856,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextColorDefault}" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Margin" Value="15,0,15,10" />
+        <Setter Property="Margin" Value="10,0,15,10" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">

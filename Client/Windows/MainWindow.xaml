@@ -493,6 +493,26 @@
                                             <DataGridTextColumn Header="IpAddress" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Address}"/>
                                             <DataGridTextColumn Header="Port" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Port}"/>
                                             <DataGridTextColumn Header="PublicKey" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding PublicKey}"/>
+                                            <DataGridTemplateColumn Header="Active" IsReadOnly="True" CanUserResize="False" Width="auto">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Ellipse Width="20" Height="20" HorizontalAlignment="Center">
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Active}" Value="True">
+                                                                            <Setter Property="Fill" Value="#263F03"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Active}" Value="False">
+                                                                            <Setter Property="Fill" Value="#741b0c"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
+                                                        </Ellipse>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
 
                                             <DataGridTemplateColumn Header="Operations" IsReadOnly="True" Width="auto">
                                                 <DataGridTemplateColumn.CellTemplate>
