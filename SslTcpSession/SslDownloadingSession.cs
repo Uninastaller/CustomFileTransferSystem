@@ -207,7 +207,21 @@ namespace SslTcpSession
                 Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {Socket.RemoteEndPoint}!" +
                     $" Session should be closed by client, but to be sure... disconnecting client!");
                 this.Server?.FindSession(this.Id)?.Disconnect();
+               
 
+                // Try find coresponding node
+                if(!NodeDiscovery.TryGetNode(receivedBlock.NodeId, out Node? node))
+                {
+                     Log.WriteLog(LogLevel.WARNING, $"Received request for new block dont have coresponding node with node id: {receivedBlock.NodeId}!" +
+                     $" Operation can not be proceed!");
+                     return;
+                }
+
+                // Check for correct pick of primary replica in current view
+
+
+                // Check block validity
+                Blockchain.IsNewBlockValid(receivedBlock, node);
 
             }
             else

@@ -1044,8 +1044,7 @@ namespace Client.Windows
             }
 
             // TESTING
-            Blockchain chain = new Blockchain();
-            BlockValidationResult result = await chain.Add_AddCredit(12.45);
+            BlockValidationResult result = await Blockchain.Add_AddCredit(12.45);
         }
 
         private void btnNodeRemove_Click(object sender, RoutedEventArgs e)

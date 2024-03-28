@@ -19,37 +19,16 @@ Console.WriteLine("Start");
 
 
 
-// CLIENT 1
-
-Blockchain MyChain = new Blockchain();
-
-Console.WriteLine(MyChain.Add_AddCredit(50));
-Console.WriteLine(MyChain.Add_AddCredit(12.7));
-
-// CLIENT 2
-
-Blockchain MyChain2 = new Blockchain();
-
-// CLIENT 3
-
-Blockchain MyChain3 = new Blockchain();
-
-// CLIENT 4
-
-Blockchain MyChain4 = new Blockchain();
-
-// CLIENT 5
-
-Blockchain MyChain5 = new Blockchain();
-
-// CLIENT 6
-
-Blockchain MyChain6 = new Blockchain();
-
-
-Console.WriteLine(MyChain.ToJson(true));
-Console.WriteLine(Blockchain.FromJson(MyChain.ToJson(true), out List<Block>? chain));
-
-Console.ReadLine();
 //MyConfigManager.EndApplication();
+
+List<string> aa = new List<string>();
+aa.Add("aabb");
+aa.Add("abaa");
+aa.Add("a");
+aa.Add("x");
+aa.Add("xax");
+aa.Add("xba");
+aa = aa.Order(StringComparer.Ordinal).ToList();
+Console.ReadLine();
+
 

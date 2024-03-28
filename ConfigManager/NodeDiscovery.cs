@@ -165,7 +165,7 @@ namespace ConfigManager
          return _nodes.TryRemove(nodeId, out _);
       }
 
-      public static bool GetNode(Guid nodeId, [MaybeNullWhen(false)] out Node node)
+      public static bool TryGetNode(Guid nodeId, [MaybeNullWhen(false)] out Node node)
       {
          return _nodes.TryGetValue(nodeId, out node);
       }
