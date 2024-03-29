@@ -321,7 +321,7 @@ namespace TcpSession
          bool isPurposeFullfilled = false;
          if (_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart == -1) isPurposeFullfilled = true;
 
-         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, isPurposeFullfilled, this.Endpoint));
+         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, isPurposeFullfilled, Address, Port));
          //_gui = null;
       }
 

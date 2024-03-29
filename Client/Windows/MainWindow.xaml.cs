@@ -528,10 +528,10 @@ namespace Client.Windows
             {
                ShowTimedMessage("NodeList not received, connection to node could not be made!", TimeSpan.FromSeconds(4));
             }
-            else if (message.EndPoint != null)
+            else if (!string.IsNullOrEmpty(message.Address))
             {
                // add node to currently verified as active
-               NodeDiscovery.UpdateCurrentlyVerifiedActiveNodeList(message.EndPoint);
+               NodeDiscovery.UpdateCurrentlyVerifiedActiveNodeList(message.Address, message.Port);
             }
          }
       }

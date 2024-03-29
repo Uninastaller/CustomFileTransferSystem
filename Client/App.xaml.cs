@@ -14,7 +14,7 @@ namespace Client
       {
          MyConfigManager.StartApplication();
          Log.StartApplication();
-         NodeDiscovery.SetIpAdresses(NetworkUtils.GetLocalIPAddress(), await NetworkUtils.GetPublicIPAddress());
+         NodeDiscovery.SetIpAddresses(NetworkUtils.GetLocalIPAddress(), await NetworkUtils.GetPublicIPAddress());
          NodeDiscovery.StartApplication();
          Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
       }

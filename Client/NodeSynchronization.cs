@@ -13,7 +13,7 @@ namespace Client
 {
     static class NodeSynchronization
     {
-        static SemaphoreSlim? _semaphore;
+        private static SemaphoreSlim? _semaphore;
 
         public static async Task ExecuteSynchronization(SslContext context, IWindowEnqueuer gui, int maximumParallelRunningSockets = 10)
         {
@@ -22,6 +22,9 @@ namespace Client
                 Logger.Log.WriteLog(Logger.LogLevel.WARNING, "Previous operation not completed yet !");
                 return;
             }
+
+            NodeDiscovery.NodeSynchronizationStarted();
+
             _semaphore = new SemaphoreSlim(maximumParallelRunningSockets);
             List<Task> tasks = new List<Task>();
             HashSet<Guid> processedNodes = new HashSet<Guid>(); // Sledovanie už spracovaných uzlov
@@ -52,6 +55,7 @@ namespace Client
                 tasks.Clear(); // Vyčistenie zoznamu úloh pre ďalšiu iteráciu
             }
             _semaphore = null;
+            NodeDiscovery.NodeSynchronizationFinished();
         }
 
         private static async Task SynchronizeNodeAsync(Node node, SslContext context, IWindowEnqueuer gui)

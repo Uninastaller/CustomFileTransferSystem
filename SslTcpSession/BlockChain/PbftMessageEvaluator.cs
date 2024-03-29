@@ -10,7 +10,7 @@ namespace SslTcpSession.BlockChain
    public static class PbftMessageEvaluator
    {
       public static bool EvaluatePbftRequestMessage(byte[] buffer, long offset, long size,
-         [MaybeNullWhen(false)] out Block receivedBlock,[MaybeNullWhen(false)] out string? hashOfActiveReplicas)
+         [MaybeNullWhen(false)] out Block receivedBlock,[MaybeNullWhen(false)] out string hashOfActiveReplicas)
       {
          bool succes = false;
          receivedBlock = null;

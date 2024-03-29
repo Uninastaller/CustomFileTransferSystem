@@ -429,7 +429,7 @@ namespace SslTcpSession
          if(_typeOfSession == TypeOfSession.DOWNLOADING && _assignedFilePart == -1) isPurposeFullfilled = true;
          if(_typeOfSession == TypeOfSession.NODE_DISCOVERY && _disconnectTime < _maxDisconnectTime) isPurposeFullfilled = true;
 
-         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, isPurposeFullfilled, this.Endpoint));
+         _gui.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.CLIENT, _typeOfSession, isPurposeFullfilled, Address, Port));
          //_gui = null;
       }
 
