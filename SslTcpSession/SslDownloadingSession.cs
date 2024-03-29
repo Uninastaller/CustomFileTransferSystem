@@ -61,7 +61,7 @@ namespace SslTcpSession
             _flagSwitch.Register(SocketMessageFlag.FILE_PART_REQUEST, OnRequestFilePartHandler);
             _flagSwitch.Register(SocketMessageFlag.NODE_LIST_REQUEST, OnNodeListRequestHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_REQUEST, OnPbftRequestHandler);
-
+            _flagSwitch.Register(SocketMessageFlag.PBFT_PRE_PREPARE, OnPbftPrePrepareHandler);
         }
 
         #endregion Ctor
@@ -200,17 +200,17 @@ namespace SslTcpSession
             }
         }
 
-        private void OnPbftRequestHandler(byte[] buffer, long offset, long size)
+        private async void OnPbftRequestHandler(byte[] buffer, long offset, long size)
         {
-            if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? receivedBlock, out string? hashOfActiveReplicas))
+            if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? receivedBlock, out string? synchronizationHash))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {Socket.RemoteEndPoint}!" +
-                    $" with hash of active replics: {hashOfActiveReplicas}. " +
+                    $" with hash of active replics: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
-                if (!hashOfActiveReplicas.Equals(NodeDiscovery.HashOfActiveReplicas))
+                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received request for new block, but we have different synchronization hashes!" +
                     $" Operation can not be proceed!");
@@ -226,7 +226,7 @@ namespace SslTcpSession
                 }
 
                 // Check for correct pick of primary replica in current view
-                if (!Blockchain.VerifyPrimaryReplica(NodeDiscovery.GetMyNode().Id, view: 0))
+                if (!Blockchain.VerifyPrimaryReplica(NodeDiscovery.GetMyNode().Id))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Unable to verify myself as primary replica in current view! Operation can not be proceed!");
                     return;
@@ -236,12 +236,62 @@ namespace SslTcpSession
                 BlockValidationResult result = Blockchain.IsNewBlockValid(receivedBlock, node);
                 if (result != BlockValidationResult.VALID)
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, foun requested block as invalid due to: {result}");
+                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}");
                     return;
                 }
 
                 // PRE-PREPARE
+                await SslPbftTmpClientBusinessLogic.MulticastPrePrepare(receivedBlock, receivedBlock.SignAndReturnHash(), synchronizationHash);
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+            }
+        }
 
+        private async void OnPbftPrePrepareHandler(byte[] buffer, long offset, long size)
+        {
+            if (PbftMessageEvaluator.EvaluatePbftPrePrepareMessage(buffer, offset, size, out Block? receivedBlock,
+                out string? signOfPrimaryReplica, out string? synchronizationHash))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received pre-prepare from client: {Socket.RemoteEndPoint}!" +
+                    $" with hash of active replics: {synchronizationHash}. " +
+                    $"Session should be closed by client, but to be sure... disconnecting client!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+
+                // As first, check if hash of active replicas is same as mine
+                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, but we have different synchronization hashes!" +
+                    $" Operation can not be proceed!");
+                    return;
+                }
+
+                // Try find coresponding node
+                if (!NodeDiscovery.TryGetNode(receivedBlock.NodeId, out Node? node))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, dont have coresponding node with node id: {receivedBlock.NodeId}!" +
+                    $" Operation can not be proceed!");
+                    return;
+                }
+
+                // Check for correct pick of primary replica in current view
+                if (!Blockchain.VerifyPrimaryReplica(receivedBlock.Hash, signOfPrimaryReplica))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Unable to verify primary replica in current view! Operation can not be proceed!");
+                    return;
+                }
+
+                // Check block validity
+                BlockValidationResult result = Blockchain.IsNewBlockValid(receivedBlock, node);
+                if (result != BlockValidationResult.VALID)
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}");
+                    return;
+                }
+            
+                // TO DO - PREPARE
             }
             else
             {

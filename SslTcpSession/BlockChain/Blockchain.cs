@@ -40,14 +40,14 @@ namespace SslTcpSession.BlockChain
 
             if(NodeDiscovery.PassedTimeFromLastSynchronization.TotalSeconds > 60)
             {
-                return BlockValidationResult.OLD_SYNCHRONIZATION;
+                //return BlockValidationResult.OLD_SYNCHRONIZATION;
             }
 
             double newCreditValue = 0;
             Block? block = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
             if (block != null)
             {
-                newCreditValue = block.NewCreditVaue;
+                newCreditValue = block.NewCreditValue;
             }
 
             newCreditValue += creditValueToAdd;
@@ -60,7 +60,7 @@ namespace SslTcpSession.BlockChain
                 Transaction = TransactionType.ADD_CREDIT,
                 NodeId = NodeDiscovery.GetMyNode().Id,
                 CreditChange = creditValueToAdd,
-                NewCreditVaue = newCreditValue,
+                NewCreditValue = newCreditValue,
             };
 
             newBlock.ComputeHash();
@@ -98,7 +98,7 @@ namespace SslTcpSession.BlockChain
             Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
             if (creditBlock != null)
             {
-                creditValue = creditBlock.NewCreditVaue;
+                creditValue = creditBlock.NewCreditValue;
             }
 
             creditValue += _savedFileReward;
@@ -113,7 +113,7 @@ namespace SslTcpSession.BlockChain
                 FileID = fileId,
                 NodeId = NodeDiscovery.GetMyNode().Id,
                 CreditChange = _savedFileReward,
-                NewCreditVaue = creditValue,
+                NewCreditValue = creditValue,
                 FileLocations = endPoints,
             };
 
@@ -148,7 +148,7 @@ namespace SslTcpSession.BlockChain
             Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
             if (creditBlock != null)
             {
-                newCreditValue = creditBlock.NewCreditVaue;
+                newCreditValue = creditBlock.NewCreditValue;
             }
 
             Block newBlock = new Block
@@ -161,7 +161,7 @@ namespace SslTcpSession.BlockChain
                 FileID = fileId,
                 NodeId = NodeDiscovery.GetMyNode().Id,
                 CreditChange = 0,
-                NewCreditVaue = newCreditValue,
+                NewCreditValue = newCreditValue,
                 FileLocations = endPoints,
             };
 
@@ -208,7 +208,7 @@ namespace SslTcpSession.BlockChain
             Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
             if (creditBlock != null)
             {
-                creditValue = creditBlock.NewCreditVaue;
+                creditValue = creditBlock.NewCreditValue;
             }
 
             if (creditValue < _newFileCreditPrice)
@@ -230,7 +230,7 @@ namespace SslTcpSession.BlockChain
                 FileID = fileId,
                 NodeId = NodeDiscovery.GetMyNode().Id,
                 CreditChange = -_newFileCreditPrice,
-                NewCreditVaue = creditValue
+                NewCreditValue = creditValue
             };
 
             newBlock.ComputeHash();
@@ -251,7 +251,7 @@ namespace SslTcpSession.BlockChain
             Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
             if (creditBlock != null)
             {
-                newCreditValue = creditBlock.NewCreditVaue;
+                newCreditValue = creditBlock.NewCreditValue;
             }
 
             Block newBlock = new Block
@@ -265,7 +265,7 @@ namespace SslTcpSession.BlockChain
                 FileID = fileId,
                 NodeId = NodeDiscovery.GetMyNode().Id,
                 CreditChange = 0,
-                NewCreditVaue = newCreditValue
+                NewCreditValue = newCreditValue
             };
 
             fileBlock.ComputeHash();
@@ -281,7 +281,7 @@ namespace SslTcpSession.BlockChain
             if (result == BlockValidationResult.VALID)
             {
                 // Choosing primary replica and check his ip
-                if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica, view: 0) ||
+                if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica) ||
                     !IPAddress.TryParse(primaryReplica.Address, out IPAddress? iPAddress))
                 {
                     return BlockValidationResult.UNABLE_TO_CHOOSE_PRIMARY_REPLICA;
@@ -321,43 +321,24 @@ namespace SslTcpSession.BlockChain
             return primaryReplica != null;
         }
 
-        private static bool TryToChooseViewPrimaryReplica([MaybeNullWhen(false)] out Node primaryReplica, int view)
+        // request
+        public static bool VerifyPrimaryReplica(Guid replicaId)
         {
-
-            if (view == 0)
-            {
-                return TryToChooseViewPrimaryReplica(out primaryReplica);
-            }
-
-            IEnumerable<Node> nodes = NodeDiscovery.GetAllNodes();
-
-            primaryReplica = null;
-            string lastBlockHash = Chain[^1].Hash;
-            List<string> newHashes = new List<string>();
-
-            var sortedNodes = nodes.Select(node => new
-            {
-                Node = node,
-                Hash = node.GenerateNodeSpecificHash(lastBlockHash)
-            })
-            .OrderBy(x => x.Hash, StringComparer.Ordinal)
-            .ToList();
-
-
-            int primaryReplikaIndex = sortedNodes.Count() % view;
-
-            primaryReplica = sortedNodes[primaryReplikaIndex].Node;
-
-            return primaryReplica != null;
-        }
-
-        public static bool VerifyPrimaryReplica(Guid replicaId, int view)
-        {
-            if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica, view))
+            if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica))
             {
                 return false;
             }
             return replicaId == primaryReplica.Id;
+        }
+
+        // pre-prepare
+        public static bool VerifyPrimaryReplica(string hashOfRequestedBlock, string signOfPrimaryReplica)
+        {
+            if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica))
+            {
+                return false;
+            }
+            return Certificats.VerifyString(hashOfRequestedBlock, signOfPrimaryReplica, primaryReplica.PublicKey);
         }
 
         public static bool IsBlockChainValid()
@@ -460,13 +441,13 @@ namespace SslTcpSession.BlockChain
             Block? block = FindActualCreditValueOfNode(blockToCheck.NodeId);
             if (block != null)
             {
-                oldCreditValue = block.NewCreditVaue;
+                oldCreditValue = block.NewCreditValue;
             }
-            if (blockToCheck.NewCreditVaue < 0)
+            if (blockToCheck.NewCreditValue < 0)
             {
                 return BlockValidationResult.NEGATIVE_VALUE_OF_CREDIT;
             }
-            if (blockToCheck.NewCreditVaue != oldCreditValue + blockToCheck.CreditChange)
+            if (blockToCheck.NewCreditValue != oldCreditValue + blockToCheck.CreditChange)
             {
                 return BlockValidationResult.INVALID_CREDIT_CALCULATION;
             }

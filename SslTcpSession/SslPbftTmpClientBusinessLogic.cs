@@ -5,151 +5,176 @@ using ConfigManager;
 using Logger;
 using SslTcpSession.BlockChain;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Xml.Linq;
 using Timer = System.Timers.Timer;
 
 namespace SslTcpSession
 {
-   public class SslPbftTmpClientBusinessLogic : SslClient, ISession
-   {
-      #region Properties
+    public class SslPbftTmpClientBusinessLogic : SslClient, ISession
+    {
+        #region Properties
 
-      #endregion Properties
+        #endregion Properties
 
-      #region PublicFields
+        #region PublicFields
 
-      #endregion PublicFields
+        #endregion PublicFields
 
-      #region PrivateFields
+        #region PrivateFields
 
-      private static readonly int _receiveBufferSize = 0x800; // 2048b
-      private static readonly int _sendBufferSize = 0x2000; // 8192b
-      private static readonly Int16 _maxDisconnectTime = 10; // sec
+        private static readonly int _receiveBufferSize = 0x800; // 2048b
+        private static readonly int _sendBufferSize = 0x2000; // 8192b
 
-      private Timer? _timer;
-      private Int16 _disconnectTime = 0;
-      private bool _isDisposing = false;
-      private static readonly SslContext _replicaContext = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate("ReplicaXY",
-          Certificats.CertificateType.Node), (sender, certificate, chain, sslPolicyErrors) => true);
+        private bool _isDisposing = false;
+        private static readonly SslContext _replicaContext = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate("ReplicaXY",
+            Certificats.CertificateType.Node), (sender, certificate, chain, sslPolicyErrors) => true);
 
-      #endregion PrivateFields
+        #endregion PrivateFields
 
-      #region ProtectedFields
+        #region ProtectedFields
 
 
 
-      #endregion ProtectedFields
+        #endregion ProtectedFields
 
-      #region Ctor
+        #region Ctor
 
-      public SslPbftTmpClientBusinessLogic(IPAddress ipAddress, int port)
-      : base(_replicaContext, ipAddress, port, _receiveBufferSize, _sendBufferSize)
-      {
-         ConnectAsync();
+        public SslPbftTmpClientBusinessLogic(IPAddress ipAddress, int port)
+        : base(_replicaContext, ipAddress, port, _receiveBufferSize, _sendBufferSize)
+        {
 
-         _timer = new Timer(1000); // Set the interval to 1 second
-         _timer.Elapsed += OneSecondHandler;
-         _timer.Start();
+        }
 
-      }
+        #endregion Ctor
 
-      #endregion Ctor
+        #region PublicMethods
 
-      #region PublicMethods
+        public static async Task<bool> SendPbftRequestAndDispose(IPAddress ipAddress, int port, Block requestedBlock, string synchronizationHash)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Sending request to primary replica: {ipAddress}:{port}, with synchronization hash: {synchronizationHash}");
 
-      public static async Task<bool> SendPbftRequestAndDispose(IPAddress ipAddress, int port, Block requestedBlock, string activeReplicasAsHash)
-      {
-         Log.WriteLog(LogLevel.INFO, $"Sendong request to primary replica: {ipAddress}:{port}, with active replicas has: {activeReplicasAsHash}");
-         SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(ipAddress, port);
+            bool returnValue = false;
 
-         while (!bs.IsConnected && !bs.IsDisposed)
-            await Task.Delay(200);
+            await Task.Run(() =>
+            {
+                SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(ipAddress, port);
+                if (bs.Connect())
+                {
+                    MethodResult result = FlagMessagesGenerator.GeneratePbftRequest(bs, requestedBlock.ToJson(), synchronizationHash);
+                    if (result == MethodResult.ERROR)
+                    {
+                        Log.WriteLog(LogLevel.ERROR, $"Error sending request message to {ipAddress}:{port}");
+                    }
+                    else
+                    {
+                        Log.WriteLog(LogLevel.INFO, $"Request message successfully sent to {ipAddress}:{port}");
+                        returnValue = true;
+                    }
+                }
+                else
+                {
+                    Log.WriteLog(LogLevel.INFO, $"Unable to connect to {ipAddress}:{port}");
+                }
 
-         MethodResult result = FlagMessagesGenerator.GeneratePbftRequest(bs, requestedBlock.ToJson(), activeReplicasAsHash);
-
-         if (result == MethodResult.ERROR)
-         {
-            return false;
-         }
-
-         bs.StopAndDispose();
-         return true;
-      }
-
-
-      public static async void MulticastPrePrepare(Block requestedBlock, string signOfPrimaryReplica)
-      {
-         
-      }
-
-      #endregion PublicMethods
-
-      #region PrivateMethods
-
-      private void StopAndDispose()
-      {
-         if (_isDisposing)
-         {
-            return;
-         }
-
-         _isDisposing = true;
-         Dispose();
-      }
-
-      #endregion PrivateMethods
-
-      #region ProtectedMethods
+                bs.StopAndDispose();
+            });
+            return returnValue;
+        }
 
 
+        public static async Task MulticastPrePrepare(Block requestedBlock, string signOfPrimaryReplica, string synchronizationHash)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Sending pre-prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
 
-      #endregion ProtectedMethods
+            int maxConcurrentTasks = 10;
+            SemaphoreSlim semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
 
-      #region Events
+            List<Task> tasks = new List<Task>();
+            foreach (Node node in NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes())
+            {
+                await semaphore.WaitAsync();
 
-      private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-      {
-         if (!IsConnected && ++_disconnectTime == _maxDisconnectTime)
-         {
-            Log.WriteLog(LogLevel.WARNING, $"Unable to connect to the server: {this.Endpoint}. Disposing socked!");
-            StopAndDispose();
-         }
-      }
+                tasks.Add(Task.Run(() =>
+                {
+                    if (IPAddress.TryParse(node.Address, out IPAddress? address))
+                    {
+                        SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(address, node.Port);
+                        if (bs.Connect())
+                        {
+                            MethodResult result = FlagMessagesGenerator.GeneratePrePrepare(bs, requestedBlock.ToJson(), signOfPrimaryReplica, synchronizationHash);
 
-      #endregion Events
+                            if (result == MethodResult.ERROR)
+                            {
+                                Log.WriteLog(LogLevel.ERROR, $"Error sending pre-prepare message to {address}:{node.Port}");
+                            }
+                            else
+                            {
+                                Log.WriteLog(LogLevel.INFO, $"Pre-prepare message successfully sent to {address}:{node.Port}");
+                            }
+                        }
+                        else
+                        {
+                            Log.WriteLog(LogLevel.INFO, $"Unable to connect to {address}:{node.Port}");
+                        }
 
-      #region OverridedMethods
+                        bs.StopAndDispose();
+                    }
 
-      protected override void Dispose(bool disposingManagedResources)
-      {
-         Log.WriteLog(LogLevel.DEBUG, $"Ssl pbft tmp client with Id {Id} is being disposed");
+                    semaphore.Release();
+                }));
+            }
 
-         if (_timer != null)
-         {
-            _timer.Elapsed -= OneSecondHandler;
-            _timer.Stop();
-            _timer.Dispose();
-            _timer = null;
-         }
+            await Task.WhenAll(tasks);
+        }
 
-         base.Dispose(disposingManagedResources);
-      }
 
-      protected override void OnDisconnected()
-      {
-         Log.WriteLog(LogLevel.DEBUG, $"Ssl pbft tmp client disconnected from session with Id: {Id}");
-         // Wait for a while...
-         Thread.Sleep(1000);
+        #endregion PublicMethods
 
-         // Try to connect again
-         if (!_isDisposing)
-            ConnectAsync();
-      }
+        #region PrivateMethods
 
-      #endregion OverridedMethods
-   }
+        private void StopAndDispose()
+        {
+            if (_isDisposing)
+            {
+                return;
+            }
+
+            _isDisposing = true;
+            Dispose();
+        }
+
+        #endregion PrivateMethods
+
+        #region ProtectedMethods
+
+
+
+        #endregion ProtectedMethods
+
+        #region Events
+
+        #endregion Events
+
+        #region OverridedMethods
+
+        protected override void Dispose(bool disposingManagedResources)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Ssl pbft tmp client with Id {Id} is being disposed");
+
+            base.Dispose(disposingManagedResources);
+        }
+
+        protected override void OnDisconnected()
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Ssl pbft tmp client disconnected from session with Id: {Id}");
+        }
+
+        #endregion OverridedMethods
+    }
 }

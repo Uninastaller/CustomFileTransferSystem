@@ -50,6 +50,9 @@ namespace Common.Enum
         [StringValue("c.A")]
         PBFT_REQUEST,
 
+        [StringValue("c.B")]
+        PBFT_PRE_PREPARE,
+
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
