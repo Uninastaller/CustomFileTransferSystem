@@ -22,7 +22,7 @@ namespace ConfigManager
 
         public static DateTime LastTimeOfSynchronization { get; private set; } = DateTime.MinValue;
         public static TimeSpan PassedTimeFromLastSynchronization => DateTime.UtcNow - LastTimeOfSynchronization;
-        public static string HashOfActiveReplicas { get; private set; } = string.Empty;
+        public static string SynchronizationHash { get; private set; } = string.Empty;
 
         public static void StartApplication()
         {
@@ -38,7 +38,7 @@ namespace ConfigManager
 
         public static void LoadNodes()
         {
-            string nodesFilePath = MyConfigManager.GetConfigValue("StoredNodesFilePath");
+            string nodesFilePath = MyConfigManager.GetConfigStringValue("StoredNodesFilePath");
             if (File.Exists(nodesFilePath))
             {
                 try
@@ -68,7 +68,7 @@ namespace ConfigManager
 
         public static void LoadMyNode()
         {
-            string nodesFilePath = MyConfigManager.GetConfigValue("MyNodeInfo");
+            string nodesFilePath = MyConfigManager.GetConfigStringValue("MyNodeInfo");
             if (File.Exists(nodesFilePath))
             {
                 try
@@ -108,7 +108,7 @@ namespace ConfigManager
         {
             try
             {
-                File.WriteAllText(MyConfigManager.GetConfigValue("MyNodeInfo"), JsonSerializer.Serialize(_myNode));
+                File.WriteAllText(MyConfigManager.GetConfigStringValue("MyNodeInfo"), JsonSerializer.Serialize(_myNode));
                 return true;
             }
             catch
@@ -129,7 +129,7 @@ namespace ConfigManager
 
         public static string LoadNodesAsString()
         {
-            string nodesFilePath = MyConfigManager.GetConfigValue("StoredNodesFilePath");
+            string nodesFilePath = MyConfigManager.GetConfigStringValue("StoredNodesFilePath");
             if (File.Exists(nodesFilePath))
             {
                 return File.ReadAllText(nodesFilePath);
@@ -141,7 +141,7 @@ namespace ConfigManager
         {
             try
             {
-                File.WriteAllText(MyConfigManager.GetConfigValue("StoredNodesFilePath"), JsonSerializer.Serialize(_nodes));
+                File.WriteAllText(MyConfigManager.GetConfigStringValue("StoredNodesFilePath"), JsonSerializer.Serialize(_nodes));
                 return true;
             }
             catch
@@ -153,12 +153,18 @@ namespace ConfigManager
 
         public static void AddNode(Node node)
         {
+            // Check is you did add your custom node and if its connected
+            if (_nodes.Any(pair => pair.Key == Guid.Empty && pair.Value.Port == node.Port && pair.Value.Address.Equals(node.Address)))
+            {
+                _nodes.Remove(Guid.Empty, out _);
+            }
+
             if (!_nodes.TryAdd(node.Id, node))
             {
                 //_nodes[node.Id].PublicKey = node.PublicKey;
                 _nodes[node.Id].Port = node.Port;
                 _nodes[node.Id].Address = node.Address;
-            }
+            }          
         }
 
         public static bool RemoveNode(Guid nodeId)
@@ -247,7 +253,7 @@ namespace ConfigManager
         public static void NodeSynchronizationFinished()
         {
             LastTimeOfSynchronization = DateTime.UtcNow;
-            HashOfActiveReplicas = GetHashFromActiveNodes();
+            SynchronizationHash = GetHashFromActiveNodes();
         }
     }
 }

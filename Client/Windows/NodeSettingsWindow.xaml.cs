@@ -29,7 +29,6 @@ namespace Client.Windows
 
       #endregion PrivateFields
 
-
       #region Ctor
 
       public NodeSettingsWindow(NodeSettingWindowMessage message) : this()

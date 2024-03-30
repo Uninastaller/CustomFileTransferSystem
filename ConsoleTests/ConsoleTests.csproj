@@ -8,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\SslTcpSession\SslTcpSession.csproj" />
+    <ProjectReference Include="..\ConfigManager\ConfigManager.csproj" />
   </ItemGroup>
 
 </Project>

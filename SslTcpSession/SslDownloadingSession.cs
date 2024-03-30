@@ -85,9 +85,9 @@ namespace SslTcpSession
             ClientDisconnected?.Invoke(this);
         }
 
-        private void OnReceiveMessage(string message)
+        private void OnReceivePbftMessage(PbftReplicaLogDto log)
         {
-            ReceiveMessage?.Invoke(this, message);
+            ReceivePbftMessage?.Invoke(log);
         }
 
         #endregion PrivateMethods
@@ -113,7 +113,7 @@ namespace SslTcpSession
         {
             //string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-            //OnReceiveMessage(message);
+            //OnReceivePbftMessage(message);
             _flagSwitch.Switch(buffer, offset, size);
         }
 
@@ -126,8 +126,8 @@ namespace SslTcpSession
 
         #region Events
 
-        public delegate void ReceiveMessageEventHandler(SslSession sender, string message);
-        public event ReceiveMessageEventHandler? ReceiveMessage;
+        public delegate void ReceivePbftMessageEventHandler(PbftReplicaLogDto log);
+        public event ReceivePbftMessageEventHandler? ReceivePbftMessage;
 
         public delegate void ClientDisconnectedHandler(SslSession sender);
         public event ClientDisconnectedHandler? ClientDisconnected;
@@ -203,15 +203,20 @@ namespace SslTcpSession
 
         private async void OnPbftRequestHandler(byte[] buffer, long offset, long size)
         {
-            if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? receivedBlock, out string? synchronizationHash))
+            if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? requestedBlock, out string? synchronizationHash))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {Socket.RemoteEndPoint}!" +
                     $" with hash of active replics: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
+
+                // Send signal to gui to create log
+                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_REQUEST, MessageDirection.RECEIVED,
+                    synchronizationHash, requestedBlock.Hash, NodeDiscovery.GetMyNode().Id.ToString(), requestedBlock.NodeId.ToString(), DateTime.UtcNow));
+
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
-                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
+                if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received request for new block, but we have different synchronization hashes!" +
                     $" Operation can not be proceed!");
@@ -219,22 +224,22 @@ namespace SslTcpSession
                 }
 
                 // Try find coresponding node
-                if (!NodeDiscovery.TryGetNode(receivedBlock.NodeId, out Node? node))
+                if (!NodeDiscovery.TryGetNode(requestedBlock.NodeId, out Node? node))
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"Received request for new block dont have coresponding node with node id: {receivedBlock.NodeId}!" +
+                    Log.WriteLog(LogLevel.WARNING, $"Received request for new block dont have coresponding node with node id: {requestedBlock.NodeId}!" +
                     $" Operation can not be proceed!");
                     return;
                 }
 
                 // Check for correct pick of primary replica in current view
-                if (!Blockchain.VerifyPrimaryReplica(NodeDiscovery.GetMyNode().Id))
+                if (!Blockchain.VerifyPrimaryReplica(NodeDiscovery.GetMyNode().Id, requestedBlock.Timestamp))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Unable to verify myself as primary replica in current view! Operation can not be proceed!");
                     return;
                 }
 
                 // Check block validity
-                BlockValidationResult result = Blockchain.IsNewBlockValid(receivedBlock, node);
+                BlockValidationResult result = Blockchain.IsNewBlockValid(requestedBlock, node);
                 if (result != BlockValidationResult.VALID)
                 {
                     Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}");
@@ -242,7 +247,8 @@ namespace SslTcpSession
                 }
 
                 // PRE-PREPARE
-                await SslPbftTmpClientBusinessLogic.MulticastPrePrepare(receivedBlock, receivedBlock.SignAndReturnHash(), synchronizationHash);
+                await SslPbftTmpClientBusinessLogic.MulticastPrePrepare(requestedBlock, NodeDiscovery.GetMyNode().Id,
+                    requestedBlock.SignAndReturnHash(), synchronizationHash);
             }
             else
             {
@@ -254,15 +260,20 @@ namespace SslTcpSession
         private async void OnPbftPrePrepareHandler(byte[] buffer, long offset, long size)
         {
             if (PbftMessageEvaluator.EvaluatePbftPrePrepareMessage(buffer, offset, size, out Block? requestedBlock,
-                out string? signOfPrimaryReplica, out string? synchronizationHash))
+                out Guid primaryReplicaGuid, out string? signOfPrimaryReplica, out string? synchronizationHash))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received pre-prepare from client: {Socket.RemoteEndPoint}!" +
                     $" with hash of active replics: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
+
+                // Send signal to gui to create log
+                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PRE_PREPARE, MessageDirection.RECEIVED,
+                    synchronizationHash, requestedBlock.Hash, NodeDiscovery.GetMyNode().Id.ToString(), primaryReplicaGuid.ToString(), DateTime.UtcNow));
+
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
-                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
+                if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, but we have different synchronization hashes!" +
                     $" Operation can not be proceed!");
@@ -278,7 +289,7 @@ namespace SslTcpSession
                 }
 
                 // Check for correct pick of primary replica in current view
-                if (!Blockchain.VerifyPrimaryReplica(requestedBlock.Hash, signOfPrimaryReplica))
+                if (!Blockchain.VerifyPrimaryReplica(requestedBlock.Hash, signOfPrimaryReplica, requestedBlock.Timestamp))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Unable to verify primary replica in current view! Operation can not be proceed!");
                     return;
@@ -292,9 +303,9 @@ namespace SslTcpSession
                     return;
                 }
 
-                // TO DO - PREPARE
+                // PREPARE
                 await SslPbftTmpClientBusinessLogic.MulticastPrepare(requestedBlock.Hash,
-                    requestedBlock.SignAndReturnHash(), NodeDiscovery.HashOfActiveReplicas, NodeDiscovery.GetMyNode().Id.ToString());
+                    requestedBlock.SignAndReturnHash(), NodeDiscovery.SynchronizationHash, NodeDiscovery.GetMyNode().Id);
             }
             else
             {
@@ -311,10 +322,15 @@ namespace SslTcpSession
                 Log.WriteLog(LogLevel.DEBUG, $"Received prepare from client: {Socket.RemoteEndPoint}!" +
                     $" with hash of active replicas: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
+
+                // Send signal to gui to create log
+                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PREPARE, MessageDirection.RECEIVED,
+                    synchronizationHash, hashOfRequest, NodeDiscovery.GetMyNode().Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
+
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
-                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
+                if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received prepare, but we have different synchronization hashes!" +
                     $" Operation can not be proceed!");

@@ -83,7 +83,7 @@ namespace Logger
                 _bufferSize = bufferSize;
             }
 
-            _loggingDirectory = Path.Combine(MyConfigManager.GetConfigValue("LoggingDirectory"), System.AppDomain.CurrentDomain.FriendlyName);
+            _loggingDirectory = Path.Combine(MyConfigManager.GetConfigStringValue("LoggingDirectory"), System.AppDomain.CurrentDomain.FriendlyName);
             _logFilePathAndName = Path.Combine(_loggingDirectory, "Active.csv");
         }
 

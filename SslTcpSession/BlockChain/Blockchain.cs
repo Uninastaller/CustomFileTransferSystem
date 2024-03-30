@@ -1,4 +1,5 @@
-﻿using ConfigManager;
+﻿using Common.Model;
+using ConfigManager;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -18,11 +19,18 @@ namespace SslTcpSession.BlockChain
 
         public static List<Block> Chain { get; } = new List<Block>();
 
+        public delegate void ReceivePbftMessageEventHandler(PbftReplicaLogDto log);
+        public static event ReceivePbftMessageEventHandler? ReceivePbftMessage;
 
         static Blockchain()
         {
             // Add genesis block
             Chain.Add(CreateGenesisBlock());
+        }
+
+        private static void OnReceivePbftMessage(PbftReplicaLogDto log)
+        {
+            ReceivePbftMessage?.Invoke(log);
         }
 
         private static Block CreateGenesisBlock()
@@ -38,7 +46,7 @@ namespace SslTcpSession.BlockChain
         public static async Task<BlockValidationResult> Add_AddCredit(double creditValueToAdd)
         {
 
-            if(NodeDiscovery.PassedTimeFromLastSynchronization.TotalSeconds > 60)
+            if (NodeDiscovery.PassedTimeFromLastSynchronization.TotalSeconds > 60)
             {
                 //return BlockValidationResult.OLD_SYNCHRONIZATION;
             }
@@ -281,7 +289,7 @@ namespace SslTcpSession.BlockChain
             if (result == BlockValidationResult.VALID)
             {
                 // Choosing primary replica and check his ip
-                if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica) ||
+                if (!TryToChooseViewPrimaryReplica(newBlock.Timestamp, out Node ? primaryReplica) ||
                     !IPAddress.TryParse(primaryReplica.Address, out IPAddress? iPAddress))
                 {
                     return BlockValidationResult.UNABLE_TO_CHOOSE_PRIMARY_REPLICA;
@@ -290,16 +298,23 @@ namespace SslTcpSession.BlockChain
 
                 // send to primary replica
                 bool success = await SslPbftTmpClientBusinessLogic.SendPbftRequestAndDispose(iPAddress, primaryReplica.Port,
-                   newBlock, NodeDiscovery.HashOfActiveReplicas);
+                   newBlock, NodeDiscovery.SynchronizationHash);
 
-                if (!success) result = BlockValidationResult.BLOCK_IS_VALID_BUT_PRIMARY_REPLICA_CAN_NOT_BE_REACHED;
-                //Chain.Add(newBlock);
+                if (success)
+                {
+                    OnReceivePbftMessage(new PbftReplicaLogDto(Common.Enum.SocketMessageFlag.PBFT_REQUEST, Common.Enum.MessageDirection.SENT, NodeDiscovery.SynchronizationHash,
+                        newBlock.Hash, primaryReplica.Id.ToString(), newBlock.NodeId.ToString(), DateTime.UtcNow));
+                }
+                else
+                {
+                    result = BlockValidationResult.BLOCK_IS_VALID_BUT_PRIMARY_REPLICA_CAN_NOT_BE_REACHED;
+                }
 
             }
             return result;
         }
 
-        private static bool TryToChooseViewPrimaryReplica([MaybeNullWhen(false)] out Node primaryReplica)
+        private static bool TryToChooseViewPrimaryReplica(DateTime requestedBlockTimestamp, [MaybeNullWhen(false)] out Node primaryReplica)
         {
 
             IEnumerable<Node> nodes = NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes();
@@ -310,7 +325,7 @@ namespace SslTcpSession.BlockChain
 
             foreach (var node in nodes)
             {
-                string nodeHash = node.GenerateNodeSpecificHash(lastBlockHash);
+                string nodeHash = node.GenerateNodeSpecificHash(lastBlockHash, requestedBlockTimestamp);
                 if (smallestHash == null || string.CompareOrdinal(nodeHash, smallestHash) < 0)
                 {
                     smallestHash = nodeHash;
@@ -322,9 +337,9 @@ namespace SslTcpSession.BlockChain
         }
 
         // request
-        public static bool VerifyPrimaryReplica(Guid replicaId)
+        public static bool VerifyPrimaryReplica(Guid replicaId, DateTime requestedBlockTimestamp)
         {
-            if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica))
+            if (!TryToChooseViewPrimaryReplica(requestedBlockTimestamp, out Node? primaryReplica))
             {
                 return false;
             }
@@ -332,9 +347,9 @@ namespace SslTcpSession.BlockChain
         }
 
         // pre-prepare
-        public static bool VerifyPrimaryReplica(string hashOfRequestedBlock, string signOfPrimaryReplica)
+        public static bool VerifyPrimaryReplica(string hashOfRequestedBlock, string signOfPrimaryReplica, DateTime requestedBlockTimestamp)
         {
-            if (!TryToChooseViewPrimaryReplica(out Node? primaryReplica))
+            if (!TryToChooseViewPrimaryReplica(requestedBlockTimestamp, out Node? primaryReplica))
             {
                 return false;
             }

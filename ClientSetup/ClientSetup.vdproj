@@ -27,19 +27,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_386AC208573846DA8D869728B3F0DABA"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_96222D656D6B469988CCE0AC7F0CAA6A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C46D7114A21047F390AB1477D2D31784"
+        "MsmKey" = "8:_B79A47755EC64163A4C95D66372EC3F0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -85,6 +79,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -148,46 +150,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_386AC208573846DA8D869728B3F0DABA"
-            {
-            "SourcePath" = "8:..\\MyTestCertificateClient.pfx"
-            "TargetName" = "8:MyTestCertificateClient.pfx"
-            "Tag" = "8:"
-            "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C46D7114A21047F390AB1477D2D31784"
-            {
-            "SourcePath" = "8:..\\MyTestCertificateServer.pfx"
-            "TargetName" = "8:MyTestCertificateServer.pfx"
-            "Tag" = "8:"
-            "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
         }
         "FileType"
         {
@@ -766,7 +728,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_017F55C9666F4D448310608CEC39A832"
             {
-            "SourcePath" = "8:..\\Client\\obj\\Release\\net6.0-windows\\Client.dll"
+            "SourcePath" = "8:..\\Client\\obj\\Debug\\net8.0-windows7.0\\Client.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -794,7 +756,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_08BC3B228D964E2985F88E988EAD8046"
             {
-            "SourcePath" = "8:..\\Logger\\obj\\Release\\net6.0-windows\\Logger.dll"
+            "SourcePath" = "8:..\\Logger\\obj\\Debug\\net8.0-windows7.0\\Logger.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -878,7 +840,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_96222D656D6B469988CCE0AC7F0CAA6A"
             {
-            "SourcePath" = "8:..\\Client\\obj\\Release\\net6.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\Client\\obj\\Debug\\net8.0-windows7.0\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -960,6 +922,34 @@
                 {
                 }
             }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B79A47755EC64163A4C95D66372EC3F0"
+            {
+            "SourcePath" = "8:..\\SqliteClassLibrary\\obj\\Debug\\net8.0-windows7.0\\SqliteClassLibrary.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B9FE059CBA014574B98F5D0420D8363A"
             {
             "SourcePath" = "8:"
@@ -990,7 +980,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CE2B722B8C92438E9CCBF41EAD27C9EC"
             {
-            "SourcePath" = "8:..\\Common\\obj\\Release\\net6.0-windows\\Common.dll"
+            "SourcePath" = "8:..\\Common\\obj\\Debug\\net8.0-windows\\Common.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -1018,7 +1008,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CF9A1DF40F7B4DFA8767FAED2208AEC2"
             {
-            "SourcePath" = "8:..\\SslTcpSession\\obj\\Release\\net6.0-windows\\SslTcpSession.dll"
+            "SourcePath" = "8:..\\SslTcpSession\\obj\\Debug\\net8.0-windows7.0\\SslTcpSession.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -1044,9 +1034,37 @@
                 {
                 }
             }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E9E09DDE186E434781E14A73F3BA0066"
+            {
+            "SourcePath" = "8:"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Symbols"
+            "OutputProjectGuid" = "8:{75DBDE2D-1ECF-4A6E-8A77-C447C2374571}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F660DE07D0F3433798863903A84CD610"
             {
-            "SourcePath" = "8:..\\TcpSession\\obj\\Release\\net6.0-windows\\TcpSession.dll"
+            "SourcePath" = "8:..\\TcpSession\\obj\\Debug\\net8.0-windows7.0\\TcpSession.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"
@@ -1102,7 +1120,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_FEDF315B6F434D13809664E9DBC5C429"
             {
-            "SourcePath" = "8:..\\ConfigManager\\obj\\Release\\net6.0-windows\\ConfigManager.dll"
+            "SourcePath" = "8:..\\ConfigManager\\obj\\Debug\\net8.0-windows7.0\\ConfigManager.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_ED8CAF81D7A44295854EA6980E7D7081"

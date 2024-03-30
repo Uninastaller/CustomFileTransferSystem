@@ -35,6 +35,9 @@ namespace SslTcpSession
         private static readonly SslContext _replicaContext = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate("ReplicaXY",
             Certificats.CertificateType.Node), (sender, certificate, chain, sslPolicyErrors) => true);
 
+        public delegate void ReceivePbftMessageEventHandler(PbftReplicaLogDto log);
+        public static event ReceivePbftMessageEventHandler? ReceivePbftMessage;
+
         #endregion PrivateFields
 
         #region ProtectedFields
@@ -54,6 +57,11 @@ namespace SslTcpSession
         #endregion Ctor
 
         #region PublicMethods
+
+        private static void OnReceivePbftMessage(PbftReplicaLogDto log)
+        {
+            ReceivePbftMessage?.Invoke(log);
+        }
 
         public static async Task<bool> SendPbftRequestAndDispose(IPAddress ipAddress, int port, Block requestedBlock, string synchronizationHash)
         {
@@ -88,7 +96,8 @@ namespace SslTcpSession
         }
 
 
-        public static async Task MulticastPrePrepare(Block requestedBlock, string signOfPrimaryReplica, string synchronizationHash)
+        public static async Task MulticastPrePrepare(Block requestedBlock, Guid primaryReplicaId,
+            string signOfPrimaryReplica, string synchronizationHash)
         {
             Log.WriteLog(LogLevel.INFO, $"Sending pre-prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
 
@@ -107,7 +116,8 @@ namespace SslTcpSession
                         SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(address, node.Port);
                         if (bs.Connect())
                         {
-                            MethodResult result = FlagMessagesGenerator.GeneratePbftPrePrepare(bs, requestedBlock.ToJson(), signOfPrimaryReplica, synchronizationHash);
+                            MethodResult result = FlagMessagesGenerator.GeneratePbftPrePrepare(bs, requestedBlock.ToJson(),
+                                primaryReplicaId.ToString(), signOfPrimaryReplica, synchronizationHash);
 
                             if (result == MethodResult.ERROR)
                             {
@@ -115,6 +125,9 @@ namespace SslTcpSession
                             }
                             else
                             {
+                                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PRE_PREPARE, MessageDirection.SENT,
+                                    synchronizationHash, requestedBlock.Hash, node.Id.ToString(), primaryReplicaId.ToString(), DateTime.UtcNow));
+
                                 Log.WriteLog(LogLevel.INFO, $"Pre-prepare message successfully sent to {address}:{node.Port}");
                             }
                         }
@@ -134,7 +147,7 @@ namespace SslTcpSession
         }
 
         public static async Task MulticastPrepare(string hashOfRequest, string signOfBackupReplica,
-            string synchronizationHash, string guidOfBackupReplica)
+            string synchronizationHash, Guid guidOfBackupReplica)
         {
             Log.WriteLog(LogLevel.INFO, $"Sending prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
 
@@ -154,7 +167,7 @@ namespace SslTcpSession
                         if (bs.Connect())
                         {
                             MethodResult result = FlagMessagesGenerator.GeneratePbftPrepare(bs, hashOfRequest,
-                                signOfBackupReplica, synchronizationHash, guidOfBackupReplica);
+                                signOfBackupReplica, synchronizationHash, guidOfBackupReplica.ToString());
 
                             if (result == MethodResult.ERROR)
                             {
@@ -162,6 +175,9 @@ namespace SslTcpSession
                             }
                             else
                             {
+                                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PREPARE, MessageDirection.SENT,
+                                    synchronizationHash, hashOfRequest, node.Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
+
                                 Log.WriteLog(LogLevel.INFO, $"Prepare message successfully sent to {address}:{node.Port}");
                             }
                         }

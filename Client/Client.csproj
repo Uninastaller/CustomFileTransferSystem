@@ -8,7 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="PbftReplicaLogDB.db" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="PbftReplicaLogDB.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\SqliteClassLibrary\SqliteClassLibrary.csproj" />
     <ProjectReference Include="..\SslTcpSession\SslTcpSession.csproj" />
     <ProjectReference Include="..\TcpSession\TcpSession.csproj" />
   </ItemGroup>

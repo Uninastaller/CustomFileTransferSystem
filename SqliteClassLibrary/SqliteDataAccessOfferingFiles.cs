@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CentralServer
 {
-   public class SqliteDataAccess
+   public class SqliteDataAccessOfferingFiles
    {
 
       #region Properties
@@ -165,7 +165,7 @@ namespace CentralServer
 
       #region PrivateMethods
 
-      private static string LoadConnectionString(string id = "Default")
+      private static string LoadConnectionString(string id = "OfferingFiles")
       {
          return ConfigurationManager.ConnectionStrings[id].ConnectionString;
       }

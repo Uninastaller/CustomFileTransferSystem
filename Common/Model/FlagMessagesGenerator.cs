@@ -147,10 +147,13 @@ namespace Common.Model
             return success ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResult GeneratePbftPrePrepare(ISession session, string blockAsJson, string signOfPrimaryReplica, string synchronizationHash)
+        public static MethodResult GeneratePbftPrePrepare(ISession session, string blockAsJson,string primaryReplicaId,
+            string signOfPrimaryReplica, string synchronizationHash)
         {
-            // Message has 4 parts: FLAG, BLOCK AS JSON,SIGN OF PRIMARY REPLICA, HASH OF ACTIVE REPLICAS
-            byte[] request = GenerateMessage(SocketMessageFlag.PBFT_PRE_PREPARE, new object[] { blockAsJson, signOfPrimaryReplica, synchronizationHash });
+            // Message has 5 parts: FLAG, BLOCK AS JSON, PRIMARY REPLICA ID, SIGN OF PRIMARY REPLICA, HASH OF ACTIVE REPLICAS
+            byte[] request = GenerateMessage(SocketMessageFlag.PBFT_PRE_PREPARE, new object[] { blockAsJson,primaryReplicaId,
+                signOfPrimaryReplica, synchronizationHash });
+
             bool success = session.SendAsync(request, 0, request.Length);
             if (success)
             {

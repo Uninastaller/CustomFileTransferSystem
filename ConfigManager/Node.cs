@@ -36,11 +36,11 @@ namespace ConfigManager
          endPoint = new IpAndPortEndPoint() { Port = Port, IpAddress = address.ToString() };
          return true;
       }
-      public string GenerateNodeSpecificHash(string lastBlockHash)
+      public string GenerateNodeSpecificHash(string lastBlockHash, DateTime requestedBlockTimestamp)
       {
          using (SHA256 sha256 = SHA256.Create())
          {
-            string input = lastBlockHash + Id.ToString();
+            string input = lastBlockHash + Id.ToString() + requestedBlockTimestamp.ToString("HH:mm:ss:fff");
             byte[] inputBytes = Encoding.UTF8.GetBytes(input);
             byte[] hashBytes = sha256.ComputeHash(inputBytes);
             return Convert.ToBase64String(hashBytes);

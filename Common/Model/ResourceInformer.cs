@@ -115,7 +115,7 @@ namespace Common.Model
 
       public static void CreateAndSendOfferingFilesToCentralServer(string ipAddress, int port, ISession session)
       {
-         string UploadingDirectoryPath = MyConfigManager.GetConfigValue("UploadingDirectory");
+         string UploadingDirectoryPath = MyConfigManager.GetConfigStringValue("UploadingDirectory");
          CreateJsonFiles(ipAddress, port, UploadingDirectoryPath);
          LoadCftsJsonsAndSendToSession(UploadingDirectoryPath, session);
       }

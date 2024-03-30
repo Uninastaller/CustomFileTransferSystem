@@ -4,7 +4,7 @@ using System;
 
 namespace Common.ThreadMessages
 {
-   public class CreationMessage : MsgBase<DisposeMessage>
+   public class CreationMessage : MsgBase<CreationMessage>
    {
       public CreationMessage(Guid sessionGuid, TypeOfSocket typeOfSocket, TypeOfSession typeOfSession) : base(typeof(CreationMessage))
       {
@@ -13,7 +13,7 @@ namespace Common.ThreadMessages
          TypeOfSession = typeOfSession;
       }
 
-      public CreationMessage() : base(typeof(DisposeMessage))
+      public CreationMessage() : base(typeof(CreationMessage))
       {
 
       }

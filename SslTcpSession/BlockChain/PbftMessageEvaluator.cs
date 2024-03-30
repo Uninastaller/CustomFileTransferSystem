@@ -44,19 +44,20 @@ namespace SslTcpSession.BlockChain
 
 
         public static bool EvaluatePbftPrePrepareMessage(byte[] buffer, long offset, long size,
-             [MaybeNullWhen(false)] out Block receivedBlock, [MaybeNullWhen(false)] out string signOfPrimaryReplica,
-             [MaybeNullWhen(false)] out string synchronizationHash)
+             [MaybeNullWhen(false)] out Block receivedBlock, out Guid primaryReplicaId, 
+             [MaybeNullWhen(false)] out string signOfPrimaryReplica, [MaybeNullWhen(false)] out string synchronizationHash)
         {
-            bool succes = false;
+            bool success = false;
             receivedBlock = null;
             synchronizationHash = null;
             signOfPrimaryReplica = null;
+            primaryReplicaId = Guid.Empty;
 
-            // Message has 4 parts: FLAG, BLOCK AS JSON,SIGN OF PRIMARY REPLICA, HASH OF ACTIVE REPLICAS
+            // Message has 5 parts: FLAG, BLOCK AS JSON, PRIMARY REPLICA ID, SIGN OF PRIMARY REPLICA, HASH OF ACTIVE REPLICAS
             string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
 
-            if (messageParts.Length == 4)
+            if (messageParts.Length == 5)
             {
                 try
                 {
@@ -66,17 +67,16 @@ namespace SslTcpSession.BlockChain
                         return false;
                     }
 
-                    signOfPrimaryReplica = messageParts[2];
-                    synchronizationHash = messageParts[3];
-
-                    succes = true;
+                    success = Guid.TryParse(messageParts[2], out primaryReplicaId);
+                    signOfPrimaryReplica = messageParts[3];
+                    synchronizationHash = messageParts[4];
                 }
                 catch (JsonException ex)
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Pre-prepare with content: {messageParts[1]} received but not valid! " + ex.Message);
                 }
             }
-            return succes;
+            return success;
         }
 
         public static bool EvaluatePbftPrepareMessage(byte[] buffer, long offset, long size,

@@ -466,6 +466,8 @@
                                             <RowDefinition Height="30"/>
                                             <RowDefinition Height="15"/>
                                             <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
 
                                         <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadNodesFile" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
@@ -479,6 +481,10 @@
                                         </Button>
                                         <Button Style="{StaticResource AddButtonStyle}" x:Name="btnAddNode" Content="" Grid.Row="7" Margin="0,2,0,0" Height="30" Width="30"
                                             ToolTip="Add node" Click="btnAddNode_Click">
+                                        </Button>
+
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnSendPbftRequest" Content="" Grid.Row="9" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Send PBFT request" Click="btnSendPbftRequest_Click">
                                         </Button>
 
                                     </Grid>
