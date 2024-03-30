@@ -107,7 +107,7 @@ namespace SslTcpSession
                         SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(address, node.Port);
                         if (bs.Connect())
                         {
-                            MethodResult result = FlagMessagesGenerator.GeneratePrePrepare(bs, requestedBlock.ToJson(), signOfPrimaryReplica, synchronizationHash);
+                            MethodResult result = FlagMessagesGenerator.GeneratePbftPrePrepare(bs, requestedBlock.ToJson(), signOfPrimaryReplica, synchronizationHash);
 
                             if (result == MethodResult.ERROR)
                             {
@@ -116,6 +116,53 @@ namespace SslTcpSession
                             else
                             {
                                 Log.WriteLog(LogLevel.INFO, $"Pre-prepare message successfully sent to {address}:{node.Port}");
+                            }
+                        }
+                        else
+                        {
+                            Log.WriteLog(LogLevel.INFO, $"Unable to connect to {address}:{node.Port}");
+                        }
+
+                        bs.StopAndDispose();
+                    }
+
+                    semaphore.Release();
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        public static async Task MulticastPrepare(string hashOfRequest, string signOfBackupReplica,
+            string synchronizationHash, string guidOfBackupReplica)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Sending prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
+
+            int maxConcurrentTasks = 10;
+            SemaphoreSlim semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
+
+            List<Task> tasks = new List<Task>();
+            foreach (Node node in NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes())
+            {
+                await semaphore.WaitAsync();
+
+                tasks.Add(Task.Run(() =>
+                {
+                    if (IPAddress.TryParse(node.Address, out IPAddress? address))
+                    {
+                        SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(address, node.Port);
+                        if (bs.Connect())
+                        {
+                            MethodResult result = FlagMessagesGenerator.GeneratePbftPrepare(bs, hashOfRequest,
+                                signOfBackupReplica, synchronizationHash, guidOfBackupReplica);
+
+                            if (result == MethodResult.ERROR)
+                            {
+                                Log.WriteLog(LogLevel.ERROR, $"Error sending prepare message to {address}:{node.Port}");
+                            }
+                            else
+                            {
+                                Log.WriteLog(LogLevel.INFO, $"Prepare message successfully sent to {address}:{node.Port}");
                             }
                         }
                         else

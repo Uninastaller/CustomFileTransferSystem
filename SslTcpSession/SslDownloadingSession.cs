@@ -62,6 +62,7 @@ namespace SslTcpSession
             _flagSwitch.Register(SocketMessageFlag.NODE_LIST_REQUEST, OnNodeListRequestHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_REQUEST, OnPbftRequestHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_PRE_PREPARE, OnPbftPrePrepareHandler);
+            _flagSwitch.Register(SocketMessageFlag.PBFT_PREPARE, OnPbftPrepareHandler);
         }
 
         #endregion Ctor
@@ -252,7 +253,7 @@ namespace SslTcpSession
 
         private async void OnPbftPrePrepareHandler(byte[] buffer, long offset, long size)
         {
-            if (PbftMessageEvaluator.EvaluatePbftPrePrepareMessage(buffer, offset, size, out Block? receivedBlock,
+            if (PbftMessageEvaluator.EvaluatePbftPrePrepareMessage(buffer, offset, size, out Block? requestedBlock,
                 out string? signOfPrimaryReplica, out string? synchronizationHash))
             {
                 Log.WriteLog(LogLevel.DEBUG, $"Received pre-prepare from client: {Socket.RemoteEndPoint}!" +
@@ -269,29 +270,72 @@ namespace SslTcpSession
                 }
 
                 // Try find coresponding node
-                if (!NodeDiscovery.TryGetNode(receivedBlock.NodeId, out Node? node))
+                if (!NodeDiscovery.TryGetNode(requestedBlock.NodeId, out Node? node))
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, dont have coresponding node with node id: {receivedBlock.NodeId}!" +
+                    Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, dont have coresponding node with node id: {requestedBlock.NodeId}!" +
                     $" Operation can not be proceed!");
                     return;
                 }
 
                 // Check for correct pick of primary replica in current view
-                if (!Blockchain.VerifyPrimaryReplica(receivedBlock.Hash, signOfPrimaryReplica))
+                if (!Blockchain.VerifyPrimaryReplica(requestedBlock.Hash, signOfPrimaryReplica))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Unable to verify primary replica in current view! Operation can not be proceed!");
                     return;
                 }
 
                 // Check block validity
-                BlockValidationResult result = Blockchain.IsNewBlockValid(receivedBlock, node);
+                BlockValidationResult result = Blockchain.IsNewBlockValid(requestedBlock, node);
                 if (result != BlockValidationResult.VALID)
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}");
+                    Log.WriteLog(LogLevel.WARNING, $"You as backup replica, found requested block as invalid due to: {result}");
                     return;
                 }
-            
+
                 // TO DO - PREPARE
+                await SslPbftTmpClientBusinessLogic.MulticastPrepare(requestedBlock.Hash,
+                    requestedBlock.SignAndReturnHash(), NodeDiscovery.HashOfActiveReplicas, NodeDiscovery.GetMyNode().Id.ToString());
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+            }
+        }
+
+        private void OnPbftPrepareHandler(byte[] buffer, long offset, long size)
+        {
+            if (PbftMessageEvaluator.EvaluatePbftPrepareMessage(buffer, offset, size, out string? hashOfRequest,
+                out string? signOfBackupReplica, out string? synchronizationHash, out Guid guidOfBackupReplica))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Received prepare from client: {Socket.RemoteEndPoint}!" +
+                    $" with hash of active replicas: {synchronizationHash}. " +
+                    $"Session should be closed by client, but to be sure... disconnecting client!");
+                this.Server?.FindSession(this.Id)?.Disconnect();
+
+                // As first, check if hash of active replicas is same as mine
+                if (!synchronizationHash.Equals(NodeDiscovery.HashOfActiveReplicas))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Received prepare, but we have different synchronization hashes!" +
+                    $" Operation can not be proceed!");
+                    return;
+                }
+
+                // Try find coresponding node
+                if (!NodeDiscovery.TryGetNode(guidOfBackupReplica, out Node? node))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Received prepare, but dont have coresponding node with node id: {guidOfBackupReplica}!" +
+                    $" Operation can not be proceed!");
+                    return;
+                }
+
+                // Check for valid sign of backup replica
+                if (!Blockchain.VerifyBackupReplica(node, signOfBackupReplica, hashOfRequest))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Unable to verify backup replica! Operation can not be proceed!");
+                    return;
+                }
+
             }
             else
             {

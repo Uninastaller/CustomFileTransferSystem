@@ -302,7 +302,7 @@ namespace SslTcpSession.BlockChain
         private static bool TryToChooseViewPrimaryReplica([MaybeNullWhen(false)] out Node primaryReplica)
         {
 
-            IEnumerable<Node> nodes = NodeDiscovery.GetAllNodes();
+            IEnumerable<Node> nodes = NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes();
 
             primaryReplica = null;
             string? smallestHash = null;
@@ -339,6 +339,12 @@ namespace SslTcpSession.BlockChain
                 return false;
             }
             return Certificats.VerifyString(hashOfRequestedBlock, signOfPrimaryReplica, primaryReplica.PublicKey);
+        }
+
+        // Prepare
+        public static bool VerifyBackupReplica(Node backupReplica, string signOfBackupReplica, string hashToVerify)
+        {
+            return Certificats.VerifyString(hashToVerify, signOfBackupReplica, backupReplica.PublicKey);
         }
 
         public static bool IsBlockChainValid()

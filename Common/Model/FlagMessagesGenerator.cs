@@ -147,7 +147,7 @@ namespace Common.Model
             return success ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
-        public static MethodResult GeneratePrePrepare(ISession session, string blockAsJson, string signOfPrimaryReplica, string synchronizationHash)
+        public static MethodResult GeneratePbftPrePrepare(ISession session, string blockAsJson, string signOfPrimaryReplica, string synchronizationHash)
         {
             // Message has 4 parts: FLAG, BLOCK AS JSON,SIGN OF PRIMARY REPLICA, HASH OF ACTIVE REPLICAS
             byte[] request = GenerateMessage(SocketMessageFlag.PBFT_PRE_PREPARE, new object[] { blockAsJson, signOfPrimaryReplica, synchronizationHash });
@@ -159,6 +159,25 @@ namespace Common.Model
             else
             {
                 Log.WriteLog(LogLevel.WARNING, $"Unable to send pre-prepare to client: {session.Endpoint}");
+            }
+            return success ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
+        public static MethodResult GeneratePbftPrepare(ISession session, string hashOfRequest, string signOfBackupReplica,
+            string synchronizationHash, string guidOfBackupReplica)
+        {
+            // Message has 5 parts: FLAG, HASH OF REQUEST,SIGN OF BACKUP REPLICA, HASH OF ACTIVE REPLICAS, GUID OF BACKUP REPLICA
+            byte[] request = GenerateMessage(SocketMessageFlag.PBFT_PREPARE, new object[] { hashOfRequest, 
+                signOfBackupReplica, synchronizationHash, guidOfBackupReplica });
+
+            bool success = session.SendAsync(request, 0, request.Length);
+            if (success)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"prepare was generated to client: {session.Endpoint}");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send prepare to client: {session.Endpoint}");
             }
             return success ? MethodResult.SUCCES : MethodResult.ERROR;
         }
