@@ -1,4 +1,5 @@
 ﻿using Common.Enum;
+using Common.Interface;
 using Common.Model;
 using ConfigManager;
 using Logger;
@@ -6,6 +7,7 @@ using SslTcpSession.BlockChain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 
 namespace SslTcpSession
@@ -41,6 +43,7 @@ namespace SslTcpSession
         #region PrivateFields
 
         private SessionState _sessionState = SessionState.NONE;
+        private IWindowEnqueuer? _gui;
 
         #endregion PrivateFields
 
@@ -52,9 +55,11 @@ namespace SslTcpSession
 
         #region Ctor
 
-        public SslDownloadingSession(SslServer server) : base(server)
+        public SslDownloadingSession(SslServer server, IWindowEnqueuer? gui) : base(server)
         {
             Log.WriteLog(LogLevel.INFO, $"Guid: {Id}, Starting");
+
+            _gui = gui;
 
             _flagSwitch.OnNonRegistered(OnNonRegisteredMessage);
             _flagSwitch.Register(SocketMessageFlag.FILE_REQUEST, OnRequestFileHandler);
@@ -63,6 +68,7 @@ namespace SslTcpSession
             _flagSwitch.Register(SocketMessageFlag.PBFT_REQUEST, OnPbftRequestHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_PRE_PREPARE, OnPbftPrePrepareHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_PREPARE, OnPbftPrepareHandler);
+            _flagSwitch.Register(SocketMessageFlag.PBFT_ERROR, OnPbftErrorHandler);
         }
 
         #endregion Ctor
@@ -83,11 +89,6 @@ namespace SslTcpSession
         private void OnClientDisconnected()
         {
             ClientDisconnected?.Invoke(this);
-        }
-
-        private void OnReceivePbftMessage(PbftReplicaLogDto log)
-        {
-            ReceivePbftMessage?.Invoke(log);
         }
 
         #endregion PrivateMethods
@@ -125,9 +126,6 @@ namespace SslTcpSession
         #endregion ProtectedMethods
 
         #region Events
-
-        public delegate void ReceivePbftMessageEventHandler(PbftReplicaLogDto log);
-        public event ReceivePbftMessageEventHandler? ReceivePbftMessage;
 
         public delegate void ClientDisconnectedHandler(SslSession sender);
         public event ClientDisconnectedHandler? ClientDisconnected;
@@ -209,19 +207,7 @@ namespace SslTcpSession
                     $" with hash of active replics: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
 
-                // Send signal to gui to create log
-                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_REQUEST, MessageDirection.RECEIVED,
-                    synchronizationHash, requestedBlock.Hash, NodeDiscovery.GetMyNode().Id.ToString(), requestedBlock.NodeId.ToString(), DateTime.UtcNow));
-
                 this.Server?.FindSession(this.Id)?.Disconnect();
-
-                // As first, check if hash of active replicas is same as mine
-                if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
-                {
-                    Log.WriteLog(LogLevel.WARNING, $"Received request for new block, but we have different synchronization hashes!" +
-                    $" Operation can not be proceed!");
-                    return;
-                }
 
                 // Try find coresponding node
                 if (!NodeDiscovery.TryGetNode(requestedBlock.NodeId, out Node? node))
@@ -229,6 +215,36 @@ namespace SslTcpSession
                     Log.WriteLog(LogLevel.WARNING, $"Received request for new block dont have coresponding node with node id: {requestedBlock.NodeId}!" +
                     $" Operation can not be proceed!");
                     return;
+                }
+
+                // As second, check if hash of active replicas is same as mine
+                if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Received request for new block, but we have different synchronization hashes!" +
+                    $" Application will automatically start synchronization process!");
+
+                    if (_gui == null)
+                    {
+                        Log.WriteLog(LogLevel.ERROR, "Can not start synchronization, bcs session has null reference to gui!");
+                        return;
+                    }
+                    else
+                    {
+                        await NodeSynchronization.ExecuteSynchronization(_gui);
+
+                        if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
+                        {
+                            Log.WriteLog(LogLevel.WARNING, "SynchronizationHash is still not same, operation can not be proceed! Generating error message to the client replica");
+
+                            if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress)) {
+                                // SEND ERROR
+                                await SslPbftTmpClientBusinessLogic.SendPbftErrorAndDispose(senderAddress, node.Port, requestedBlock.Hash, NodeDiscovery.SynchronizationHash,
+                                    "Synchronization hashes are not equal!", NodeDiscovery.GetMyNode().Id, node.Id);
+                            }
+
+                            return;
+                        }
+                    }
                 }
 
                 // Check for correct pick of primary replica in current view
@@ -247,7 +263,7 @@ namespace SslTcpSession
                 }
 
                 // PRE-PREPARE
-                await SslPbftTmpClientBusinessLogic.MulticastPrePrepare(requestedBlock, NodeDiscovery.GetMyNode().Id,
+                await SslPbftTmpClientBusinessLogic.MulticastPrePrepareAndDispose(requestedBlock, NodeDiscovery.GetMyNode().Id,
                     requestedBlock.SignAndReturnHash(), synchronizationHash);
             }
             else
@@ -266,18 +282,29 @@ namespace SslTcpSession
                     $" with hash of active replics: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
 
-                // Send signal to gui to create log
-                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PRE_PREPARE, MessageDirection.RECEIVED,
-                    synchronizationHash, requestedBlock.Hash, NodeDiscovery.GetMyNode().Id.ToString(), primaryReplicaGuid.ToString(), DateTime.UtcNow));
-
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
                 if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received pre-prepare, but we have different synchronization hashes!" +
-                    $" Operation can not be proceed!");
-                    return;
+                    $" Application will automatically start synchronization process!");
+
+                    if (_gui == null)
+                    {
+                        Log.WriteLog(LogLevel.ERROR, "Can not start synchronization, bcs session has null reference to gui!");
+                        return;
+                    }
+                    else
+                    {
+                        await NodeSynchronization.ExecuteSynchronization(_gui);
+
+                        if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
+                        {
+                            Log.WriteLog(LogLevel.WARNING, "SynchronizationHash is still not same, operation can not be proceed!");
+                            return;
+                        }
+                    }
                 }
 
                 // Try find coresponding node
@@ -304,7 +331,7 @@ namespace SslTcpSession
                 }
 
                 // PREPARE
-                await SslPbftTmpClientBusinessLogic.MulticastPrepare(requestedBlock.Hash,
+                await SslPbftTmpClientBusinessLogic.MulticastPrepareAndDispose(requestedBlock.Hash,
                     requestedBlock.SignAndReturnHash(), NodeDiscovery.SynchronizationHash, NodeDiscovery.GetMyNode().Id);
             }
             else
@@ -314,7 +341,7 @@ namespace SslTcpSession
             }
         }
 
-        private void OnPbftPrepareHandler(byte[] buffer, long offset, long size)
+        private async void OnPbftPrepareHandler(byte[] buffer, long offset, long size)
         {
             if (PbftMessageEvaluator.EvaluatePbftPrepareMessage(buffer, offset, size, out string? hashOfRequest,
                 out string? signOfBackupReplica, out string? synchronizationHash, out Guid guidOfBackupReplica))
@@ -323,18 +350,29 @@ namespace SslTcpSession
                     $" with hash of active replicas: {synchronizationHash}. " +
                     $"Session should be closed by client, but to be sure... disconnecting client!");
 
-                // Send signal to gui to create log
-                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PREPARE, MessageDirection.RECEIVED,
-                    synchronizationHash, hashOfRequest, NodeDiscovery.GetMyNode().Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
-
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
                 // As first, check if hash of active replicas is same as mine
                 if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received prepare, but we have different synchronization hashes!" +
-                    $" Operation can not be proceed!");
-                    return;
+                    $" Application will automatically start synchronization process!");
+
+                    if (_gui == null)
+                    {
+                        Log.WriteLog(LogLevel.ERROR, "Can not start synchronization, bcs session has null reference to gui!");
+                        return;
+                    }
+                    else
+                    {
+                        await NodeSynchronization.ExecuteSynchronization(_gui);
+
+                        if (!synchronizationHash.Equals(NodeDiscovery.SynchronizationHash))
+                        {
+                            Log.WriteLog(LogLevel.WARNING, "SynchronizationHash is still not same, operation can not be proceed!");
+                            return;
+                        }
+                    }
                 }
 
                 // Try find coresponding node
@@ -358,6 +396,17 @@ namespace SslTcpSession
                 Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
                 this.Server?.FindSession(this.Id)?.Disconnect();
             }
+        }
+
+        private async void OnPbftErrorHandler(byte[] buffer, long offset, long size)
+        {
+            if (!PbftMessageEvaluator.EvaluatePbftErrorMessage(buffer, offset, size, out string? _,
+                out string? _, out string? _, out Guid _))
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+            }
+            this.Server?.FindSession(this.Id)?.Disconnect();
+
         }
 
         #endregion Events

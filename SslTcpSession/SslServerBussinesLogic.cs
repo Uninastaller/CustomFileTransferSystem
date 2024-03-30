@@ -152,7 +152,7 @@ namespace SslTcpSession
         private void OnReceivePbftMessage(PbftReplicaLogDto log)
         {
             Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a pbft replica log");
-            _gui.BaseMsgEnque(log);
+            _gui?.BaseMsgEnque(log);
         }
 
         /// <summary>
@@ -223,7 +223,7 @@ namespace SslTcpSession
             _gui = null;
         }
 
-        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslDownloadingSession(this); }
+        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslDownloadingSession(this, _gui); }
 
         protected override void OnError(SocketError error)
         {
@@ -234,7 +234,6 @@ namespace SslTcpSession
         {
             if (session is SslDownloadingSession serverSession)
             {
-                serverSession.ReceivePbftMessage -= OnReceivePbftMessage;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
                 serverSession.ClientFileRequest -= OnClientFileRequest;
                 serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
@@ -256,7 +255,6 @@ namespace SslTcpSession
         {
             if (session is SslDownloadingSession serverSession)
             {
-                serverSession.ReceivePbftMessage += OnReceivePbftMessage;
                 serverSession.ClientDisconnected += OnClientDisconnected;
                 serverSession.ClientFileRequest += OnClientFileRequest;
                 serverSession.ServerSessionStateChange += OnServerSessionStateChange;

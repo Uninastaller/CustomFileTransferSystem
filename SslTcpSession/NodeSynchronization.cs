@@ -6,16 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Client
+namespace SslTcpSession
 {
-    static class NodeSynchronization
+    public static class NodeSynchronization
     {
+
+        private static readonly SslContext _contextForP2pAsClient = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate("MyTestCertificateClient.pfx",
+            Certificats.CertificateType.Client), (sender, certificate, chain, sslPolicyErrors) => true);
+
         private static SemaphoreSlim? _semaphore;
 
-        public static async Task ExecuteSynchronization(SslContext context, IWindowEnqueuer gui, int maximumParallelRunningSockets = 10)
+        public static async Task ExecuteSynchronization(IWindowEnqueuer gui, int maximumParallelRunningSockets = 10)
         {
             if (_semaphore != null)
             {
@@ -48,7 +53,7 @@ namespace Client
                 foreach (var node in nodesToProcess)
                 {
                     processedNodes.Add(node.Id); // Pridanie uzla do zoznamu spracovaných
-                    tasks.Add(SynchronizeNodeAsync(node, context, gui));
+                    tasks.Add(SynchronizeNodeAsync(node, gui));
                 }
 
                 await Task.WhenAll(tasks); // Čakanie na dokončenie všetkých úloh
@@ -58,13 +63,13 @@ namespace Client
             NodeDiscovery.NodeSynchronizationFinished();
         }
 
-        private static async Task SynchronizeNodeAsync(Node node, SslContext context, IWindowEnqueuer gui)
+        private static async Task SynchronizeNodeAsync(Node node, IWindowEnqueuer gui)
         {
             await _semaphore.WaitAsync();
 
             try
             {
-                new SslClientBussinesLogic(context, IPAddress.Parse(node.Address), node.Port, gui,
+                new SslClientBussinesLogic(_contextForP2pAsClient, IPAddress.Parse(node.Address), node.Port, gui,
                             typeOfSession: TypeOfSession.NODE_DISCOVERY, optionReceiveBufferSize: 0x2000, optionSendBufferSize: 0x2000);
             }
             catch

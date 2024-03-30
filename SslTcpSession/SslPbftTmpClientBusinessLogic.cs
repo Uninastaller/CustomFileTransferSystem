@@ -6,6 +6,7 @@ using Logger;
 using SslTcpSession.BlockChain;
 using System;
 using System.Collections.Generic;
+using System.IO.Packaging;
 using System.Net;
 using System.Security.Authentication;
 using System.Threading;
@@ -63,7 +64,7 @@ namespace SslTcpSession
             ReceivePbftMessage?.Invoke(log);
         }
 
-        public static async Task<bool> SendPbftRequestAndDispose(IPAddress ipAddress, int port, Block requestedBlock, string synchronizationHash)
+        public static async Task<bool> SendPbftRequestAndDispose(IPAddress ipAddress, int port, Block requestedBlock, string synchronizationHash, Guid guidOfPrimaryReplica)
         {
             Log.WriteLog(LogLevel.INFO, $"Sending request to primary replica: {ipAddress}:{port}, with synchronization hash: {synchronizationHash}");
 
@@ -82,6 +83,47 @@ namespace SslTcpSession
                     else
                     {
                         Log.WriteLog(LogLevel.INFO, $"Request message successfully sent to {ipAddress}:{port}");
+
+                        OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_REQUEST, MessageDirection.SENT,
+                            synchronizationHash, requestedBlock.Hash, guidOfPrimaryReplica.ToString(), requestedBlock.NodeId.ToString(), DateTime.UtcNow));
+
+                        returnValue = true;
+                    }
+                }
+                else
+                {
+                    Log.WriteLog(LogLevel.INFO, $"Unable to connect to {ipAddress}:{port}");
+                }
+
+                bs.StopAndDispose();
+            });
+            return returnValue;
+        }
+
+        public static async Task<bool> SendPbftErrorAndDispose(IPAddress ipAddress, int port, string hashOfRequest, string synchronizationHash,
+            string errorMessage, Guid guidOfSender, Guid guidOfReceiver)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Sending error to replica: {ipAddress}:{port}, with synchronization hash: {synchronizationHash}");
+
+            bool returnValue = false;
+
+            await Task.Run(() =>
+            {
+                SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(ipAddress, port);
+                if (bs.Connect())
+                {
+                    MethodResult result = FlagMessagesGenerator.GeneratePbftError(bs, hashOfRequest, synchronizationHash, errorMessage, guidOfSender.ToString());
+                    if (result == MethodResult.ERROR)
+                    {
+                        Log.WriteLog(LogLevel.ERROR, $"Error sending request message to {ipAddress}:{port}");
+                    }
+                    else
+                    {
+                        Log.WriteLog(LogLevel.INFO, $"Request message successfully sent to {ipAddress}:{port}");
+
+                        OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_ERROR, MessageDirection.SENT,
+                            synchronizationHash, hashOfRequest, guidOfReceiver.ToString(), guidOfSender.ToString(), DateTime.UtcNow, errorMessage));
+
                         returnValue = true;
                     }
                 }
@@ -96,7 +138,7 @@ namespace SslTcpSession
         }
 
 
-        public static async Task MulticastPrePrepare(Block requestedBlock, Guid primaryReplicaId,
+        public static async Task MulticastPrePrepareAndDispose(Block requestedBlock, Guid primaryReplicaId,
             string signOfPrimaryReplica, string synchronizationHash)
         {
             Log.WriteLog(LogLevel.INFO, $"Sending pre-prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
@@ -146,7 +188,7 @@ namespace SslTcpSession
             await Task.WhenAll(tasks);
         }
 
-        public static async Task MulticastPrepare(string hashOfRequest, string signOfBackupReplica,
+        public static async Task MulticastPrepareAndDispose(string hashOfRequest, string signOfBackupReplica,
             string synchronizationHash, Guid guidOfBackupReplica)
         {
             Log.WriteLog(LogLevel.INFO, $"Sending prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");

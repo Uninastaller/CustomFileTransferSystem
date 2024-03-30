@@ -147,6 +147,22 @@ namespace Common.Model
             return success ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
+        public static MethodResult GeneratePbftError(ISession session, string hashOfRequest, string synchronizationHash, string errorMessage, string guidOfSender)
+        {
+            // Message has 5 parts: FLAG, HASH OF REQUEST, HASH OF ACTIVE REPLICAS, ERROR MESSAGE, GUID OF SENDER
+            byte[] request = GenerateMessage(SocketMessageFlag.PBFT_ERROR, new object[] { hashOfRequest, synchronizationHash, errorMessage, guidOfSender});
+            bool success = session.SendAsync(request, 0, request.Length);
+            if (success)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Error was generated to client: {session.Endpoint}");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send error to client: {session.Endpoint}");
+            }
+            return success ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
         public static MethodResult GeneratePbftPrePrepare(ISession session, string blockAsJson,string primaryReplicaId,
             string signOfPrimaryReplica, string synchronizationHash)
         {

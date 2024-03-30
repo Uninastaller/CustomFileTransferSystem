@@ -18,6 +18,19 @@ namespace Common.Model
             Time = time;
         }
 
+        public PbftReplicaLogDto(SocketMessageFlag messageType, MessageDirection messageDirection, string synchronizationHash,
+            string hashOfRequest, string receiverId, string senderId, DateTime time, string message) : base(typeof(PbftReplicaLogDto))
+        {
+            MessageType = messageType;
+            MessageDirection = messageDirection;
+            SynchronizationHash = synchronizationHash;
+            HashOfRequest = hashOfRequest;
+            ReceiverId = receiverId;
+            SenderId = senderId;
+            Time = time;
+            Message = message;
+        }
+
         public SocketMessageFlag MessageType { get; set; }
         public MessageDirection MessageDirection { get; set; }
         public string SynchronizationHash { get; set; } = string.Empty;
@@ -26,5 +39,6 @@ namespace Common.Model
         public string SenderId { get; set; } = string.Empty;
         public DateTime Time { get; set; } = DateTime.MinValue;
         public string TimeAsString => Time.ToString("HH:mm:ss:fff");
+        public string? Message { get; set; }
     }
 }

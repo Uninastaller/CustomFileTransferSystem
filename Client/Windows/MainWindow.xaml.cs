@@ -275,7 +275,7 @@ namespace Client.Windows
             dtgDownloading.ItemsSource = _downloadModels;
             dtgNodes.ItemsSource = NodeDiscovery.GetAllNodes();
 
-            Blockchain.ReceivePbftMessage += PbftReplicaLogDtoHandler;
+            PbftMessageEvaluator.ReceivePbftMessage += PbftReplicaLogDtoHandler;
             SslPbftTmpClientBusinessLogic.ReceivePbftMessage += PbftReplicaLogDtoHandler;
         }
 
@@ -985,7 +985,7 @@ namespace Client.Windows
 
                 dtgNodes.IsEnabled = false;
                 btnNodeSynchronization.IsEnabled = false;
-                await NodeSynchronization.ExecuteSynchronization(_contextForP2pAsClient, this);
+                await NodeSynchronization.ExecuteSynchronization(this);
                 ShowTimedMessage("Synchronization Complete!", TimeSpan.FromSeconds(5));
                 dtgNodes.IsEnabled = true;
                 btnNodeSynchronization.IsEnabled = true;

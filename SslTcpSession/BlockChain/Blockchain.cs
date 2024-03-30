@@ -19,18 +19,10 @@ namespace SslTcpSession.BlockChain
 
         public static List<Block> Chain { get; } = new List<Block>();
 
-        public delegate void ReceivePbftMessageEventHandler(PbftReplicaLogDto log);
-        public static event ReceivePbftMessageEventHandler? ReceivePbftMessage;
-
         static Blockchain()
         {
             // Add genesis block
             Chain.Add(CreateGenesisBlock());
-        }
-
-        private static void OnReceivePbftMessage(PbftReplicaLogDto log)
-        {
-            ReceivePbftMessage?.Invoke(log);
         }
 
         private static Block CreateGenesisBlock()
@@ -289,27 +281,20 @@ namespace SslTcpSession.BlockChain
             if (result == BlockValidationResult.VALID)
             {
                 // Choosing primary replica and check his ip
-                if (!TryToChooseViewPrimaryReplica(newBlock.Timestamp, out Node ? primaryReplica) ||
+                if (!TryToChooseViewPrimaryReplica(newBlock.Timestamp, out Node? primaryReplica) ||
                     !IPAddress.TryParse(primaryReplica.Address, out IPAddress? iPAddress))
                 {
                     return BlockValidationResult.UNABLE_TO_CHOOSE_PRIMARY_REPLICA;
                 }
 
-
                 // send to primary replica
                 bool success = await SslPbftTmpClientBusinessLogic.SendPbftRequestAndDispose(iPAddress, primaryReplica.Port,
-                   newBlock, NodeDiscovery.SynchronizationHash);
+                   newBlock, NodeDiscovery.SynchronizationHash, primaryReplica.Id);
 
-                if (success)
-                {
-                    OnReceivePbftMessage(new PbftReplicaLogDto(Common.Enum.SocketMessageFlag.PBFT_REQUEST, Common.Enum.MessageDirection.SENT, NodeDiscovery.SynchronizationHash,
-                        newBlock.Hash, primaryReplica.Id.ToString(), newBlock.NodeId.ToString(), DateTime.UtcNow));
-                }
-                else
+                if (!success)
                 {
                     result = BlockValidationResult.BLOCK_IS_VALID_BUT_PRIMARY_REPLICA_CAN_NOT_BE_REACHED;
                 }
-
             }
             return result;
         }

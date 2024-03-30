@@ -51,8 +51,8 @@ namespace CentralServer
                 using (IDbTransaction transaction = cnn.BeginTransaction())
                 {
                     // Execute the query asynchronously with parameters
-                    await cnn.ExecuteAsync("INSERT INTO ReplicaLog (MessageType, Time, MessageDirection, SynchronizationHash,HashOfRequest, ReceiverId, SenderId)" +
-                        " VALUES (@MessageType, @TimeAsString, @MessageDirection, @SynchronizationHash, @HashOfRequest, @ReceiverId, @SenderId)",
+                    await cnn.ExecuteAsync("INSERT INTO ReplicaLog (MessageType, Time, MessageDirection, SynchronizationHash,HashOfRequest, ReceiverId, SenderId, Message)" +
+                        " VALUES (@MessageType, @TimeAsString, @MessageDirection, @SynchronizationHash, @HashOfRequest, @ReceiverId, @SenderId, @Message)",
                         log, transaction: transaction);
 
                     transaction.Commit();
