@@ -20,6 +20,7 @@ using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -636,6 +637,12 @@ namespace Client.Windows
             }
         }
 
+        private async Task ReloadReplicaLogsToDatagrid()
+        {
+            List<PbftReplicaLogDto> replicaLogs = await SqliteDataAccessReplicaLog.GetAllLogsAsync();
+            dtgReplicaLogs.ItemsSource = replicaLogs;
+        }
+
         #endregion PrivateMethods
 
         #region ProtectedMethods
@@ -1130,6 +1137,17 @@ namespace Client.Windows
         {
             // TESTING
             BlockValidationResult result = await Blockchain.Add_AddCredit(12.45);
+        }
+
+        private async void btnReloadReplicaLogs_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                button.IsEnabled = false;
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                await ReloadReplicaLogsToDatagrid();
+                ShowTimedMessageAndEnableUI("Replica logs reloaded!", TimeSpan.FromSeconds(3), button);
+            }
         }
 
         #endregion Events

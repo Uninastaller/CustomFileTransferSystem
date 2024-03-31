@@ -1,9 +1,11 @@
 ﻿using Common.Enum;
 using Common.Model;
 using Dapper;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SQLite;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CentralServer
@@ -25,7 +27,8 @@ namespace CentralServer
 
         #region PrivateFields
 
-
+        private static string QueryToFetchAllReplicaLogFilesDto => @"
+            SELECT * FROM ReplicaLog";
 
         #endregion PrivateFields
 
@@ -52,7 +55,7 @@ namespace CentralServer
                 {
                     // Execute the query asynchronously with parameters
                     await cnn.ExecuteAsync("INSERT INTO ReplicaLog (MessageType, Time, MessageDirection, SynchronizationHash,HashOfRequest, ReceiverId, SenderId, Message)" +
-                        " VALUES (@MessageType, @TimeAsString, @MessageDirection, @SynchronizationHash, @HashOfRequest, @ReceiverId, @SenderId, @Message)",
+                        " VALUES (@MessageType, @Time, @MessageDirection, @SynchronizationHash, @HashOfRequest, @ReceiverId, @SenderId, @Message)",
                         log, transaction: transaction);
 
                     transaction.Commit();
@@ -60,6 +63,18 @@ namespace CentralServer
             }
         }
 
+        public static async Task<List<PbftReplicaLogDto>> GetAllLogsAsync()
+        {
+            return await ExecuteQueryForReplicaLogs(QueryToFetchAllReplicaLogFilesDto);
+        }
+
+        private static async Task<List<PbftReplicaLogDto>> ExecuteQueryForReplicaLogs(string query)
+        {
+            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            {
+                return (await cnn.QueryAsync<PbftReplicaLogDto>(query).ConfigureAwait(false)).ToList();
+            }
+        }
 
         #endregion PublicMethods
 

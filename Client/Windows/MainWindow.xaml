@@ -541,6 +541,73 @@
 
                             </TabItem>
 
+                            <!--// REPLICA LOGS TAB //-->
+
+                            <TabItem Style="{StaticResource TabItemStyle}" Header="Replica Logs">
+
+                                <Grid Margin="5,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="5"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" Background="{StaticResource TabItemButtonColorDefault}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="40"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                            <RowDefinition Height="15"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadReplicaLogs" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Reload replica logs from DB" Click="btnReloadReplicaLogs_Click">
+                                        </Button>
+                                        <!--<Button Style="{StaticResource SynchronizeButtonStyle}" x:Name="btnNodeSynchronization" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                ToolTip="Start Synchronization with all nodes" Click="btnNodeSynchronization_Click">
+                                        </Button>
+                                        <Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
+                ToolTip="My Node" Click="btnMyNode_Click">
+                                        </Button>
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnAddNode" Content="" Grid.Row="7" Margin="0,2,0,0" Height="30" Width="30"
+                ToolTip="Add node" Click="btnAddNode_Click">
+                                        </Button>
+
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnSendPbftRequest" Content="" Grid.Row="9" Margin="0,2,0,0" Height="30" Width="30"
+                ToolTip="Send PBFT request" Click="btnSendPbftRequest_Click">
+                                        </Button>-->
+
+                                    </Grid>
+
+                                    <DataGrid Style="{StaticResource DataGridStyle1}" CellStyle="{StaticResource DataGridCellStyle1}" ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle1}" RowStyle="{StaticResource DataGridRowStyle1}"
+                                      Grid.Column="2"
+                                      x:Name="dtgReplicaLogs"
+                                      d:ItemsSource="{d:SampleData ItemCount=4}">
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ID" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Id}"/>
+                                            <DataGridTextColumn Header="Time" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding TimeInCustomFormat}"/>
+                                            <DataGridTextColumn Header="MessageType" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding MessageType}"/>
+                                            <DataGridTextColumn Header="MessageDirection" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding MessageDirection}"/>
+                                            <DataGridTextColumn Header="SynchronizationHash" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding SynchronizationHash}"/>
+                                            <DataGridTextColumn Header="HashOfRequest" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding HashOfRequest}"/>
+                                            <DataGridTextColumn Header="ReceiverId" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding ReceiverId}"/>
+                                            <DataGridTextColumn Header="SenderId" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding SenderId}"/>
+                                            <DataGridTextColumn Header="Message" IsReadOnly="True" CanUserResize="False" Width="150" Binding="{Binding Message}"/>
+
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                </Grid>
+
+                            </TabItem>
+
                         </TabControl>
 
 
