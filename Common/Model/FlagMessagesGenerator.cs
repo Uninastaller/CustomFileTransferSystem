@@ -201,6 +201,24 @@ namespace Common.Model
             return success ? MethodResult.SUCCES : MethodResult.ERROR;
         }
 
+        public static MethodResult GeneratePbftCommit(ISession session, string hashOfRequest, string signOfBackupReplica, string guidOfBackupReplica)
+        {
+            // Message has 4 parts: FLAG, HASH OF REQUEST, SIGN OF BACKUP REPLICA, GUID OF BACKUP REPLICA
+            byte[] request = GenerateMessage(SocketMessageFlag.PBFT_COMMIT, new object[] { hashOfRequest,
+                signOfBackupReplica, guidOfBackupReplica });
+
+            bool success = session.SendAsync(request, 0, request.Length);
+            if (success)
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"commit was generated to client: {session.Endpoint}");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"Unable to send commit to client: {session.Endpoint}");
+            }
+            return success ? MethodResult.SUCCES : MethodResult.ERROR;
+        }
+
         public static MethodResult GenerateRequestForFilePart(long filePart, int partSize, ISession session)
         {
             // Message has 3 parts: FLAG, FILE_PART_NUMBER, PART_SIZE

@@ -1,7 +1,6 @@
 ﻿using Common.Enum;
 using Common.Interface;
 using ConfigManager;
-using SslTcpSession;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,15 +27,23 @@ namespace SslTcpSession
                 return;
             }
 
-            NodeDiscovery.NodeSynchronizationStarted();
+            HashSet<Guid> processedNodes; // Sledovanie už spracovaných uzlov
+            if (NodeDiscovery.IsSynchronizationOlderThanMaxOldSynchronizationTime())
+            {
+                processedNodes = new HashSet<Guid>();
+                NodeDiscovery.NodeSynchronizationStarted();
+            }
+            else
+            {
+                processedNodes = NodeDiscovery.GetAllCurrentlyVerifiedActiveNodeGuids().ToHashSet();
+            }
 
             _semaphore = new SemaphoreSlim(maximumParallelRunningSockets);
             List<Task> tasks = new List<Task>();
-            HashSet<Guid> processedNodes = new HashSet<Guid>(); // Sledovanie už spracovaných uzlov
 
             while (true)
             {
-            List<Node> nodesToProcess = NodeDiscovery.GetAllNodes().Where(node => !processedNodes.Contains(node.Id)).ToList();
+                List<Node> nodesToProcess = NodeDiscovery.GetAllNodes().Where(node => !processedNodes.Contains(node.Id)).ToList();
 
                 if (!nodesToProcess.Any())
                 {

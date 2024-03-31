@@ -279,11 +279,11 @@ namespace Modeel
                     Log.WriteLog(LogLevel.INFO, $"Port: {P2pPort} is not free!");
 
                     // just for testing create on another free port
-                    _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
+                    _p2PMasterClass.CreateNewServer(new SslServerBussinessLogic(_contextForP2pAsServer, P2pIpAddress, GetRandomFreePort, this, optionAcceptorBacklog: 1));
 
                     return;
                 }
-                _p2PMasterClass.CreateNewServer(new SslServerBussinesLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
+                _p2PMasterClass.CreateNewServer(new SslServerBussinessLogic(_contextForP2pAsServer, P2pIpAddress, P2pPort, this, optionAcceptorBacklog: 1));
             }
         }
 

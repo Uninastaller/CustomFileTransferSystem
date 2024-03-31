@@ -8,6 +8,7 @@ using ConfigManager;
 using Logger;
 using SslTcpSession;
 using SslTcpSession.BlockChain;
+using SslTcpSession.BlockChain.ThreadMessages;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -201,6 +202,9 @@ namespace Client.Windows
 
         private IWindowEnqueuer? _nodeSettingsWindow;
 
+        private PbftAwaiter? _pbftAwaiter;
+        private Block? _pbftCorrespondingBlockForAwaiter;
+
         #endregion PrivateFields
 
         #region ProtectedFields
@@ -229,6 +233,7 @@ namespace Client.Windows
             contract.Add(MsgIds.NodeListReceivedMessage, typeof(NodeListReceivedMessage));
             contract.Add(MsgIds.NodeSettingWindowMessage, typeof(NodeSettingWindowMessage));
             contract.Add(MsgIds.PbftReplicaLogDto, typeof(PbftReplicaLogDto));
+            contract.Add(MsgIds.PbftPrePrepareMessageReceivedMessage, typeof(PbftPrePrepareMessageReceivedMessage));
 
             _contextForCentralServerConnect = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForCentralServerConnect, Certificats.CertificateType.ClientConnectionWithCentralServer), (sender, certificate, chain, sslPolicyErrors) => true);
             _contextForP2pAsServer = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate(_certificateNameForP2pAsServer, Certificats.CertificateType.Server), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -263,10 +268,11 @@ namespace Client.Windows
              .Case(contract.GetContractId(typeof(CreationMessage)), (CreationMessage x) => CreationMessageHandler(x))
              .Case(contract.GetContractId(typeof(ServerDownloadingSessionsInfoMessage)), (ServerDownloadingSessionsInfoMessage x) => ServerDownloadingSessionsInfoMessageHandler(x))
              .Case(contract.GetContractId(typeof(NodeListReceivedMessage)), (NodeListReceivedMessage x) => NodeListReceivedMessageHandler(x.NodeDict))
-             .Case(contract.GetContractId(typeof(PbftReplicaLogDto)), (PbftReplicaLogDto x) => PbftReplicaLogDtoHandler(x));
+             .Case(contract.GetContractId(typeof(PbftReplicaLogDto)), (PbftReplicaLogDto x) => PbftReplicaLogDtoHandler(x))
+             .Case(contract.GetContractId(typeof(PbftPrePrepareMessageReceivedMessage)), (PbftPrePrepareMessageReceivedMessage x) => PbftPrePrepareMessageReceivedMessageHandler(x))
             ;
 
-            MyConfigManager.TryGetIntConfigValue("Instance", out int instance);            
+            MyConfigManager.TryGetIntConfigValue("Instance", out int instance);
             tbTitle.Text = $"Custom File Transfer System {{i.{instance}}} [v.{Assembly.GetExecutingAssembly().GetName().Version}]";
 
             LoadLocalOfferingFiles();
@@ -474,9 +480,57 @@ namespace Client.Windows
             ShowTimedMessage("NodeList received!", TimeSpan.FromSeconds(2));
         }
 
-        private async void PbftReplicaLogDtoHandler(PbftReplicaLogDto log)
+        private void PbftPrePrepareMessageReceivedMessageHandler(PbftPrePrepareMessageReceivedMessage message)
         {
             Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a pbft replica log");
+
+            if (!PbftAwaiter.BlockNewRequests)
+            {
+                _pbftCorrespondingBlockForAwaiter = message.RequestedBlock;
+                _pbftAwaiter = new PbftAwaiter(NodeDiscovery.GetAllCurrentlyVerifiedActiveNodeGuids().Select(x => x.ToString()), message.RequestedBlock.Hash);
+            }
+        }
+
+        private async void PbftReplicaLogDtoHandler(PbftReplicaLogDto log)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a pbft replica log with flag: {log.MessageType}, direction: {log.MessageDirection}");
+
+            if (log.MessageDirection == MessageDirection.RECEIVED)
+            {
+                switch (log.MessageType)
+                {
+                    case SocketMessageFlag.PBFT_PREPARE:
+                    case SocketMessageFlag.PBFT_COMMIT:
+
+                        if (_pbftAwaiter != null && log.HashOfRequest.Equals(_pbftAwaiter.HashOfRequest))
+                        {
+                            _pbftAwaiter.ReceivedMessage(log.SenderId, log.MessageType);
+
+                            ActionRequired actionRequired = _pbftAwaiter.CheckActionRequired();
+                            Log.WriteLog(LogLevel.INFO, $"PBFT awaiter returned action needed to: {actionRequired}");
+
+                            if (actionRequired == ActionRequired.SEND_COMMIT)
+                            {
+                                _pbftAwaiter.CommitSent();
+
+                                await SslPbftTmpClientBusinessLogic.MulticastCommitAndDispose(_pbftAwaiter.HashOfRequest,
+                                    Certificats.SignString(Certificats.GetCertificate("ReplicaXY", Certificats.CertificateType.Node), _pbftAwaiter.HashOfRequest), NodeDiscovery.GetMyNode().Id);
+                            }
+                            else if (actionRequired == ActionRequired.ADD_BLOCK_TO_BLOCKCHAIN)
+                            {
+                                if (_pbftCorrespondingBlockForAwaiter != null && _pbftAwaiter.HashOfRequest.Equals(_pbftCorrespondingBlockForAwaiter.Hash))
+                                {
+                                    Blockchain.AddBlockAfterConsensus(_pbftCorrespondingBlockForAwaiter);
+                                    _pbftAwaiter.BlockAdded();
+                                    _pbftAwaiter = null;
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }            
 
             await SqliteDataAccessReplicaLog.InsertLogAsync(log);
         }
@@ -901,7 +955,7 @@ namespace Client.Windows
                     {
                         // SSL
                         Log.WriteLog(LogLevel.INFO, $"Starting SSl Tcp socket in ip: {iPAddress}, port: {port}");
-                        _uploadingServerBussinessLogic = new SslServerBussinesLogic(_contextForP2pAsServer, iPAddress, port, this, optionAcceptorBacklog: 2);
+                        _uploadingServerBussinessLogic = new SslServerBussinessLogic(_contextForP2pAsServer, iPAddress, port, this, optionAcceptorBacklog: 2);
                     }
                 }
             }

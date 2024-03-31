@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Xml.Linq;
 
 namespace SslTcpSession
 {
@@ -69,6 +71,7 @@ namespace SslTcpSession
             _flagSwitch.Register(SocketMessageFlag.PBFT_PRE_PREPARE, OnPbftPrePrepareHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_PREPARE, OnPbftPrepareHandler);
             _flagSwitch.Register(SocketMessageFlag.PBFT_ERROR, OnPbftErrorHandler);
+            _flagSwitch.Register(SocketMessageFlag.PBFT_COMMIT, OnPbftCommitHandler);
         }
 
         #endregion Ctor
@@ -89,6 +92,11 @@ namespace SslTcpSession
         private void OnClientDisconnected()
         {
             ClientDisconnected?.Invoke(this);
+        }
+
+        private void OnPrePreepareBlockForReplica(Block requestedBlock)
+        {
+            PrePrepareBlockForReplica?.Invoke(requestedBlock);
         }
 
         #endregion PrivateMethods
@@ -126,6 +134,9 @@ namespace SslTcpSession
         #endregion ProtectedMethods
 
         #region Events
+
+        public delegate void PrePreepareBlockForReplicaHandler(Block requestedBlock);
+        public event PrePreepareBlockForReplicaHandler? PrePrepareBlockForReplica;
 
         public delegate void ClientDisconnectedHandler(SslSession sender);
         public event ClientDisconnectedHandler? ClientDisconnected;
@@ -172,7 +183,7 @@ namespace SslTcpSession
             }
         }
 
-        private void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
+        private async void OnNodeListRequestHandler(byte[] buffer, long offset, long size)
         {
             if (FlagMessageEvaluator.EvaluateNodeListRequestMessage(buffer, offset, size, out Node? senderNode))
             {
@@ -191,6 +202,12 @@ namespace SslTcpSession
 
                 NodeDiscovery.AddNode(senderNode);
                 NodeDiscovery.SaveNodes();
+
+                // Start synchronization myself
+                if (_gui != null && _gui.IsOpen())
+                {
+                    await NodeSynchronization.ExecuteSynchronization(_gui);
+                }
             }
             else
             {
@@ -203,9 +220,7 @@ namespace SslTcpSession
         {
             if (PbftMessageEvaluator.EvaluatePbftRequestMessage(buffer, offset, size, out Block? requestedBlock, out string? synchronizationHash))
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {Socket.RemoteEndPoint}!" +
-                    $" with hash of active replics: {synchronizationHash}. " +
-                    $"Session should be closed by client, but to be sure... disconnecting client!");
+                Log.WriteLog(LogLevel.DEBUG, $"Session should be closed by client, but to be sure... disconnecting client!");
 
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
@@ -214,6 +229,20 @@ namespace SslTcpSession
                 {
                     Log.WriteLog(LogLevel.WARNING, $"Received request for new block dont have coresponding node with node id: {requestedBlock.NodeId}!" +
                     $" Operation can not be proceed!");
+                    return;
+                }
+
+                if (PbftAwaiter.BlockNewRequests)
+                {
+                    Log.WriteLog(LogLevel.WARNING, "Can not validate request bcs of blocking state from BL, sending error response");
+
+                    if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress))
+                    {
+                        // SEND ERROR
+                        await SslPbftTmpClientBusinessLogic.SendPbftErrorAndDispose(senderAddress, node.Port, requestedBlock.Hash, NodeDiscovery.SynchronizationHash,
+                            "Can not validate request due to another request in process!", NodeDiscovery.GetMyNode().Id, node.Id);
+                    }
+
                     return;
                 }
 
@@ -236,7 +265,8 @@ namespace SslTcpSession
                         {
                             Log.WriteLog(LogLevel.WARNING, "SynchronizationHash is still not same, operation can not be proceed! Generating error message to the client replica");
 
-                            if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress)) {
+                            if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress))
+                            {
                                 // SEND ERROR
                                 await SslPbftTmpClientBusinessLogic.SendPbftErrorAndDispose(senderAddress, node.Port, requestedBlock.Hash, NodeDiscovery.SynchronizationHash,
                                     "Synchronization hashes are not equal!", NodeDiscovery.GetMyNode().Id, node.Id);
@@ -250,7 +280,13 @@ namespace SslTcpSession
                 // Check for correct pick of primary replica in current view
                 if (!Blockchain.VerifyPrimaryReplica(NodeDiscovery.GetMyNode().Id, requestedBlock.Timestamp))
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"Unable to verify myself as primary replica in current view! Operation can not be proceed!");
+                    Log.WriteLog(LogLevel.WARNING, $"Unable to verify myself as primary replica in current view! Operation can not be proceed! Sending error response");
+                    if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress))
+                    {
+                        // SEND ERROR
+                        await SslPbftTmpClientBusinessLogic.SendPbftErrorAndDispose(senderAddress, node.Port, requestedBlock.Hash, NodeDiscovery.SynchronizationHash,
+                            "Unable to verify myself as primary replica in current view!", NodeDiscovery.GetMyNode().Id, node.Id);
+                    }
                     return;
                 }
 
@@ -258,7 +294,13 @@ namespace SslTcpSession
                 BlockValidationResult result = Blockchain.IsNewBlockValid(requestedBlock, node);
                 if (result != BlockValidationResult.VALID)
                 {
-                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}");
+                    Log.WriteLog(LogLevel.WARNING, $"You as primary replica, found requested block as invalid due to: {result}, sending error response!");
+                    if (IPAddress.TryParse(node.Address, out IPAddress? senderAddress))
+                    {
+                        // SEND ERROR
+                        await SslPbftTmpClientBusinessLogic.SendPbftErrorAndDispose(senderAddress, node.Port, requestedBlock.Hash, NodeDiscovery.SynchronizationHash,
+                            $"I as primary replica, found your request as invalid due to {result}!", NodeDiscovery.GetMyNode().Id, node.Id);
+                    }
                     return;
                 }
 
@@ -276,11 +318,12 @@ namespace SslTcpSession
         private async void OnPbftPrePrepareHandler(byte[] buffer, long offset, long size)
         {
             if (PbftMessageEvaluator.EvaluatePbftPrePrepareMessage(buffer, offset, size, out Block? requestedBlock,
-                out Guid primaryReplicaGuid, out string? signOfPrimaryReplica, out string? synchronizationHash))
+                out Guid _, out string? signOfPrimaryReplica, out string? synchronizationHash))
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Received pre-prepare from client: {Socket.RemoteEndPoint}!" +
-                    $" with hash of active replics: {synchronizationHash}. " +
-                    $"Session should be closed by client, but to be sure... disconnecting client!");
+                Log.WriteLog(LogLevel.DEBUG, $"Session should be closed by client, but to be sure... disconnecting client!");
+
+                // send block to BL for save in case we will be want to add this block
+                OnPrePreepareBlockForReplica(requestedBlock);
 
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
@@ -346,9 +389,7 @@ namespace SslTcpSession
             if (PbftMessageEvaluator.EvaluatePbftPrepareMessage(buffer, offset, size, out string? hashOfRequest,
                 out string? signOfBackupReplica, out string? synchronizationHash, out Guid guidOfBackupReplica))
             {
-                Log.WriteLog(LogLevel.DEBUG, $"Received prepare from client: {Socket.RemoteEndPoint}!" +
-                    $" with hash of active replicas: {synchronizationHash}. " +
-                    $"Session should be closed by client, but to be sure... disconnecting client!");
+                Log.WriteLog(LogLevel.DEBUG, $"Session should be closed by client, but to be sure... disconnecting client!");
 
                 this.Server?.FindSession(this.Id)?.Disconnect();
 
@@ -398,10 +439,29 @@ namespace SslTcpSession
             }
         }
 
-        private async void OnPbftErrorHandler(byte[] buffer, long offset, long size)
+        private void OnPbftCommitHandler(byte[] buffer, long offset, long size)
         {
-            if (!PbftMessageEvaluator.EvaluatePbftErrorMessage(buffer, offset, size, out string? _,
+            if (PbftMessageEvaluator.EvaluatePbftCommitMessage(buffer, offset, size, out string? _,
+                out string? _, out Guid _))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Session should be closed by client, but to be sure... disconnecting client!");
+            }
+            else
+            {
+                Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
+            }
+            this.Server?.FindSession(this.Id)?.Disconnect();
+
+        }
+
+        private void OnPbftErrorHandler(byte[] buffer, long offset, long size)
+        {
+            if (PbftMessageEvaluator.EvaluatePbftErrorMessage(buffer, offset, size, out string? hashOfRequest,
                 out string? _, out string? _, out Guid _))
+            {
+                Log.WriteLog(LogLevel.DEBUG, $"Session should be closed by client, but to be sure... disconnecting client!");
+            }
+            else
             {
                 Log.WriteLog(LogLevel.WARNING, $"client is sending wrong formats of data, disconnecting!");
             }

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -23,6 +24,8 @@ namespace ConfigManager
         public static DateTime LastTimeOfSynchronization { get; private set; } = DateTime.MinValue;
         public static TimeSpan PassedTimeFromLastSynchronization => DateTime.UtcNow - LastTimeOfSynchronization;
         public static string SynchronizationHash { get; private set; } = string.Empty;
+
+        public static readonly int MaxOldSynchronization = 60;
 
         public static void StartApplication()
         {
@@ -187,6 +190,11 @@ namespace ConfigManager
             return _currentlyVerifiedActiveNodes.Values;
         }
 
+        public static IEnumerable<Guid> GetAllCurrentlyVerifiedActiveNodeGuids()
+        {
+            return _currentlyVerifiedActiveNodes.Keys;
+        }
+
         public static void UpdateNodeList(Dictionary<Guid, Node> externalNodes)
         {
             foreach (var node in externalNodes.Values)
@@ -250,10 +258,16 @@ namespace ConfigManager
         {
             ClearCurrentlyVerifiedActiveNodes();
         }
+
         public static void NodeSynchronizationFinished()
         {
             LastTimeOfSynchronization = DateTime.UtcNow;
             SynchronizationHash = GetHashFromActiveNodes();
+        }
+
+        public static bool IsSynchronizationOlderThanMaxOldSynchronizationTime()
+        {
+            return PassedTimeFromLastSynchronization.TotalSeconds > MaxOldSynchronization;
         }
     }
 }

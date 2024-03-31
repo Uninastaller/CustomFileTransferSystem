@@ -18,5 +18,6 @@
         public static readonly int RequestForOfferingFilesMessage = 14;
         public static readonly int NodeSettingWindowMessage = 15;
         public static readonly int PbftReplicaLogDto = 16;
+        public static readonly int PbftPrePrepareMessageReceivedMessage = 17;
     }
 }

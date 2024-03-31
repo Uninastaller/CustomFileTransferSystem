@@ -1,10 +1,10 @@
-﻿using Common.Model;
-using ConfigManager;
+﻿using ConfigManager;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -38,9 +38,9 @@ namespace SslTcpSession.BlockChain
         public static async Task<BlockValidationResult> Add_AddCredit(double creditValueToAdd)
         {
 
-            if (NodeDiscovery.PassedTimeFromLastSynchronization.TotalSeconds > 60)
+            if (NodeDiscovery.IsSynchronizationOlderThanMaxOldSynchronizationTime())
             {
-                //return BlockValidationResult.OLD_SYNCHRONIZATION;
+                return BlockValidationResult.OLD_SYNCHRONIZATION;
             }
 
             double newCreditValue = 0;
@@ -652,6 +652,23 @@ namespace SslTcpSession.BlockChain
             }
 
             return true; // Všetky EndPointy boli nájdené
+        }
+
+        public static void AddBlockAfterConsensus(Block block)
+        {
+            Chain.Add(block);
+            Logger.Log.WriteLog(Logger.LogLevel.INFO, "BlockChain: " + PrintChain());
+        }
+
+        public static string PrintChain()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (Block block in Chain)
+            {
+                sb.Append(block.ToJson()).Append('\n');
+            }
+            return sb.ToString();
         }
     }
 }

@@ -4,6 +4,7 @@ using ConfigManager;
 using Logger;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 
@@ -42,6 +43,9 @@ namespace SslTcpSession.BlockChain
                     }
 
                     synchronizationHash = messageParts[2];
+
+                    Log.WriteLog(LogLevel.DEBUG, $"Received request for new block request from client: {requestedBlock.NodeId}!" +
+                    $" with hash of active replics: {synchronizationHash}.");
 
                     // Send signal to gui to create log
                     OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_REQUEST, MessageDirection.RECEIVED,
@@ -88,6 +92,9 @@ namespace SslTcpSession.BlockChain
 
                     if (success)
                     {
+                        Log.WriteLog(LogLevel.DEBUG, $"Received pre-prepare from client: {primaryReplicaId}!" +
+                    $" with hash of active replics: {synchronizationHash}.");
+
                         // Send signal to gui to create log
                         OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PRE_PREPARE, MessageDirection.RECEIVED,
                             synchronizationHash, requestedBlock.Hash, NodeDiscovery.GetMyNode().Id.ToString(), primaryReplicaId.ToString(), DateTime.UtcNow));
@@ -126,6 +133,9 @@ namespace SslTcpSession.BlockChain
 
                     if (success)
                     {
+                        Log.WriteLog(LogLevel.DEBUG, $"Received prepare from client: {guidOfBackupReplica}!" +
+                           $" with hash of active replicas: {synchronizationHash}. ");                           
+
                         // Send signal to gui to create log
                         OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PREPARE, MessageDirection.RECEIVED,
                             synchronizationHash, hashOfRequest, NodeDiscovery.GetMyNode().Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
@@ -164,10 +174,51 @@ namespace SslTcpSession.BlockChain
 
                     if (success)
                     {
+                        Log.WriteLog(LogLevel.DEBUG, $"Received error from client: {guidOfSender}!" +
+                     $" with hash of request: {hashOfRequest}.");
+
                         // Send signal to gui to create log
-                        OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_PREPARE, MessageDirection.RECEIVED,
+                        OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_ERROR, MessageDirection.RECEIVED,
                             synchronizationHash, hashOfRequest, NodeDiscovery.GetMyNode().Id.ToString(), guidOfSender.ToString(), DateTime.UtcNow, errorMessage));
                     }                    
+                }
+                catch (JsonException ex)
+                {
+                    Log.WriteLog(LogLevel.WARNING, $"Error with hash of request: {messageParts[1]} received but not valid! " + ex.Message);
+                }
+            }
+            return success;
+        }
+
+        public static bool EvaluatePbftCommitMessage(byte[] buffer, long offset, long size,
+             [MaybeNullWhen(false)] out string hashOfRequest, [MaybeNullWhen(false)] out string signOfBackupReplica, out Guid guidOfSender)
+        {
+            bool success = false;
+            hashOfRequest = null;
+            signOfBackupReplica = null;
+            guidOfSender = Guid.Empty;
+
+            // Message has 4 parts: FLAG, HASH OF REQUEST, SIGN OF BACKUP REPLICA, GUID OF BACKUP REPLICA
+            string message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
+            string[] messageParts = message.Split(FlagMessagesGenerator.messageConnector, StringSplitOptions.None);
+
+            if (messageParts.Length == 4)
+            {
+                try
+                {
+                    hashOfRequest = messageParts[1];
+                    signOfBackupReplica = messageParts[2];
+                    success = Guid.TryParse(messageParts[3], out guidOfSender);
+
+                    if (success)
+                    {
+                        Log.WriteLog(LogLevel.DEBUG, $"Received commit from client: {guidOfSender}!" +
+                     $" with hash of request: {hashOfRequest}.");
+
+                        // Send signal to gui to create log
+                        OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_COMMIT, MessageDirection.RECEIVED,
+                            "", hashOfRequest, NodeDiscovery.GetMyNode().Id.ToString(), guidOfSender.ToString(), DateTime.UtcNow));
+                    }
                 }
                 catch (JsonException ex)
                 {

@@ -3,6 +3,8 @@ using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
 using Logger;
+using SslTcpSession.BlockChain;
+using SslTcpSession.BlockChain.ThreadMessages;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -16,7 +18,7 @@ using Timer = System.Timers.Timer;
 
 namespace SslTcpSession
 {
-    public class SslServerBussinesLogic : SslServer, IUniversalServerSocket
+    public class SslServerBussinessLogic : SslServer, IUniversalServerSocket
     {
 
         #region Properties
@@ -55,7 +57,7 @@ namespace SslTcpSession
 
         #region Ctor
 
-        public SslServerBussinesLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
+        public SslServerBussinessLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
         {
             Type = TypeOfServerSocket.TCP_SERVER_SSL;
             _typeOfSession = typeOfSession;
@@ -230,10 +232,19 @@ namespace SslTcpSession
             Log.WriteLog(LogLevel.ERROR, $"Ssl server caught an error with code {error}");
         }
 
+        private void OnPrePrepareBlockForReplica(Block requestedBlock)
+        {
+            if (_clients != null && _gui != null)
+            {
+                _gui.BaseMsgEnque(new PbftPrePrepareMessageReceivedMessage(requestedBlock));
+            }
+        }
+
         private void OnClientDisconnected(SslSession session)
         {
             if (session is SslDownloadingSession serverSession)
             {
+                serverSession.PrePrepareBlockForReplica -= OnPrePrepareBlockForReplica;
                 serverSession.ClientDisconnected -= OnClientDisconnected;
                 serverSession.ClientFileRequest -= OnClientFileRequest;
                 serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
@@ -255,6 +266,7 @@ namespace SslTcpSession
         {
             if (session is SslDownloadingSession serverSession)
             {
+                serverSession.PrePrepareBlockForReplica += OnPrePrepareBlockForReplica;
                 serverSession.ClientDisconnected += OnClientDisconnected;
                 serverSession.ClientFileRequest += OnClientFileRequest;
                 serverSession.ServerSessionStateChange += OnServerSessionStateChange;

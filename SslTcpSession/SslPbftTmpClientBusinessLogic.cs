@@ -32,6 +32,9 @@ namespace SslTcpSession
         private static readonly int _receiveBufferSize = 0x800; // 2048b
         private static readonly int _sendBufferSize = 0x2000; // 8192b
 
+        private static readonly int _maxConcurrentTasks = 10;
+
+
         private bool _isDisposing = false;
         private static readonly SslContext _replicaContext = new SslContext(SslProtocols.Tls12, Certificats.GetCertificate("ReplicaXY",
             Certificats.CertificateType.Node), (sender, certificate, chain, sslPolicyErrors) => true);
@@ -143,8 +146,7 @@ namespace SslTcpSession
         {
             Log.WriteLog(LogLevel.INFO, $"Sending pre-prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
 
-            int maxConcurrentTasks = 10;
-            SemaphoreSlim semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
+            SemaphoreSlim semaphore = new SemaphoreSlim(_maxConcurrentTasks, _maxConcurrentTasks);
 
             List<Task> tasks = new List<Task>();
             foreach (Node node in NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes())
@@ -193,8 +195,7 @@ namespace SslTcpSession
         {
             Log.WriteLog(LogLevel.INFO, $"Sending prepare with multicast to all replicas, with synchronization hash: {synchronizationHash}");
 
-            int maxConcurrentTasks = 10;
-            SemaphoreSlim semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
+            SemaphoreSlim semaphore = new SemaphoreSlim(_maxConcurrentTasks, _maxConcurrentTasks);
 
             List<Task> tasks = new List<Task>();
             foreach (Node node in NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes())
@@ -221,6 +222,54 @@ namespace SslTcpSession
                                     synchronizationHash, hashOfRequest, node.Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
 
                                 Log.WriteLog(LogLevel.INFO, $"Prepare message successfully sent to {address}:{node.Port}");
+                            }
+                        }
+                        else
+                        {
+                            Log.WriteLog(LogLevel.INFO, $"Unable to connect to {address}:{node.Port}");
+                        }
+
+                        bs.StopAndDispose();
+                    }
+
+                    semaphore.Release();
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        public static async Task MulticastCommitAndDispose(string hashOfRequest, string signOfBackupReplica, Guid guidOfBackupReplica)
+        {
+            Log.WriteLog(LogLevel.INFO, $"Sending commit with multicast to all replicas, to request hash: {hashOfRequest}");
+
+            SemaphoreSlim semaphore = new SemaphoreSlim(_maxConcurrentTasks, _maxConcurrentTasks);
+
+            List<Task> tasks = new List<Task>();
+            foreach (Node node in NodeDiscovery.GetAllCurrentlyVerifiedActiveNodes())
+            {
+                await semaphore.WaitAsync();
+
+                tasks.Add(Task.Run(() =>
+                {
+                    if (IPAddress.TryParse(node.Address, out IPAddress? address))
+                    {
+                        SslPbftTmpClientBusinessLogic bs = new SslPbftTmpClientBusinessLogic(address, node.Port);
+                        if (bs.Connect())
+                        {
+                            MethodResult result = FlagMessagesGenerator.GeneratePbftCommit(bs, hashOfRequest,
+                                signOfBackupReplica, guidOfBackupReplica.ToString());
+
+                            if (result == MethodResult.ERROR)
+                            {
+                                Log.WriteLog(LogLevel.ERROR, $"Error sending commit message to {address}:{node.Port}");
+                            }
+                            else
+                            {
+                                OnReceivePbftMessage(new PbftReplicaLogDto(SocketMessageFlag.PBFT_COMMIT, MessageDirection.SENT,
+                                    "", hashOfRequest, node.Id.ToString(), guidOfBackupReplica.ToString(), DateTime.UtcNow));
+
+                                Log.WriteLog(LogLevel.INFO, $"Commit message successfully sent to {address}:{node.Port}");
                             }
                         }
                         else

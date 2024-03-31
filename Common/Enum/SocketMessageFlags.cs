@@ -59,6 +59,9 @@ namespace Common.Enum
         [StringValue("c.D")]
         PBFT_ERROR,
 
+        [StringValue("c.E")]
+        PBFT_COMMIT,
+
     }
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
