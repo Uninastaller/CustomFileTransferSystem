@@ -1179,5 +1179,9 @@ namespace Client.Windows
 
         #endregion OverridedMethods
 
+        private void btnCreateRequest_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

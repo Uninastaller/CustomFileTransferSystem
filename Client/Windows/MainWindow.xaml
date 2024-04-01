@@ -636,10 +636,10 @@
                                         <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadBlockchain" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
                             ToolTip="Reload blockchain from DB" Click="btnReloadBlockchain_Click">
                                         </Button>
-                                        <!--<Button Style="{StaticResource SynchronizeButtonStyle}" x:Name="btnNodeSynchronization" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
-ToolTip="Start Synchronization with all nodes" Click="btnNodeSynchronization_Click">
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnCreateRequest" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                            ToolTip="Create new request" Click="btnCreateRequest_Click">
                         </Button>
-                        <Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
+                        <!--<Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
 ToolTip="My Node" Click="btnMyNode_Click">
                         </Button>
                         <Button Style="{StaticResource AddButtonStyle}" x:Name="btnAddNode" Content="" Grid.Row="7" Margin="0,2,0,0" Height="30" Width="30"
@@ -661,6 +661,7 @@ ToolTip="Send PBFT request" Click="btnSendPbftRequest_Click">
                                             <DataGridTextColumn Header="Index" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Index}"/>
                                             <DataGridTextColumn Header="Timestamp" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Timestamp}"/>
                                             <DataGridTextColumn Header="FileHash" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding FileHash}"/>
+                                            <DataGridTextColumn Header="FileSize" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding FileSize}"/>
                                             <DataGridTextColumn Header="FileID" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding FileID}"/>
                                             <DataGridTextColumn Header="FilLocations" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding FileLocationsInJsonFormat}"/>
                                             <DataGridTextColumn Header="Transaction" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding Transaction}"/>

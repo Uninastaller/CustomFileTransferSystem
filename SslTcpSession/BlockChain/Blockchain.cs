@@ -41,6 +41,7 @@ namespace SslTcpSession.BlockChain
                 new IpAndPortEndPoint(){ IpAddress = "wdas", Port = 12}
             };
             genesis.FileID = Guid.NewGuid();
+            genesis.FileSize = 1237934;
 
             genesis.ComputeHash();
             return genesis;

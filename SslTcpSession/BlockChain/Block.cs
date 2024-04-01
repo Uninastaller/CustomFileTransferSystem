@@ -13,11 +13,12 @@ namespace SslTcpSession.BlockChain
         public Int32 Index { get; set; }
         public DateTime Timestamp { get; set; }
         public string FileHash { get; set; } = string.Empty; // For integrity check
+        public UInt64 FileSize { get; set; }
 
         public Guid FileID { get; set; }   // Unique identifier for the file
 
         [JsonIgnore]
-        public string FileIDAsString    
+        public string FileIDAsString    // FOR DB
         {
             get => FileID.ToString();
             set => FileID = Guid.Parse(value);
@@ -31,7 +32,7 @@ namespace SslTcpSession.BlockChain
         public Guid NodeId {  get; set; }
 
         [JsonIgnore]
-        public string NodeIdAsString
+        public string NodeIdAsString    // FOR DB
         {
             get => NodeId.ToString();
             set => NodeId = Guid.Parse(value);

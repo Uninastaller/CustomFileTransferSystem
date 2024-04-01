@@ -75,8 +75,8 @@ namespace CentralServer
                 using (IDbTransaction transaction = cnn.BeginTransaction())
                 {
                     // Execute the query asynchronously with parameters
-                    await cnn.ExecuteAsync("INSERT OR IGNORE INTO Blockchain (\"Index\", Timestamp, FileHash, FileID, FileLocationsInJsonFormat, \"Transaction\", Hash, PreviousHash, NodeId, CreditChange, NewCreditValue, SignedHash)" +
-                        " VALUES (@Index, @Timestamp, @FileHash, @FileIDAsString, @FileLocationsInJsonFormat, @Transaction, @Hash, @PreviousHash, @NodeIdAsString, @CreditChange, @NewCreditValue, @SignedHash)",
+                    await cnn.ExecuteAsync("INSERT OR IGNORE INTO Blockchain (\"Index\", Timestamp, FileHash, FileSize, FileID, FileLocationsInJsonFormat, \"Transaction\", Hash, PreviousHash, NodeId, CreditChange, NewCreditValue, SignedHash)" +
+                        " VALUES (@Index, @Timestamp, @FileHash, @FileSize, @FileIDAsString, @FileLocationsInJsonFormat, @Transaction, @Hash, @PreviousHash, @NodeIdAsString, @CreditChange, @NewCreditValue, @SignedHash)",
                         block, transaction: transaction);
 
                     transaction.Commit();
