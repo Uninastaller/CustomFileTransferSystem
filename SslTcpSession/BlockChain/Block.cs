@@ -13,7 +13,7 @@ namespace SslTcpSession.BlockChain
         public Int32 Index { get; set; }
         public DateTime Timestamp { get; set; }
         public string FileHash { get; set; } = string.Empty; // For integrity check
-        public UInt64 FileSize { get; set; }
+        public Int64 FileSize { get; set; }
 
         public Guid FileID { get; set; }   // Unique identifier for the file
 
@@ -59,6 +59,7 @@ namespace SslTcpSession.BlockChain
             sb.Append(Timestamp.ToString("o")); // Universal time format
             sb.Append(FileHash);
             sb.Append(FileID);
+            sb.Append(FileSize);
 
             if (FileLocations != null)
             {

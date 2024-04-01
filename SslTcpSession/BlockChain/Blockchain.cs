@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Media.Animation;
 
 
 namespace SslTcpSession.BlockChain
@@ -14,10 +17,10 @@ namespace SslTcpSession.BlockChain
     public static class Blockchain
     {
 
-        private static readonly double _newFileCreditPrice = 10;
         private static readonly double _savedFileReward = 2.5;
+        private static readonly double _sizeToPrizeConversion = .00001;
 
-        public static List<Block> Chain { get; } = new List<Block>();
+        public static List<Block> Chain { get; private set; } = new List<Block>();
 
         static Blockchain()
         {
@@ -211,9 +214,19 @@ namespace SslTcpSession.BlockChain
             return null;
         }
 
-        //public async Task<BlockValidationResult> Add_AddFileRequest(string fileHash, out Guid fileId)
-        public static async Task<BlockValidationResult> Add_AddFileRequest(string fileHash)
+        public static async Task<BlockValidationResult> Add_AddFileRequest(string pathToFileForRequest)
         {
+            if (NodeDiscovery.IsSynchronizationOlderThanMaxOldSynchronizationTime())
+            {
+                return BlockValidationResult.OLD_SYNCHRONIZATION;
+            }
+
+            double priceOfRequest = CalculatePriceOfFile(pathToFileForRequest, out Int64 fileSize);
+            if (priceOfRequest <= 0)
+            {
+                return BlockValidationResult.UNABLE_TO_CALCULATE_PRIZE_OF_REQUEST;
+            }
+
             Guid fileId = Guid.NewGuid();
 
             double creditValue = 0;
@@ -223,32 +236,49 @@ namespace SslTcpSession.BlockChain
                 creditValue = creditBlock.NewCreditValue;
             }
 
-            if (creditValue < _newFileCreditPrice)
+            if (creditValue < priceOfRequest)
             {
                 return BlockValidationResult.NOT_ENOUGHT_CREDIT;
             }
             else
             {
-                creditValue -= _newFileCreditPrice;
+                creditValue -= priceOfRequest;
             }
 
             Block newBlock = new Block
             {
                 Index = Chain.Count,
                 Timestamp = DateTime.UtcNow,
-                FileHash = fileHash,
+                FileHash = CalculateHashOfFile(pathToFileForRequest),
                 PreviousHash = Chain[Chain.Count - 1].Hash,
                 Transaction = TransactionType.ADD_FILE_REQUEST,
                 FileID = fileId,
                 NodeId = NodeDiscovery.GetMyNode().Id,
-                CreditChange = -_newFileCreditPrice,
-                NewCreditValue = creditValue
+                CreditChange = -priceOfRequest,
+                NewCreditValue = creditValue,
+                FileSize = fileSize
             };
 
             newBlock.ComputeHash();
             newBlock.SignHash();
 
             return await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
+        }
+
+        public static string CalculateHashOfFile(string pathToFile)
+        {
+            if (File.Exists(pathToFile))
+            {
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    using (FileStream fileStream = File.OpenRead(pathToFile))
+                    {
+                        byte[] hashValue = sha256.ComputeHash(fileStream);
+                        return BitConverter.ToString(hashValue).Replace("-", String.Empty).ToLowerInvariant();
+                    }
+                }
+            }
+            return string.Empty;
         }
 
         public static async Task<BlockValidationResult> Add_RemoveFileRequest(Guid fileId)
@@ -374,6 +404,25 @@ namespace SslTcpSession.BlockChain
             return true;
         }
 
+        public static double CalculatePriceOfFile(string pathWithFile, out Int64 fileSize)
+        {
+            fileSize = -1;
+            if (File.Exists(pathWithFile))
+            {
+                FileInfo fileInfo = new FileInfo(pathWithFile);
+                fileSize = fileInfo.Length;
+
+                return CalculatePriceOfFile(fileSize);
+            }
+            return -1;
+        }
+
+        public static double CalculatePriceOfFile(double sizeOfFile)
+        {
+            double price = sizeOfFile * _sizeToPrizeConversion;
+            return price > 0 ? price : _sizeToPrizeConversion;
+        }
+
         public static BlockValidationResult IsNewBlockValid(Block newBlock, Node fromNode)
         {
 
@@ -487,8 +536,13 @@ namespace SslTcpSession.BlockChain
 
         private static BlockValidationResult ValidateAddFileRequest(Block newBlock)
         {
+            if (newBlock.FileSize <= 0)
+            {
+                return BlockValidationResult.INVALID_SIZE_OF_FILE;
+            }
+
             // Check for right price for operation
-            if (newBlock.CreditChange != -_newFileCreditPrice)
+            if (newBlock.CreditChange != -CalculatePriceOfFile(newBlock.FileSize))
             {
                 return BlockValidationResult.INVALID_PRICE_CALCULATION;
             }
@@ -506,7 +560,7 @@ namespace SslTcpSession.BlockChain
                 return BlockValidationResult.FILE_DOES_NOT_EXIST;
             }
 
-            // Check if this file is not flaged to remove
+            // Check if this pathWithFile is not flaged to remove
             if (IsFileFlaggedToBeRemoved(newBlock.FileID))
             {
                 return BlockValidationResult.FILE_IS_FLAGED_TO_BE_REMOVED;
@@ -514,7 +568,7 @@ namespace SslTcpSession.BlockChain
 
             // Create virtual new end point list
             List<IpAndPortEndPoint>? endPoints = null;
-            // If its Add file request - create new list
+            // If its Add pathWithFile request - create new list
             if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
             {
                 endPoints = new List<IpAndPortEndPoint>();
@@ -681,6 +735,11 @@ namespace SslTcpSession.BlockChain
                 sb.Append(block.ToJson()).Append('\n');
             }
             return sb.ToString();
+        }
+
+        public static void LoadedChainFromDb(List<Block> chain)
+        {
+            Chain = chain;
         }
     }
 }

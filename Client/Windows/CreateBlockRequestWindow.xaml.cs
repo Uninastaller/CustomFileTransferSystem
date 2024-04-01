@@ -5,6 +5,7 @@ using ConfigManager;
 using Logger;
 using SslTcpSession.BlockChain;
 using System;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows;
@@ -81,11 +82,27 @@ namespace Client.Windows
                 button.IsEnabled = false;
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
 
+                BlockValidationResult result;
+
                 switch (_selectedTransactionType)
                 {
                     case TransactionType.ADD_FILE:
                         break;
                     case TransactionType.ADD_FILE_REQUEST:
+
+                        if (!File.Exists(tbChooseFile.Text))
+                        {
+                            ShowTimedMessageAndEnableUI("Chosen file do not exist!", TimeSpan.FromSeconds(3), button);
+                            return;
+                        }
+
+                        result = await Blockchain.Add_AddFileRequest(tbChooseFile.Text);
+                        if (result == BlockValidationResult.VALID)
+                        {
+                            button.Visibility = Visibility.Collapsed;
+                        }
+                        ShowTimedMessageAndEnableUI(result.ToString(), TimeSpan.FromSeconds(10), button);
+
                         break;
                     case TransactionType.REMOVE_FILE:
                         break;
@@ -98,7 +115,7 @@ namespace Client.Windows
                             ShowTimedMessageAndEnableUI("Invalid credit to add", TimeSpan.FromSeconds(3), button);
                             return;
                         }
-                        BlockValidationResult result = await Blockchain.Add_AddCredit(creditToAdd);
+                        result = await Blockchain.Add_AddCredit(creditToAdd);
                         if (result == BlockValidationResult.VALID)
                         {
                             button.Visibility = Visibility.Collapsed;
@@ -113,6 +130,46 @@ namespace Client.Windows
             }
         }
 
+        private void DropArea_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void DropArea_Drop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files == null || files.Length != 1)
+            {
+                return;
+            }
+
+            tbChooseFile.Text = files[0];
+            tblPriceOfRequest.Text = $"Price of request: {Blockchain.CalculatePriceOfFile(tbChooseFile.Text, out _)}";
+        }
+        private void btnChooseFile_Click(object sender, RoutedEventArgs e)
+        {
+            var fileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "All files (*.*)|*.*"
+            };
+            bool? result = fileDialog.ShowDialog();
+
+            if (result == true)
+            {
+                tbChooseFile.Text = fileDialog.FileName;
+
+                tblPriceOfRequest.Text = $"Price of request: {Blockchain.CalculatePriceOfFile(tbChooseFile.Text, out _)}";
+            }
+        }
+
         #endregion Events
 
         #region PrivateMethods
@@ -124,26 +181,62 @@ namespace Client.Windows
                 case TransactionType.ADD_FILE:
                     tbCreditToAdd.Visibility = Visibility.Collapsed;
                     tblCreditToAdd.Visibility = Visibility.Collapsed;
+
+                    tblChooseFile.Visibility = Visibility.Collapsed;
+                    gdChooseFile.Visibility = Visibility.Collapsed;
+                    tbChooseFile.Visibility = Visibility.Collapsed;
+                    btnChooseFile.Visibility = Visibility.Collapsed;
+                    tblPriceOfRequest.Visibility = Visibility.Collapsed;
                     break;
                 case TransactionType.ADD_FILE_REQUEST:
                     tbCreditToAdd.Visibility = Visibility.Collapsed;
                     tblCreditToAdd.Visibility = Visibility.Collapsed;
+
+                    tblChooseFile.Visibility = Visibility.Visible;
+                    gdChooseFile.Visibility = Visibility.Visible;
+                    tbChooseFile.Visibility = Visibility.Visible;
+                    btnChooseFile.Visibility = Visibility.Visible;
+                    tblPriceOfRequest.Visibility = Visibility.Visible;
                     break;
                 case TransactionType.REMOVE_FILE:
                     tbCreditToAdd.Visibility = Visibility.Collapsed;
                     tblCreditToAdd.Visibility = Visibility.Collapsed;
+
+                    tblChooseFile.Visibility = Visibility.Collapsed;
+                    gdChooseFile.Visibility = Visibility.Collapsed;
+                    tbChooseFile.Visibility = Visibility.Collapsed;
+                    btnChooseFile.Visibility = Visibility.Collapsed;
+                    tblPriceOfRequest.Visibility = Visibility.Collapsed;
                     break;
                 case TransactionType.REMOVE_FILE_REQUEST:
                     tbCreditToAdd.Visibility = Visibility.Collapsed;
                     tblCreditToAdd.Visibility = Visibility.Collapsed;
+
+                    tblChooseFile.Visibility = Visibility.Collapsed;
+                    gdChooseFile.Visibility = Visibility.Collapsed;
+                    tbChooseFile.Visibility = Visibility.Collapsed;
+                    btnChooseFile.Visibility = Visibility.Collapsed;
+                    tblPriceOfRequest.Visibility = Visibility.Collapsed;
                     break;
                 case TransactionType.ADD_CREDIT:
                     tbCreditToAdd.Visibility = Visibility.Visible;
                     tblCreditToAdd.Visibility = Visibility.Visible;
+
+                    tblChooseFile.Visibility = Visibility.Collapsed;
+                    gdChooseFile.Visibility = Visibility.Collapsed;
+                    tbChooseFile.Visibility = Visibility.Collapsed;
+                    btnChooseFile.Visibility = Visibility.Collapsed;
+                    tblPriceOfRequest.Visibility = Visibility.Collapsed;
                     break;
                 case null:
                     tbCreditToAdd.Visibility = Visibility.Collapsed;
                     tblCreditToAdd.Visibility = Visibility.Collapsed;
+
+                    tblChooseFile.Visibility = Visibility.Collapsed;
+                    gdChooseFile.Visibility = Visibility.Collapsed;
+                    tbChooseFile.Visibility = Visibility.Collapsed;
+                    btnChooseFile.Visibility = Visibility.Collapsed;
+                    tblPriceOfRequest.Visibility = Visibility.Collapsed;
                     break;
             }
         }

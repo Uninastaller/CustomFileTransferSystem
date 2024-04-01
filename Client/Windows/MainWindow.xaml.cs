@@ -646,9 +646,10 @@ namespace Client.Windows
             dtgReplicaLogs.ItemsSource = replicaLogs;
         }
 
-        private async Task ReloadBlockchainToDatagrid()
+        private async Task ReloadBlockchainFromDb()
         {
             List<Block> blockchain = await SqliteDataAccessReplicaLog.GetAllBlocksAsync();
+            Blockchain.LoadedChainFromDb(blockchain);
             dtgBlockchain.ItemsSource = blockchain;
         }
 
@@ -1167,7 +1168,7 @@ namespace Client.Windows
             {
                 button.IsEnabled = false;
                 Log.WriteLog(LogLevel.DEBUG, button.Name);
-                await ReloadBlockchainToDatagrid();
+                await ReloadBlockchainFromDb();
                 ShowTimedMessageAndEnableUI("Blockchain reloaded!", TimeSpan.FromSeconds(3), button);
             }
         }
