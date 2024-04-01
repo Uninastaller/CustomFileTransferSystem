@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\SslTcpSession\SslTcpSession.csproj" />
   </ItemGroup>
 
 </Project>

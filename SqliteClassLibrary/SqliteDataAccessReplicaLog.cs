@@ -1,6 +1,7 @@
 ﻿using Common.Enum;
 using Common.Model;
 using Dapper;
+using SslTcpSession.BlockChain;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -29,6 +30,9 @@ namespace CentralServer
 
         private static string QueryToFetchAllReplicaLogFilesDto => @"
             SELECT * FROM ReplicaLog";
+
+        private static string QueryToFetchAllBlocksFromBlockchainDto => @"
+            SELECT * FROM Blockchain";
 
         #endregion PrivateFields
 
@@ -60,6 +64,36 @@ namespace CentralServer
 
                     transaction.Commit();
                 }
+            }
+        }
+
+        public static async Task InsertNewBlockAsync(Block block)
+        {
+            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            {
+                cnn.Open();
+                using (IDbTransaction transaction = cnn.BeginTransaction())
+                {
+                    // Execute the query asynchronously with parameters
+                    await cnn.ExecuteAsync("INSERT OR IGNORE INTO Blockchain (\"Index\", Timestamp, FileHash, FileID, FileLocationsInJsonFormat, \"Transaction\", Hash, PreviousHash, NodeId, CreditChange, NewCreditValue, SignedHash)" +
+                        " VALUES (@Index, @Timestamp, @FileHash, @FileIDAsString, @FileLocationsInJsonFormat, @Transaction, @Hash, @PreviousHash, @NodeIdAsString, @CreditChange, @NewCreditValue, @SignedHash)",
+                        block, transaction: transaction);
+
+                    transaction.Commit();
+                }
+            }
+        }
+
+        public static async Task<List<Block>> GetAllBlocksAsync()
+        {
+            return await ExecuteQueryForBlockchain(QueryToFetchAllBlocksFromBlockchainDto);
+        }
+
+        private static async Task<List<Block>> ExecuteQueryForBlockchain(string query)
+        {
+            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            {
+                return (await cnn.QueryAsync<Block>(query).ConfigureAwait(false)).ToList();
             }
         }
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SslTcpSession.BlockChain
 {
@@ -12,15 +13,43 @@ namespace SslTcpSession.BlockChain
         public Int32 Index { get; set; }
         public DateTime Timestamp { get; set; }
         public string FileHash { get; set; } = string.Empty; // For integrity check
-        public Guid FileID { get; set; } // Unique identifier for the file
+
+        public Guid FileID { get; set; }   // Unique identifier for the file
+
+        [JsonIgnore]
+        public string FileIDAsString    
+        {
+            get => FileID.ToString();
+            set => FileID = Guid.Parse(value);
+        }
+
         public List<IpAndPortEndPoint>? FileLocations { get; set; }
         public TransactionType Transaction { get; set; }
         public string Hash { get; set; } = string.Empty;
         public string PreviousHash { get; set; } = string.Empty;
-        public Guid NodeId { get; set; }
+
+        public Guid NodeId {  get; set; }
+
+        [JsonIgnore]
+        public string NodeIdAsString
+        {
+            get => NodeId.ToString();
+            set => NodeId = Guid.Parse(value);
+        }
+
         public double CreditChange { get; set; }
         public double NewCreditValue { get; set; }
         public string SignedHash { get; set; } = string.Empty;
+
+        // FOR datagrid
+        [JsonIgnore]
+        public string TimeInCustomFormat => Timestamp.ToString("dd.MM.yyyy HH:mm:ss:fff");
+        [JsonIgnore]
+        public string FileLocationsInJsonFormat
+        {
+            get => JsonSerializer.Serialize(FileLocations);
+            set => FileLocations = JsonSerializer.Deserialize<List<IpAndPortEndPoint>>(value);
+        }
 
         public void ComputeHash()
         {

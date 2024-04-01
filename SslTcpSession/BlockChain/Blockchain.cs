@@ -27,12 +27,23 @@ namespace SslTcpSession.BlockChain
 
         private static Block CreateGenesisBlock()
         {
-            return new Block
+            Block genesis = new Block
             {
                 Index = 0,
                 Timestamp = DateTime.UtcNow,
                 PreviousHash = "0"
             };
+
+            // TESTING DB
+            genesis.FileLocations = new List<IpAndPortEndPoint>()
+            {
+                new IpAndPortEndPoint() { IpAddress = "12", Port = 9},
+                new IpAndPortEndPoint(){ IpAddress = "wdas", Port = 12}
+            };
+            genesis.FileID = Guid.NewGuid();
+
+            genesis.ComputeHash();
+            return genesis;
         }
 
         public static async Task<BlockValidationResult> Add_AddCredit(double creditValueToAdd)

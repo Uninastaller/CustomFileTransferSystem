@@ -524,6 +524,8 @@ namespace Client.Windows
                                     Blockchain.AddBlockAfterConsensus(_pbftCorrespondingBlockForAwaiter);
                                     _pbftAwaiter.BlockAdded();
                                     _pbftAwaiter = null;
+
+                                    SqliteDataAccessReplicaLog.InsertNewBlockAsync(_pbftCorrespondingBlockForAwaiter);
                                 }
                             }
                         }
@@ -641,6 +643,12 @@ namespace Client.Windows
         {
             List<PbftReplicaLogDto> replicaLogs = await SqliteDataAccessReplicaLog.GetAllLogsAsync();
             dtgReplicaLogs.ItemsSource = replicaLogs;
+        }
+
+        private async Task ReloadBlockchainToDatagrid()
+        {
+            List<Block> blockchain = await SqliteDataAccessReplicaLog.GetAllBlocksAsync();
+            dtgBlockchain.ItemsSource = blockchain;
         }
 
         #endregion PrivateMethods
@@ -1150,6 +1158,19 @@ namespace Client.Windows
             }
         }
 
+        private async void btnReloadBlockchain_Click(object sender, RoutedEventArgs e)
+        {
+            await SqliteDataAccessReplicaLog.InsertNewBlockAsync(Blockchain.Chain[0]);
+
+            if (sender is Button button)
+            {
+                button.IsEnabled = false;
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+                await ReloadBlockchainToDatagrid();
+                ShowTimedMessageAndEnableUI("Blockchain reloaded!", TimeSpan.FromSeconds(3), button);
+            }
+        }
+
         #endregion Events
 
         #region OverridedMethods
@@ -1157,5 +1178,6 @@ namespace Client.Windows
 
 
         #endregion OverridedMethods
+
     }
 }
