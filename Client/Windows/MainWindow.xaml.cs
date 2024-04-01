@@ -202,6 +202,7 @@ namespace Client.Windows
         private IUniversalServerSocket? _uploadingServerBussinessLogic;
 
         private IWindowEnqueuer? _nodeSettingsWindow;
+        private IWindowEnqueuer? _createBlockRequestWindow;
 
         private PbftAwaiter? _pbftAwaiter;
         private Block? _pbftCorrespondingBlockForAwaiter;
@@ -1171,6 +1172,23 @@ namespace Client.Windows
             }
         }
 
+        private void btnCreateBlockRequest_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button)
+            {
+                Log.WriteLog(LogLevel.DEBUG, button.Name);
+
+                if (_createBlockRequestWindow == null || !_createBlockRequestWindow.IsOpen())
+                {
+                    _createBlockRequestWindow = BaseWindowForWPF.CreateWindow<CreateBlockRequestWindow>();
+                }
+                else
+                {
+                    _createBlockRequestWindow.BaseMsgEnque(new WindowStateSetMessage());
+                }
+            }
+        }
+
         #endregion Events
 
         #region OverridedMethods
@@ -1179,9 +1197,5 @@ namespace Client.Windows
 
         #endregion OverridedMethods
 
-        private void btnCreateRequest_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

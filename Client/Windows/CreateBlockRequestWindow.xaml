@@ -1,0 +1,112 @@
+﻿<model:BaseWindowForWPF x:Class="Client.Windows.CreateBlockRequestWindow"
+        xmlns:model="clr-namespace:Common.Model;assembly=Common"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Client.Windows"
+        mc:Ignorable="d"
+        Title="NewBlockRequest" 
+        Height="400"
+        Width="350"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="30" ShadowDepth="2" Direction="-90" Color="Gray"/>
+        </Grid.Effect>
+
+        <Border CornerRadius="0" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+
+            <Grid>
+
+                <Button Style="{StaticResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
+                     VerticalAlignment="Top" HorizontalAlignment="Right"
+                     Height="25" Width="25"/>
+
+                <Label Name="lbTitle" Content="Block Request" HorizontalAlignment="Right" VerticalAlignment="Bottom" Panel.ZIndex="1"
+                    Height="24"
+                    FontFamily="Consolas"
+                    Foreground="Gray"
+                    FontWeight="Bold"/>
+
+                <Border x:Name="brdSecond" CornerRadius="0" BorderThickness="20">
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#4e3926" Offset="0"/>
+                            <GradientStop Color="#453a26" Offset=".33"/>
+                            <GradientStop Color="#753b22" Offset=".66"/>
+                            <GradientStop Color="#383838" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+
+                    <Grid x:Name="gdMain">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                            <RowDefinition Height="20"></RowDefinition>
+                        </Grid.RowDefinitions>
+
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#4e3926" Offset="0"/>
+                                <GradientStop Color="#453a26" Offset=".33"/>
+                                <GradientStop Color="#753b22" Offset=".66"/>
+                                <GradientStop Color="#383838" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Grid.Background>
+
+                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tblId" Grid.Row="1" Grid.Column="1"
+                           Text="Transaction"
+                           FontFamily="Arial"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Grid.ColumnSpan="12"/>
+                        <ComboBox SelectionChanged="cbTransaction_SelectionChanged"
+                            x:Name="cbTransaction"
+                            Grid.Row="2" Grid.Column="1"
+                            Width="250"/>
+
+                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tblCreditToAdd" Grid.Row="3" Grid.Column="1" Margin="0,10,0,0"
+                           Text="Credit to add"
+                           FontFamily="Arial"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Grid.ColumnSpan="12"/>
+                        <TextBox Style="{StaticResource TextBoxStyle}"
+                            x:Name="tbCreditToAdd"
+                            Grid.Row="4" Grid.Column="1"
+                            Width="250"/>
+
+                        <Button Style="{StaticResource SaveButtonStyle}" x:Name="btnSave" Grid.Column="1" Grid.Row="9" Width="30" Height="30" HorizontalAlignment="Center"
+                            Margin="0,15,0,0" ToolTip="Submit" Click="btnSave_Click"/>
+                        
+                        <TextBlock x:Name="tbSuccessMessage"  Style="{StaticResource SuccessMessageStyle}" 
+                                   Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
+                                   Text="Invalid request!" Foreground="{StaticResource TextColorDefault}" Visibility="Visible" 
+                                   Padding="20,0" Width="Auto" Height="20"/>
+
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</model:BaseWindowForWPF>
