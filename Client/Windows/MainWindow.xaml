@@ -595,7 +595,7 @@
                                             <DataGridTextColumn Header="HashOfRequest" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding HashOfRequest}"/>
                                             <DataGridTextColumn Header="ReceiverId" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding ReceiverId}"/>
                                             <DataGridTextColumn Header="SenderId" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding SenderId}"/>
-                                            <DataGridTextColumn Header="Message" IsReadOnly="True" CanUserResize="False" Width="auto" MaxWidth="150" Binding="{Binding Message}"/>
+                                            <DataGridTextColumn Header="Message" IsReadOnly="True" CanUserResize="False" Width="auto" Binding="{Binding Message}"/>
 
                                         </DataGrid.Columns>
                                     </DataGrid>

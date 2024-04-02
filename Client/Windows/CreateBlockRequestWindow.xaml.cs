@@ -84,6 +84,27 @@ namespace Client.Windows
             switch (_selectedTransactionType)
             {
                case TransactionType.ADD_FILE:
+
+                  string fileId = cbChooseFileIdForAdd.Text;
+                  if (string.IsNullOrEmpty(fileId) || !Guid.TryParse(fileId, out Guid fileGuid))
+                  {
+                     ShowTimedMessageAndEnableUI("Invalid file id", TimeSpan.FromSeconds(3), button);
+                     return;
+                  }
+
+                  if (!NodeDiscovery.GetMyNode().TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endpoint))
+                  {
+                     ShowTimedMessageAndEnableUI("Prgram can not detect your endpoint!", TimeSpan.FromSeconds(3), button);
+                     return;
+                  }
+
+                  result = await Blockchain.Add_AddFile(fileGuid, endpoint);
+                  if (result == BlockValidationResult.VALID)
+                  {
+                     button.Visibility = Visibility.Collapsed;
+                  }
+                  ShowTimedMessageAndEnableUI(result.ToString(), TimeSpan.FromSeconds(10), button);
+
                   break;
                case TransactionType.ADD_FILE_REQUEST:
 
@@ -111,14 +132,14 @@ namespace Client.Windows
                      return;
                   }
 
-                  string fileId = cbChooseFileIdForRemove.Text;
-                  if (string.IsNullOrEmpty(fileId) || !Guid.TryParse(fileId, out Guid fileGuid))
+                  string fileIdToRemove = cbChooseFileIdForRemove.Text;
+                  if (string.IsNullOrEmpty(fileIdToRemove) || !Guid.TryParse(fileIdToRemove, out Guid fileGuidToRemove))
                   {
                      ShowTimedMessageAndEnableUI("Invalid file id", TimeSpan.FromSeconds(3), button);
                      return;
                   }
 
-                  result = await Blockchain.Add_RemoveFileRequest(fileGuid);
+                  result = await Blockchain.Add_RemoveFileRequest(fileGuidToRemove);
                   if (result == BlockValidationResult.VALID)
                   {
                      button.Visibility = Visibility.Collapsed;
@@ -208,6 +229,10 @@ namespace Client.Windows
 
                cbChooseFileIdForRemove.Visibility = Visibility.Collapsed;
                tblChooseFileIdForRemove.Visibility = Visibility.Collapsed;
+
+               cbChooseFileIdForAdd.Visibility = Visibility.Visible;
+               tblChooseFileIdForAdd.Visibility = Visibility.Visible;
+               cbChooseFileIdForAdd.ItemsSource = Blockchain.GetPossibleGuidsForAddRequest();
                break;
             case TransactionType.ADD_FILE_REQUEST:
                tbCreditToAdd.Visibility = Visibility.Collapsed;
@@ -221,6 +246,9 @@ namespace Client.Windows
 
                cbChooseFileIdForRemove.Visibility = Visibility.Collapsed;
                tblChooseFileIdForRemove.Visibility = Visibility.Collapsed;
+
+               cbChooseFileIdForAdd.Visibility = Visibility.Collapsed;
+               tblChooseFileIdForAdd.Visibility = Visibility.Collapsed;
                break;
             case TransactionType.REMOVE_FILE:
                tbCreditToAdd.Visibility = Visibility.Collapsed;
@@ -234,6 +262,9 @@ namespace Client.Windows
 
                cbChooseFileIdForRemove.Visibility = Visibility.Collapsed;
                tblChooseFileIdForRemove.Visibility = Visibility.Collapsed;
+
+               cbChooseFileIdForAdd.Visibility = Visibility.Collapsed;
+               tblChooseFileIdForAdd.Visibility = Visibility.Collapsed;
                break;
             case TransactionType.REMOVE_FILE_REQUEST:
                tbCreditToAdd.Visibility = Visibility.Collapsed;
@@ -249,6 +280,8 @@ namespace Client.Windows
                tblChooseFileIdForRemove.Visibility = Visibility.Visible;
                cbChooseFileIdForRemove.ItemsSource = Blockchain.GetPossibleGuidsForRemoveRequest(NodeDiscovery.GetMyNode().Id);
 
+               cbChooseFileIdForAdd.Visibility = Visibility.Collapsed;
+               tblChooseFileIdForAdd.Visibility = Visibility.Collapsed;
                break;
             case TransactionType.ADD_CREDIT:
                tbCreditToAdd.Visibility = Visibility.Visible;
@@ -262,6 +295,9 @@ namespace Client.Windows
 
                cbChooseFileIdForRemove.Visibility = Visibility.Collapsed;
                tblChooseFileIdForRemove.Visibility = Visibility.Collapsed;
+
+               cbChooseFileIdForAdd.Visibility = Visibility.Collapsed;
+               tblChooseFileIdForAdd.Visibility = Visibility.Collapsed;
                break;
             case null:
                tbCreditToAdd.Visibility = Visibility.Collapsed;
@@ -272,8 +308,12 @@ namespace Client.Windows
                tbChooseFile.Visibility = Visibility.Collapsed;
                btnChooseFile.Visibility = Visibility.Collapsed;
                tblPriceOfRequest.Visibility = Visibility.Collapsed;
+
                cbChooseFileIdForRemove.Visibility = Visibility.Collapsed;
                tblChooseFileIdForRemove.Visibility = Visibility.Collapsed;
+
+               cbChooseFileIdForAdd.Visibility = Visibility.Collapsed;
+               tblChooseFileIdForAdd.Visibility = Visibility.Collapsed;
                break;
          }
       }
