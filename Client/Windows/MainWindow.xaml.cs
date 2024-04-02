@@ -1143,12 +1143,6 @@ namespace Client.Windows
             }
         }
 
-        private async void btnSendPbftRequest_Click(object sender, RoutedEventArgs e)
-        {
-            // TESTING
-            BlockValidationResult result = await Blockchain.Add_AddCredit(12.45);
-        }
-
         private async void btnReloadReplicaLogs_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button)

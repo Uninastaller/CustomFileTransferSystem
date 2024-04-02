@@ -73,7 +73,7 @@ namespace ConfigManager
             if (parseMethod != null)
             {
                object? result = parseMethod.Invoke(null, new object[] { value });
-               if (result != null && result is T Tresult)
+               if (result is T Tresult)
                {
                   return Tresult;
                }

@@ -61,6 +61,8 @@
                             <RowDefinition Height="auto"></RowDefinition>
                             <RowDefinition Height="auto"></RowDefinition>
                             <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
+                            <RowDefinition Height="auto"></RowDefinition>
                             <RowDefinition Height="*"></RowDefinition>
                             <RowDefinition Height="20"></RowDefinition>
                         </Grid.RowDefinitions>
@@ -115,11 +117,21 @@
                            FontWeight="Bold"
                            Grid.ColumnSpan="12"/>
 
-                        <Button Style="{StaticResource SaveButtonStyle}" x:Name="btnSave" Grid.Column="1" Grid.Row="9" Width="30" Height="30" HorizontalAlignment="Center"
+                        <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tblChooseFileIdForRemove" Grid.Row="8" Grid.Column="1"
+                                   Text="Choose File Id For Remove"
+                                   FontFamily="Arial"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Grid.ColumnSpan="12"/>
+                        <ComboBox x:Name="cbChooseFileIdForRemove"
+                                  Grid.Row="9" Grid.Column="1"
+                                  Width="350"/>
+
+                        <Button Style="{StaticResource SaveButtonStyle}" x:Name="btnSave" Grid.Column="1" Grid.Row="10" Width="30" Height="30" HorizontalAlignment="Center"
                             Margin="0,15,0,0" ToolTip="Submit" Click="btnSave_Click"/>
                         
                         <TextBlock x:Name="tbSuccessMessage"  Style="{StaticResource SuccessMessageStyle}" 
-                                   Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
+                                   Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="13" HorizontalAlignment="Center"
                                    Text="Invalid request!" Foreground="{StaticResource TextColorDefault}" Visibility="Visible" 
                                    Padding="20,0" Width="Auto" Height="20"/>
 

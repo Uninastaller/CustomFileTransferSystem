@@ -30,5 +30,6 @@ namespace SslTcpSession.BlockChain
       OLD_SYNCHRONIZATION = 19,
       UNABLE_TO_CALCULATE_PRIZE_OF_REQUEST = 20,
       INVALID_SIZE_OF_FILE = 21,
+      YOU_ARE_NOT_FILE_OWNER = 22,
    }
 }
