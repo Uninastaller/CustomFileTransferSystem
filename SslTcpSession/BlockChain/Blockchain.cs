@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 
 namespace SslTcpSession.BlockChain
@@ -20,6 +21,8 @@ namespace SslTcpSession.BlockChain
       private static readonly double _sizeToPrizeConversion = .00001;
 
       public static List<Block> Chain { get; private set; } = new List<Block>();
+
+      private static Dictionary<Guid, string> _pathsToAddRequestFiles = new Dictionary<Guid, string>();
 
       static Blockchain()
       {
@@ -82,11 +85,16 @@ namespace SslTcpSession.BlockChain
          return await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public static async Task<BlockValidationResult> Add_AddFile(Guid fileId, IpAndPortEndPoint myEndPoint)
+      public static async Task<BlockValidationResult> Add_AddFile(Guid fileId)
       {
          if (NodeDiscovery.IsSynchronizationOlderThanMaxOldSynchronizationTime())
          {
             return BlockValidationResult.OLD_SYNCHRONIZATION;
+         }
+
+         if (!NodeDiscovery.GetMyNode().TryGetNodeCustomEndpoint(out IpAndPortEndPoint? myEndPoint))
+         {
+            return BlockValidationResult.INVALID_NODE_ENDPOINT;
          }
 
          Block? block = FindLatestFileUpdate(fileId);
@@ -265,7 +273,14 @@ namespace SslTcpSession.BlockChain
          newBlock.ComputeHash();
          newBlock.SignHash();
 
-         return await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
+         var result = await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
+
+         if (result == BlockValidationResult.VALID)
+         {
+            _pathsToAddRequestFiles.Add(fileId, pathToFileForRequest);
+         }
+
+         return result;
       }
 
       public static string CalculateHashOfFile(string pathToFile)
@@ -738,6 +753,22 @@ namespace SslTcpSession.BlockChain
       {
          Chain.Add(block);
          Logger.Log.WriteLog(Logger.LogLevel.INFO, "BlockChain: " + PrintChain());
+
+         if (block.Transaction == TransactionType.ADD_FILE_REQUEST && block.NodeId == NodeDiscovery.GetMyNode().Id)
+         {
+            Logger.Log.WriteLog(Logger.LogLevel.INFO, $"My add file request was succesfully added to chain, ready to prepare file: {block.FileID}!");
+            if (!_pathsToAddRequestFiles.TryGetValue(block.FileID, out string? path) || string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+               Logger.Log.WriteLog(Logger.LogLevel.ERROR, $"Program cant find file: {block.FileID}");
+               return;
+            }
+
+            bool success = DataEncryptor.EncryptFile(path, block.FileID.ToString(),
+               MyConfigManager.GetConfigStringValue("BlockchainUploadFileDirectory"),
+               Certificats.GetCertificate("ReplicaXY", Certificats.CertificateType.Node));
+
+            Logger.Log.WriteLog(Logger.LogLevel.INFO, $"Encryption successed on file: {path}");
+         }
       }
 
       public static string PrintChain()

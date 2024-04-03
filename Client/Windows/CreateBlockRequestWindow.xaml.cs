@@ -19,7 +19,6 @@ namespace Client.Windows
    {
       #region PrivatFields
 
-      private readonly Block _requestingBlock = new Block();
       private TransactionType? _selectedTransactionType = null;
 
       #endregion PrivatFields
@@ -92,13 +91,7 @@ namespace Client.Windows
                      return;
                   }
 
-                  if (!NodeDiscovery.GetMyNode().TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endpoint))
-                  {
-                     ShowTimedMessageAndEnableUI("Prgram can not detect your endpoint!", TimeSpan.FromSeconds(3), button);
-                     return;
-                  }
-
-                  result = await Blockchain.Add_AddFile(fileGuid, endpoint);
+                  result = await Blockchain.Add_AddFile(fileGuid);
                   if (result == BlockValidationResult.VALID)
                   {
                      button.Visibility = Visibility.Collapsed;
@@ -190,8 +183,15 @@ namespace Client.Windows
             return;
          }
 
+         if (!File.Exists(files[0]))
+         {
+            return;
+         }
+
          tbChooseFile.Text = files[0];
+
          tblPriceOfRequest.Text = $"Price of request: {Blockchain.CalculatePriceOfFile(tbChooseFile.Text, out _)}";
+
       }
       private void btnChooseFile_Click(object sender, RoutedEventArgs e)
       {
