@@ -31,5 +31,7 @@ namespace SslTcpSession.BlockChain
       UNABLE_TO_CALCULATE_PRIZE_OF_REQUEST = 20,
       INVALID_SIZE_OF_FILE = 21,
       YOU_ARE_NOT_FILE_OWNER = 22,
+      UNABLE_TO_ENCRYPT_FILE = 23,
+      WRONG_FILE_SIZE = 24,
    }
 }

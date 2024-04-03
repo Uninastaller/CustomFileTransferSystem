@@ -163,7 +163,16 @@ namespace TcpSession
       {
          Log.WriteLog(LogLevel.DEBUG, $"Request was received for file: {filePath} with size: {fileSize}");
 
-         string? uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+         string? uploadingDirectory;
+
+         if (!Guid.TryParse(Path.GetFileName(filePath), out _))
+         {
+            uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+         }
+         else
+         {
+            uploadingDirectory = ConfigurationManager.AppSettings["BlockchainFileDirectoryUpload"];
+         }
          if (uploadingDirectory != null)
          {
             if (!Directory.Exists(uploadingDirectory))

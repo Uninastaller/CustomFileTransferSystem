@@ -11,13 +11,36 @@ namespace SslTcpSession.BlockChain
 {
    public static class DataEncryptor
    {
-      public static bool EncryptFile(string inputFile, string encryptedFileName, string encryptedFileLocation, X509Certificate2 myCertificate)
+
+      public static string FindEcryptedFileById(Guid id, string folder)
       {
+         string filePath = Path.Combine(folder, id.ToString());
+
+         return File.Exists(filePath) ? filePath : string.Empty;
+      }
+
+      public static bool FindEncryptedFileByIdAndCheckHisSizeAndHash(Guid id, string folder, long excpectedSize, string hashOfFile)
+      {
+         string filePath = FindEcryptedFileById(id, folder);
+
+         if (string.IsNullOrEmpty(filePath)) return false;
+
+         FileInfo fileInfo = new FileInfo(filePath);
+         long fileSize = fileInfo.Length;
+
+         if (fileSize != excpectedSize) return false;
+
+         return Blockchain.CalculateHashOfFile(filePath).Equals(hashOfFile);
+      }
+
+      public static async Task<string> EncryptFileAsync(string inputFile, string encryptedFileName, string encryptedFileLocation, X509Certificate2 myCertificate)
+      {
+         string newFilePath = string.Empty;
 
          // Check if file exist
          if(string.IsNullOrEmpty(inputFile) || !File.Exists(inputFile))
          {
-            return false;
+            return string.Empty;
          }
 
          // Create new file location directory if dont exist
@@ -26,7 +49,7 @@ namespace SslTcpSession.BlockChain
             Directory.CreateDirectory(encryptedFileLocation);
          }
 
-         string encryptedFileNameWithPath = Path.Combine(encryptedFileLocation, encryptedFileName);
+         newFilePath = Path.Combine(encryptedFileLocation, encryptedFileName);
 
          // Získanie verejného kľúča z certifikátu
          RSA? rsaEncryptor = myCertificate.GetRSAPublicKey();
@@ -34,7 +57,7 @@ namespace SslTcpSession.BlockChain
          // Check if we get public key
          if (rsaEncryptor == null)
          {
-            return false;
+            return string.Empty;
          }
 
          using (Aes aes = Aes.Create())
@@ -50,23 +73,23 @@ namespace SslTcpSession.BlockChain
 
             // Zašifrovanie obsahu súboru pomocou AES
             using (FileStream fileStream = File.OpenRead(inputFile))
-            using (FileStream outFileStream = File.Create(encryptedFileNameWithPath))
+            using (FileStream outFileStream = File.Create(newFilePath))
             using (CryptoStream cryptoStream = new CryptoStream(outFileStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
             {
-               fileStream.CopyTo(cryptoStream);
+               await fileStream.CopyToAsync(cryptoStream);
             }
 
             // Uloženie zašifrovaných kľúča a IV na koniec súboru
-            using (FileStream outFileStream = new FileStream(encryptedFileNameWithPath, FileMode.Append))
+            using (FileStream outFileStream = new FileStream(newFilePath, FileMode.Append))
             {
-               outFileStream.Write(encryptedAesKey, 0, encryptedAesKey.Length);
-               outFileStream.Write(encryptedAesIV, 0, encryptedAesIV.Length);
+               await outFileStream.WriteAsync(encryptedAesKey, 0, encryptedAesKey.Length);
+               await outFileStream.WriteAsync(encryptedAesIV, 0, encryptedAesIV.Length);
             }
          }
-         return true;
+         return newFilePath;
       }
 
-      public static bool DecryptFile(string encryptedFile, string decryptedFile, X509Certificate2 myCertificate)
+      public static async Task<bool> DecryptFile(string encryptedFile, string decryptedFile, X509Certificate2 myCertificate)
       {
 
          if (!myCertificate.HasPrivateKey)
@@ -120,12 +143,12 @@ namespace SslTcpSession.BlockChain
                while (totalBytesRead < totalBytesToCopy)
                {
                   int toRead = remainingBytes > buffer.Length ? buffer.Length : (int)remainingBytes;
-                  bytesRead = inFile.Read(buffer, 0, toRead);
+                  bytesRead = await inFile.ReadAsync(buffer, 0, toRead);
                   if (bytesRead == 0) // Ak už neexistujú žiadne dáta na čítanie
                   {
                      break;
                   }
-                  cryptoStream.Write(buffer, 0, bytesRead);
+                  await cryptoStream.WriteAsync(buffer, 0, bytesRead);
                   totalBytesRead += bytesRead;
                   remainingBytes -= bytesRead;
                }

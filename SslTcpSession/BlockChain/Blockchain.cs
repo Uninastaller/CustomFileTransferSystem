@@ -1,4 +1,5 @@
 ﻿using ConfigManager;
+using Logger;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -9,7 +10,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 
 
 namespace SslTcpSession.BlockChain
@@ -22,11 +22,8 @@ namespace SslTcpSession.BlockChain
 
       public static List<Block> Chain { get; private set; } = new List<Block>();
 
-      private static Dictionary<Guid, string> _pathsToAddRequestFiles = new Dictionary<Guid, string>();
-
-      static Blockchain()
+      public static void StartApplication()
       {
-         // Add genesis block
          Chain.Add(CreateGenesisBlock());
       }
 
@@ -38,15 +35,6 @@ namespace SslTcpSession.BlockChain
             Timestamp = DateTime.UtcNow,
             PreviousHash = "0"
          };
-
-         // TESTING DB
-         genesis.FileLocations = new List<IpAndPortEndPoint>()
-            {
-                new IpAndPortEndPoint() { IpAddress = "12", Port = 9},
-                new IpAndPortEndPoint(){ IpAddress = "wdas", Port = 12}
-            };
-         genesis.FileID = Guid.NewGuid();
-         genesis.FileSize = 1237934;
 
          genesis.ComputeHash();
          return genesis;
@@ -141,6 +129,7 @@ namespace SslTcpSession.BlockChain
             CreditChange = _savedFileReward,
             NewCreditValue = creditValue,
             FileLocations = endPoints,
+            FileSize = block.FileSize,
          };
 
          newBlock.ComputeHash();
@@ -232,13 +221,25 @@ namespace SslTcpSession.BlockChain
             return BlockValidationResult.OLD_SYNCHRONIZATION;
          }
 
-         double priceOfRequest = CalculatePriceOfFile(pathToFileForRequest, out Int64 fileSize);
+         Guid fileId = Guid.NewGuid();
+
+         string newFilePath = await DataEncryptor.EncryptFileAsync(pathToFileForRequest, fileId.ToString(),
+            MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryUpload"),
+            Certificats.GetCertificate("ReplicaXY", Certificats.CertificateType.Node));
+
+         Logger.Log.WriteLog(Logger.LogLevel.INFO, $"Encryption completed and encrypted file: {newFilePath}" +
+            $" was created from file: {pathToFileForRequest}");
+
+         if (string.IsNullOrEmpty(newFilePath))
+         {
+            return BlockValidationResult.UNABLE_TO_ENCRYPT_FILE;
+         }
+
+         double priceOfRequest = CalculatePriceOfFile(newFilePath, out Int64 fileSize);
          if (priceOfRequest <= 0)
          {
             return BlockValidationResult.UNABLE_TO_CALCULATE_PRIZE_OF_REQUEST;
          }
-
-         Guid fileId = Guid.NewGuid();
 
          double creditValue = 0;
          Block? creditBlock = FindActualCreditValueOfNode(NodeDiscovery.GetMyNode().Id);
@@ -260,26 +261,20 @@ namespace SslTcpSession.BlockChain
          {
             Index = Chain.Count,
             Timestamp = DateTime.UtcNow,
-            FileHash = CalculateHashOfFile(pathToFileForRequest),
             PreviousHash = Chain[Chain.Count - 1].Hash,
             Transaction = TransactionType.ADD_FILE_REQUEST,
             FileID = fileId,
             NodeId = NodeDiscovery.GetMyNode().Id,
             CreditChange = -priceOfRequest,
             NewCreditValue = creditValue,
-            FileSize = fileSize
+            FileSize = fileSize,
+            FileHash = CalculateHashOfFile(newFilePath)
          };
 
          newBlock.ComputeHash();
          newBlock.SignHash();
 
          var result = await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
-
-         if (result == BlockValidationResult.VALID)
-         {
-            _pathsToAddRequestFiles.Add(fileId, pathToFileForRequest);
-         }
-
          return result;
       }
 
@@ -583,6 +578,11 @@ namespace SslTcpSession.BlockChain
             return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
+         if (newBlock.FileSize != block.FileSize)
+         {
+            return BlockValidationResult.WRONG_FILE_SIZE;
+         }
+
          // Check if this pathWithFile is not flaged to remove
          if (IsFileFlaggedToBeRemoved(newBlock.FileID))
          {
@@ -753,22 +753,6 @@ namespace SslTcpSession.BlockChain
       {
          Chain.Add(block);
          Logger.Log.WriteLog(Logger.LogLevel.INFO, "BlockChain: " + PrintChain());
-
-         if (block.Transaction == TransactionType.ADD_FILE_REQUEST && block.NodeId == NodeDiscovery.GetMyNode().Id)
-         {
-            Logger.Log.WriteLog(Logger.LogLevel.INFO, $"My add file request was succesfully added to chain, ready to prepare file: {block.FileID}!");
-            if (!_pathsToAddRequestFiles.TryGetValue(block.FileID, out string? path) || string.IsNullOrEmpty(path) || !File.Exists(path))
-            {
-               Logger.Log.WriteLog(Logger.LogLevel.ERROR, $"Program cant find file: {block.FileID}");
-               return;
-            }
-
-            bool success = DataEncryptor.EncryptFile(path, block.FileID.ToString(),
-               MyConfigManager.GetConfigStringValue("BlockchainUploadFileDirectory"),
-               Certificats.GetCertificate("ReplicaXY", Certificats.CertificateType.Node));
-
-            Logger.Log.WriteLog(Logger.LogLevel.INFO, $"Encryption successed on file: {path}");
-         }
       }
 
       public static string PrintChain()

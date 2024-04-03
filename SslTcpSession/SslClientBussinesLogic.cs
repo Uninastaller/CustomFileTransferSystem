@@ -297,7 +297,7 @@ namespace SslTcpSession
 
          if (State == ClientBussinesLogicState.REQUEST_SENDED)
          {
-            Log.WriteLog(LogLevel.DEBUG, "Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
+            Log.WriteLog(LogLevel.DEBUG, $"Response was rejected, disconnecting from server and disposing client! [CLIENT]: {Address}:{Port}");
             MessageBox.Show("Request for file was rejected!");
             StopAndDispose();
          }

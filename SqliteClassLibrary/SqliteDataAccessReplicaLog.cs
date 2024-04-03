@@ -9,7 +9,7 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CentralServer
+namespace SqliteClassLibrary
 {
     public class SqliteDataAccessReplicaLog
     {

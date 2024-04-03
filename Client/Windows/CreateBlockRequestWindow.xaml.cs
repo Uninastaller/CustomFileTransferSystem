@@ -190,7 +190,7 @@ namespace Client.Windows
 
          tbChooseFile.Text = files[0];
 
-         tblPriceOfRequest.Text = $"Price of request: {Blockchain.CalculatePriceOfFile(tbChooseFile.Text, out _)}";
+         tblPriceOfRequest.Text = $"Expected price of request: {Blockchain.CalculatePriceOfFile(tbChooseFile.Text, out _)}";
 
       }
       private void btnChooseFile_Click(object sender, RoutedEventArgs e)

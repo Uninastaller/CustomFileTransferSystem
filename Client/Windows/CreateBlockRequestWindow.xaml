@@ -115,7 +115,7 @@
                         <Button Style="{StaticResource SaveButtonStyle}" x:Name="btnChooseFile" Grid.Column="1" Grid.Row="6" Width="15" Height="15" HorizontalAlignment="Right"
                             ToolTip="Browse" Click="btnChooseFile_Click" VerticalAlignment="Bottom" Margin="0,0,0,3"/>
                         <TextBlock Style="{StaticResource TextBlockStyle1}" x:Name="tblPriceOfRequest" Grid.Row="7" Grid.Column="1"
-                           Text="Price of request: 0"
+                           Text="Expected price of request: 0"
                            FontFamily="Arial"
                            FontSize="18"
                            FontWeight="Bold"
