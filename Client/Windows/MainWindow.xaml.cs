@@ -63,6 +63,8 @@ namespace Client.Windows
          }
       }
 
+      public static IWindowEnqueuer? MainWindowQue {  get; private set; }
+
       #endregion Properties
 
       #region UploadingServer
@@ -249,6 +251,8 @@ namespace Client.Windows
 
          // Set to ssl from the start
          swchSocketType.IsOnLeft = false;
+
+         MainWindowQue = this;
       }
 
       #endregion Ctor

@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Timers;
 
 
 namespace SslTcpSession.BlockChain
@@ -20,11 +21,36 @@ namespace SslTcpSession.BlockChain
       private static readonly double _savedFileReward = 2.5;
       private static readonly double _sizeToPrizeConversion = .00001;
 
+      private static readonly Timer _filesCheckingTime = new Timer();
+
       public static List<Block> Chain { get; private set; } = new List<Block>();
 
       public static void StartApplication()
       {
          Chain.Add(CreateGenesisBlock());
+
+         if (MyConfigManager.TryGetIntConfigValue("BlockchainFilesTimeCheckingInterval", out int intervalInMinutes))
+         {
+            _filesCheckingTime.Interval = intervalInMinutes * 1000 * 60;
+            _filesCheckingTime.Elapsed += _filesCheckingTime_Elapsed;
+            _filesCheckingTime.Start();
+         }
+         else
+         {
+            Log.WriteLog(LogLevel.WARNING, "Can not find setting, BlockchainFilesTimeCheckingInterval!");
+         }
+      }
+
+      private static void _filesCheckingTime_Elapsed(object? sender, ElapsedEventArgs e)
+      {
+         // TO DO checking files
+      }
+
+      public static void EndAplication()
+      {
+         _filesCheckingTime.Stop();
+         _filesCheckingTime.Elapsed -= _filesCheckingTime_Elapsed;
+         _filesCheckingTime.Dispose();
       }
 
       private static Block CreateGenesisBlock()
@@ -80,32 +106,27 @@ namespace SslTcpSession.BlockChain
             return BlockValidationResult.OLD_SYNCHRONIZATION;
          }
 
-         if (!NodeDiscovery.GetMyNode().TryGetNodeCustomEndpoint(out IpAndPortEndPoint? myEndPoint))
-         {
-            return BlockValidationResult.INVALID_NODE_ENDPOINT;
-         }
-
          Block? block = FindLatestFileUpdate(fileId);
          if (block == null || !block.FileHash.Equals(block.FileHash))
          {
             return BlockValidationResult.FILE_DOES_NOT_EXIST;
          }
 
-         List<IpAndPortEndPoint>? endPoints = null;
+         List<Guid>? endPoints = null;
          if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            endPoints = new List<IpAndPortEndPoint>() { myEndPoint };
+            endPoints = new List<Guid>() { NodeDiscovery.GetMyNode().Id };
          }
          else if (block.Transaction == TransactionType.ADD_FILE || block.Transaction == TransactionType.REMOVE_FILE)
          {
             if (block.FileLocations == null) return BlockValidationResult.UNDEFINED_SITUATION;
-            if (block.FileLocations.Exists(ep => ep.ToString().Equals(myEndPoint.ToString())))
+            if (block.FileLocations.Exists(ep => ep == NodeDiscovery.GetMyNode().Id))
             {
                return BlockValidationResult.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
             }
 
             endPoints = block.FileLocations.ToList();
-            endPoints.Add(myEndPoint);
+            endPoints.Add(NodeDiscovery.GetMyNode().Id);
          }
 
          double creditValue = 0;
@@ -138,7 +159,7 @@ namespace SslTcpSession.BlockChain
          return await SendToPrimaryReplica(newBlock, NodeDiscovery.GetMyNode());
       }
 
-      public static async Task<BlockValidationResult> Add_RemoveFile(Guid fileId, string fileHash, IpAndPortEndPoint endPointToRemove)
+      public static async Task<BlockValidationResult> Add_RemoveFile(Guid fileId, string fileHash, Guid endPointToRemove)
       {
 
          Block? block = FindLatestFileUpdate(fileId);
@@ -151,8 +172,8 @@ namespace SslTcpSession.BlockChain
          {
             return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
          }
-         List<IpAndPortEndPoint> endPoints = block.FileLocations.ToList();
-         int? removed = endPoints.RemoveAll(ep => new IpAndPortEndPointComparer().Equals(ep, endPointToRemove));
+         List<Guid> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => ep == endPointToRemove);
 
          if (removed.HasValue && removed <= 0)
          {
@@ -590,11 +611,11 @@ namespace SslTcpSession.BlockChain
          }
 
          // Create virtual new end point list
-         List<IpAndPortEndPoint>? endPoints = null;
+         List<Guid>? endPoints = null;
          // If its Add pathWithFile request - create new list
          if (block.Transaction == TransactionType.ADD_FILE_REQUEST)
          {
-            endPoints = new List<IpAndPortEndPoint>();
+            endPoints = new List<Guid>();
          }
          // If anyting else, take old list
          else
@@ -606,20 +627,16 @@ namespace SslTcpSession.BlockChain
                return BlockValidationResult.INVALID_FILE_LOCATIONS;
             }
          }
-         // Try to extract endpoint from node
-         if (!fromNode.TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endPointToAdd))
-         {
-            return BlockValidationResult.INVALID_NODE_ENDPOINT;
-         }
+
          // Check if endpoint is not already there
-         if (block.FileLocations != null && block.FileLocations.Exists(ep => ep.ToString().Equals(endPointToAdd.ToString())))
+         if (block.FileLocations != null && block.FileLocations.Exists(ep => ep == fromNode.Id))
          {
             return BlockValidationResult.YOUR_ENDPOINT_IS_ALREADY_ON_LIST;
          }
          // Add end point to list
-         endPoints.Add(endPointToAdd);
+         endPoints.Add(fromNode.Id);
          // Check if virtual new end point list is the same as provided
-         if (!CompareIpAndPointsLists(endPoints, newBlock.FileLocations))
+         if (!CompareGuidLists(endPoints, newBlock.FileLocations))
          {
             return BlockValidationResult.INVALID_FILE_LOCATIONS;
          }
@@ -646,13 +663,8 @@ namespace SslTcpSession.BlockChain
             return BlockValidationResult.YOUR_ENDPOINT_IS_NOT_ON_LIST;
          }
 
-         // Try to extract endpoint from node
-         if (!fromNode.TryGetNodeCustomEndpoint(out IpAndPortEndPoint? endPointToRemove))
-         {
-            return BlockValidationResult.INVALID_NODE_ENDPOINT;
-         }
-         List<IpAndPortEndPoint> endPoints = block.FileLocations.ToList();
-         int? removed = endPoints.RemoveAll(ep => new IpAndPortEndPointComparer().Equals(ep, endPointToRemove));
+         List<Guid> endPoints = block.FileLocations.ToList();
+         int? removed = endPoints.RemoveAll(ep => ep == fromNode.Id);
 
          if (removed.HasValue && removed <= 0)
          {
@@ -660,7 +672,7 @@ namespace SslTcpSession.BlockChain
          }
 
          // Check if virtual new end point list is the same as provided
-         if (!CompareIpAndPointsLists(endPoints, newBlock.FileLocations))
+         if (!CompareGuidLists(endPoints, newBlock.FileLocations))
          {
             return BlockValidationResult.INVALID_FILE_LOCATIONS;
          }
@@ -728,25 +740,15 @@ namespace SslTcpSession.BlockChain
          }
       }
 
-      private static bool CompareIpAndPointsLists(List<IpAndPortEndPoint>? list1, List<IpAndPortEndPoint>? list2)
+      private static bool CompareGuidLists(List<Guid>? list1, List<Guid>? list2)
       {
          if (list1 == null || list2 == null) return false;
 
          // Rýchle zlyhanie, ak sú zoznamy rôznych veľkostí
          if (list1.Count != list2.Count) return false;
 
-         // Konvertujeme list1 na HashSet pre efektívne vyhľadávanie
-         HashSet<string> hashSet = new HashSet<string>(list1.Select(ep => ep.ToString()));
+         return list1.OrderBy(x => x).SequenceEqual(list2.OrderBy(x => x));
 
-         // Porovnávame každý EndPoint v list2, či existuje v HashSet
-         foreach (IpAndPortEndPoint endPoint in list2)
-         {
-            string epString = endPoint.ToString();
-            if (!hashSet.Contains(epString)) { return false; }
-            else { hashSet.Remove(epString); }
-         }
-
-         return true; // Všetky EndPointy boli nájdené
       }
 
       public static void AddBlockAfterConsensus(Block block)

@@ -24,7 +24,7 @@ namespace SslTcpSession.BlockChain
             set => FileID = Guid.Parse(value);
         }
 
-        public List<IpAndPortEndPoint>? FileLocations { get; set; }
+        public List<Guid>? FileLocations { get; set; }
         public TransactionType Transaction { get; set; }
         public string Hash { get; set; } = string.Empty;
         public string PreviousHash { get; set; } = string.Empty;
@@ -49,7 +49,7 @@ namespace SslTcpSession.BlockChain
         public string FileLocationsInJsonFormat
         {
             get => JsonSerializer.Serialize(FileLocations);
-            set => FileLocations = JsonSerializer.Deserialize<List<IpAndPortEndPoint>>(value);
+            set => FileLocations = JsonSerializer.Deserialize<List<Guid>>(value);
         }
 
         public void ComputeHash()
@@ -63,7 +63,7 @@ namespace SslTcpSession.BlockChain
 
             if (FileLocations != null)
             {
-                foreach (IpAndPortEndPoint location in FileLocations)
+                foreach (Guid location in FileLocations)
                 {
                     sb.Append(location.ToString());
                 }

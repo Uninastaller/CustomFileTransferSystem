@@ -18,12 +18,13 @@ namespace Client
       {
          MyConfigManager.StartApplication();
          Log.StartApplication();
-         Blockchain.StartApplication();
-         await SqliteDataAccessReplicaLog.InsertNewBlockAsync(Blockchain.Chain[0]);
          NodeDiscovery.SetIpAddresses(NetworkUtils.GetLocalIPAddress(), await NetworkUtils.GetPublicIPAddress());
          NodeDiscovery.StartApplication();
 
          SqlMapper.AddTypeHandler(typeof(Guid), new GuidTypeHandler());
+
+         Blockchain.StartApplication();
+         await SqliteDataAccessReplicaLog.InsertNewBlockAsync(Blockchain.Chain[0]);
 
          Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
       }
@@ -33,6 +34,7 @@ namespace Client
          MyConfigManager.EndApplication();
          Log.WriteLog(LogLevel.DEBUG, "END OF PROGRAM");
          Log.EndApplication();
+         Blockchain.EndAplication();
       }
    }
 }
