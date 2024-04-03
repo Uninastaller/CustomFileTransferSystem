@@ -277,7 +277,7 @@ namespace Client.Windows
           .Case(contract.GetContractId(typeof(NodeListReceivedMessage)), (NodeListReceivedMessage x) => NodeListReceivedMessageHandler(x.NodeDict))
           .Case(contract.GetContractId(typeof(PbftReplicaLogDto)), (PbftReplicaLogDto x) => PbftReplicaLogDtoHandler(x))
           .Case(contract.GetContractId(typeof(PbftPrePrepareMessageReceivedMessage)), (PbftPrePrepareMessageReceivedMessage x) => PbftPrePrepareMessageReceivedMessageHandler(x))
-          .Case(contract.GetContractId(typeof(StartNewDownloadMessage)), (StartNewDownloadMessage x) => StartNewDownloadMessageHandler(x))
+          .Case(contract.GetContractId(typeof(StartNewDownloadMessage)), (StartNewDownloadMessage x) => StartNewDownloadMessageHandler(x.OfferingFileDto))
           ;
 
          MyConfigManager.TryGetIntConfigValue("Instance", out int instance);
@@ -291,6 +291,7 @@ namespace Client.Windows
 
          PbftMessageEvaluator.ReceivePbftMessage += PbftReplicaLogDtoHandler;
          SslPbftTmpClientBusinessLogic.ReceivePbftMessage += PbftReplicaLogDtoHandler;
+         Blockchain.DownloadFile += OnDownloadFile;
       }
 
       private void LoadLocalOfferingFiles()
@@ -499,11 +500,16 @@ namespace Client.Windows
          }
       }
 
-      private void StartNewDownloadMessageHandler(StartNewDownloadMessage message)
+      private void StartNewDownloadMessageHandler(OfferingFileDto offeringFileDto)
       {
-         Log.WriteLog(LogLevel.DEBUG, $"StartNewDownloadMessageHandler for file name: {message.OfferingFileDto.FileName}");
+         Log.WriteLog(LogLevel.DEBUG, $"StartNewDownloadMessageHandler for file name: {offeringFileDto.FileName}");
 
-         DownloadingStart(message.OfferingFileDto);
+         DownloadingStart(offeringFileDto);
+      }
+
+      private void OnDownloadFile(OfferingFileDto offeringFileDto)
+      {
+         this.BaseMsgEnque(new StartNewDownloadMessage(offeringFileDto));
       }
 
       private async void PbftReplicaLogDtoHandler(PbftReplicaLogDto log)

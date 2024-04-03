@@ -5,6 +5,7 @@ using Logger;
 using SqliteClassLibrary;
 using SslTcpSession.BlockChain;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace Client
@@ -25,6 +26,7 @@ namespace Client
 
          Blockchain.StartApplication();
          await SqliteDataAccessReplicaLog.InsertNewBlockAsync(Blockchain.Chain[0]);
+         Blockchain.LoadedChainFromDb(await SqliteDataAccessReplicaLog.GetAllBlocksAsync());
 
          Log.WriteLog(LogLevel.DEBUG, "START OF PROGRAM");
       }

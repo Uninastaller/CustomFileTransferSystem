@@ -1,4 +1,5 @@
-﻿using ConfigManager;
+﻿using Common.Model;
+using ConfigManager;
 using Logger;
 using System;
 using System.Collections.Generic;
@@ -22,8 +23,12 @@ namespace SslTcpSession.BlockChain
       private static readonly double _sizeToPrizeConversion = .00001;
 
       private static readonly Timer _filesCheckingTime = new Timer();
+      private static readonly Random _random = new Random();
 
       public static List<Block> Chain { get; private set; } = new List<Block>();
+
+      public delegate void DownloadFileEventHandler(OfferingFileDto offeringFileDto);
+      public static event DownloadFileEventHandler? DownloadFile;
 
       public static void StartApplication()
       {
@@ -44,6 +49,84 @@ namespace SslTcpSession.BlockChain
       private static void _filesCheckingTime_Elapsed(object? sender, ElapsedEventArgs e)
       {
          // TO DO checking files
+         IEnumerable<Block> blocks = GetAllFilesIShouldHad();
+
+         string folder = MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryDownload");
+
+         foreach (Block block in blocks)
+         {
+            // Vygenerovanie náhodného čísla od 0 do 2
+            int action = _random.Next(3);
+
+            // Rozhodovanie o akcii na základe náhodného čísla
+            switch (action)
+            {
+               case 0:
+                  // Action 0 - only check if file exist
+                  if (string.IsNullOrEmpty(DataEncryptor.FindEcryptedFileById(block.FileID, folder)))
+                  {
+                     Log.WriteLog(LogLevel.INFO, $"File: {block.FileID}, not found, invoking event for download!");
+                  }
+                  else continue;
+                  break;
+               case 1:
+                  // Action 1 - also check size of file
+                  if (!DataEncryptor.FindEncryptedFileByIdAndCheckHisSize(block.FileID, folder, block.FileSize, out _))
+                  {
+                     Log.WriteLog(LogLevel.INFO, $"File: {block.FileID}, not found, or have incorect size, invoking event for download!");
+                  }
+                  else continue;
+                  break;
+               case 2:
+                  // Action 3 - also check hi hash
+                  // Action 1 - also check size of file
+                  if (!DataEncryptor.FindEncryptedFileByIdAndCheckHisSizeAndHash(block.FileID, folder, block.FileSize, block.FileHash))
+                  {
+                     Log.WriteLog(LogLevel.INFO, $"File: {block.FileID}, not found, or have incorect size, or have incorect hash, invoking event for download!");
+                  }
+                  else continue;
+                  break;
+            }
+
+            if (NodeDiscovery.TryGetNode(block.NodeId, out Node? node))
+            {
+               OnDownloadFile(new OfferingFileDto($"{node.Address}:{node.Port}", Common.Enum.TypeOfServerSocket.TCP_SERVER_SSL)
+               {
+                  FileName = block.FileIDAsString,
+                  FileSize = block.FileSize,
+               });
+            }
+         }
+      }
+
+      public static void OnDownloadFile(OfferingFileDto offeringFileDto)
+      {
+         DownloadFile?.Invoke(offeringFileDto);
+      }
+
+      private static IEnumerable<Block> GetAllEverRequestedFilesToAdd()
+      {
+         return Chain.Where(block => block.Transaction == TransactionType.ADD_FILE_REQUEST);
+      }
+
+      private static IEnumerable<Block> GetAllActiveRequestedFilesToAdd()
+      {
+         return GetAllEverRequestedFilesToAdd().Where(block => !IsFileFlaggedToBeRemoved(block.FileID));
+      }
+
+      private static IEnumerable<Block> GetAllFilesIShouldHad()
+      {
+         return GetAllActiveRequestedFilesToAdd().Where(block => ShouldIHaveThatFile(block.FileID));
+      }
+
+      private static bool ShouldIHaveThatFile(Guid fileID)
+      {
+         Block? block = FindLatestFileUpdate(fileID);
+         if (block == null || block.FileLocations == null)
+         {
+            return false;
+         }
+         return block.FileLocations.Contains(NodeDiscovery.GetMyNode().Id);
       }
 
       public static void EndAplication()

@@ -21,7 +21,17 @@ namespace SslTcpSession.BlockChain
 
       public static bool FindEncryptedFileByIdAndCheckHisSizeAndHash(Guid id, string folder, long excpectedSize, string hashOfFile)
       {
-         string filePath = FindEcryptedFileById(id, folder);
+         if(!FindEncryptedFileByIdAndCheckHisSize(id, folder, excpectedSize, out string filePath))
+         {
+            return false;
+         }
+
+         return Blockchain.CalculateHashOfFile(filePath).Equals(hashOfFile);
+      }
+
+      public static bool FindEncryptedFileByIdAndCheckHisSize(Guid id, string folder, long excpectedSize, out string filePath)
+      {
+         filePath = FindEcryptedFileById(id, folder);
 
          if (string.IsNullOrEmpty(filePath)) return false;
 
@@ -30,7 +40,7 @@ namespace SslTcpSession.BlockChain
 
          if (fileSize != excpectedSize) return false;
 
-         return Blockchain.CalculateHashOfFile(filePath).Equals(hashOfFile);
+         return true;
       }
 
       public static async Task<string> EncryptFileAsync(string inputFile, string encryptedFileName, string encryptedFileLocation, X509Certificate2 myCertificate)
