@@ -319,8 +319,11 @@
                                             <RowDefinition Height="30"/>
                                         </Grid.RowDefinitions>
 
-                                        <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadLocalOfferingFilesFile" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                        <Button Style="{StaticResource ReloadButtonStyle}" x:Name="btnReloadLocalOfferingFilesFile" Content="" Grid.Row="3" Margin="0,2,0,0" Height="30" Width="30"
                                             ToolTip="Reload offering filles from local files" Click="btnReloadLocalOfferingFilesFile_Click">
+                                        </Button>
+                                        <Button Style="{StaticResource AddButtonStyle}" x:Name="btnOfferingFileWindow" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
+                                            ToolTip="Create new offering file" Click="btnOfferingFileWindow_Click">
                                         </Button>
 
                                     </Grid>                                   

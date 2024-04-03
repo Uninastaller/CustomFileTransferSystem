@@ -4,6 +4,7 @@ using Common.Model;
 using Common.ThreadMessages;
 using ConfigManager;
 using Logger;
+using SqliteClassLibrary;
 using SslTcpSession;
 using System;
 using System.Collections.Generic;

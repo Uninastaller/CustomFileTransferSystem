@@ -24,4 +24,10 @@
     <ProjectReference Include="..\TcpSession\TcpSession.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Windows\OfferingFileSettingsWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>
