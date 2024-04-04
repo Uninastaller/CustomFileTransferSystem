@@ -841,13 +841,20 @@ namespace Client.Windows
             button.IsEnabled = false;
             Log.WriteLog(LogLevel.DEBUG, button.Name);
 
-            DownloadingStart(offeringFileDto);
+            if(DownloadingStart(offeringFileDto))
             ShowTimedMessageAndEnableUI("Start of Downloading operation done!", TimeSpan.FromSeconds(2), button);
          }
       }
 
-      private void DownloadingStart(OfferingFileDto offeringFileDto)
+      private bool DownloadingStart(OfferingFileDto offeringFileDto)
       {
+         if (offeringFileDto.FileSize <= 0)
+         {
+            ShowTimedMessage("Can not start downloading file with negative size or 0!", TimeSpan.FromSeconds(3));
+            Log.WriteLog(LogLevel.ERROR, $"Can not start downloading file: {offeringFileDto.FileName}, bcs of negative size or 0!");
+            return false;
+         }
+
          DownloadModelObject? downloadModelObject = _downloadModels.FirstOrDefault(x => x.FileIndentificator.Equals(offeringFileDto.OfferingFileIdentificator));
          if (downloadModelObject == null)
          {
@@ -859,6 +866,7 @@ namespace Client.Windows
             Log.WriteLog(LogLevel.DEBUG, $"Downloading already exist: {offeringFileDto.OfferingFileIdentificator}, refreshing cliets");
             ExistingDownloadingStart(downloadModelObject, offeringFileDto);
          }
+         return true;
       }
 
       private void ExistingDownloadingStart(DownloadModelObject downloadModelObject, OfferingFileDto offeringFileDto)
