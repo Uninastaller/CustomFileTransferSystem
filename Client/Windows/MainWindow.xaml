@@ -363,6 +363,7 @@
                                                         <StackPanel Orientation="Horizontal">
                                                             <Button Content="Delete Identificator" Style="{StaticResource DataGridButtonStyle}" Click="btnDeleteFileIdentificator_Click" Tag="{Binding}" x:Name="btnDeleteFileIdentificator"/>
                                                             <Button Content="Start Downloading" Style="{StaticResource DataGridButtonStyle}" Click="btnStartDownloading_Click" Tag="{Binding}" x:Name="btnStartDownloading"/>
+                                                            <Button Content="Modify" Style="{StaticResource DataGridButtonStyle}" Click="btnModifyOfferingFile_Click" Tag="{Binding}" x:Name="btnModifyOfferingFile"/>
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
