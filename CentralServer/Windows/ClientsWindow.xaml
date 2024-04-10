@@ -14,8 +14,12 @@
         Background="Transparent"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip">
-    
-    <Border CornerRadius="32" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+
+    <Grid>
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="5" ShadowDepth="2" Direction="-90" Color="Gray"/>
+        </Grid.Effect>
+        <Border CornerRadius="32" BorderThickness="10" BorderBrush="#453a26" MouseLeftButtonDown="Border_MouseLeftButtonDown">
         <Grid>
 
             <Button Style="{StaticResource CloseButtonStyle}" x:Name="btnClose" Content="" Click="btnClose_Click" Panel.ZIndex="1"
@@ -118,4 +122,5 @@
             </Border>
         </Grid>
     </Border>
+    </Grid>
 </model:BaseWindowForWPF>
