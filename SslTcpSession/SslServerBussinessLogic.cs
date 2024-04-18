@@ -18,303 +18,310 @@ using Timer = System.Timers.Timer;
 
 namespace SslTcpSession
 {
-   public class SslServerBussinessLogic : SslServer, IUniversalServerSocket
-   {
+    public class SslServerBussinessLogic : SslServer, IUniversalServerSocket
+    {
 
-      #region Properties
+        #region Properties
 
-      public TypeOfServerSocket Type { get; }
-      public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferSendRate);
-      public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
-      public long TransferSendRate { get; private set; }
-      public long TransferReceiveRate { get; private set; }
+        public TypeOfServerSocket Type { get; }
+        public string TransferSendRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferSendRate);
+        public string TransferReceiveRateFormatedAsText => ResourceInformer.FormatDataTransferRate(TransferReceiveRate);
+        public long TransferSendRate { get; private set; }
+        public long TransferReceiveRate { get; private set; }
 
-      #endregion Properties
+        #endregion Properties
 
-      #region PublicFields
+        #region PublicFields
 
 
 
-      #endregion PublicFields
+        #endregion PublicFields
 
-      #region PrivateFields
+        #region PrivateFields
 
-      private IWindowEnqueuer? _gui;
-      /// <summary>
-      /// value: RemoteEndPoint
-      /// </summary>
-      private Dictionary<Guid, ServerClientsModel>? _clients = new Dictionary<Guid, ServerClientsModel>();
+        private IWindowEnqueuer? _gui;
+        /// <summary>
+        /// value: RemoteEndPoint
+        /// </summary>
+        private Dictionary<Guid, ServerClientsModel>? _clients = new Dictionary<Guid, ServerClientsModel>();
 
-      private Timer? _timer;
-      private ulong _timerCounter;
+        private Timer? _timer;
+        private ulong _timerCounter;
 
-      private long _secondOldBytesSent;
-      private long _secondOldBytesReceived;
+        private long _secondOldBytesSent;
+        private long _secondOldBytesReceived;
 
-      private TypeOfSession _typeOfSession;
+        private TypeOfSession _typeOfSession;
 
-      #endregion PrivateFields
+        #endregion PrivateFields
 
-      #region Ctor
+        #region Ctor
 
-      public SslServerBussinessLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
-      {
-         Type = TypeOfServerSocket.TCP_SERVER_SSL;
-         _typeOfSession = typeOfSession;
+        public SslServerBussinessLogic(SslContext context, IPAddress address, int port, IWindowEnqueuer gui, int optionReceiveBufferSize = 0x200000, int optionSendBufferSize = 0x200000, int optionAcceptorBacklog = 1024, TypeOfSession typeOfSession = TypeOfSession.DOWNLOADING) : base(context, address, port, optionReceiveBufferSize, optionSendBufferSize, optionAcceptorBacklog)
+        {
+            Type = TypeOfServerSocket.TCP_SERVER_SSL;
+            _typeOfSession = typeOfSession;
 
-         _gui = gui;
+            _gui = gui;
 
-         _timer = new Timer(1000); // Set the interval to 1 second
-         _timer.Elapsed += OneSecondHandler;
-         _timer.Start();
-         _typeOfSession = typeOfSession;
+            _timer = new Timer(1000); // Set the interval to 1 second
+            _timer.Elapsed += OneSecondHandler;
+            _timer.Start();
+            _typeOfSession = typeOfSession;
 
-         _gui?.BaseMsgEnque(new CreationMessage(Id, TypeOfSocket.SERVER, _typeOfSession));
-      }
+            _gui?.BaseMsgEnque(new CreationMessage(Id, TypeOfSocket.SERVER, _typeOfSession));
+        }
 
-      #endregion Ctor
+        #endregion Ctor
 
-      #region PublicMethods
+        #region PublicMethods
 
-      public void DisconnectSession(Guid sessionId)
-      {
-         FindSession(sessionId)?.Disconnect();
-      }
+        public void DisconnectSession(Guid sessionId)
+        {
+            FindSession(sessionId)?.Disconnect();
+        }
 
-      public List<ServerDownloadingSessionsInfo> GetDownloadingSessionsInfo()
-      {
-         List<ServerDownloadingSessionsInfo> list = new List<ServerDownloadingSessionsInfo>();
+        public List<ServerDownloadingSessionsInfo> GetDownloadingSessionsInfo()
+        {
+            List<ServerDownloadingSessionsInfo> list = new List<ServerDownloadingSessionsInfo>();
 
-         foreach (SslSession session in Sessions.Values)
-         {
-            if (session is SslDownloadingSession downloadingSession)
+            foreach (SslSession session in Sessions.Values)
             {
-               list.Add(new ServerDownloadingSessionsInfo()
-               {
-                  Id = session.Id,
-                  SessionState = downloadingSession.SessionState,
-                  FileNameOfAcceptedfileRequest = downloadingSession.FileNameOfAcceptedfileRequest,
-                  BytesReceived = session.BytesReceived,
-                  BytesSent = session.BytesSent,
-               });
+                if (session is SslDownloadingSession downloadingSession)
+                {
+                    list.Add(new ServerDownloadingSessionsInfo()
+                    {
+                        Id = session.Id,
+                        SessionState = downloadingSession.SessionState,
+                        FileNameOfAcceptedfileRequest = downloadingSession.FileNameOfAcceptedfileRequest,
+                        BytesReceived = session.BytesReceived,
+                        BytesSent = session.BytesSent,
+                    });
+                }
             }
-         }
-         return list;
-      }
+            return list;
+        }
 
-      public ISession? GetSessionById(Guid sessionID)
-      {
-         return this.FindSession(sessionID);
-      }
+        public ISession? GetSessionById(Guid sessionID)
+        {
+            return this.FindSession(sessionID);
+        }
 
-      #endregion PublicMethods
+        #endregion PublicMethods
 
-      #region PrivateMethods
+        #region PrivateMethods
 
-      private void ClientStateChange(ClientSocketState socketState, string? client, Guid sessionId, SessionState serverSessionState = SessionState.NONE)
-      {
-         if (_clients == null) return;
+        private void ClientStateChange(ClientSocketState socketState, string? client, Guid sessionId, SessionState serverSessionState = SessionState.NONE)
+        {
+            if (_clients == null) return;
 
-         if (socketState == ClientSocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
-         {
-            _clients.Add(sessionId, new ServerClientsModel() { SessionGuid = sessionId, RemoteEndpoint = client, ServerSessionState = serverSessionState });
-            Log.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
-         }
-         else if (socketState == ClientSocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
-         {
-            Log.WriteLog(LogLevel.DEBUG, $"Client: {_clients[sessionId]}, disconnected from server");
-            _clients.Remove(sessionId);
-         }
-         else if (socketState == ClientSocketState.INNER_STATE_CHANGE && _clients.ContainsKey(sessionId))
-         {
-            _clients[sessionId].ServerSessionState = serverSessionState;
-         }
-      }
-
-      #endregion PrivateMethods
-
-      #region ProtectedMethods
-
-
-
-      #endregion ProtectedMethods
-
-      #region EventHandler
-
-      private void OneSecondHandler(object? sender, ElapsedEventArgs e)
-      {
-         _timerCounter++;
-
-         TransferSendRate = BytesSent - _secondOldBytesSent;
-         TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
-         _secondOldBytesSent = BytesSent;
-         _secondOldBytesReceived = BytesReceived;
-      }
-
-      private void OnReceivePbftMessage(PbftReplicaLogDto log)
-      {
-         Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a pbft replica log");
-         _gui?.BaseMsgEnque(log);
-      }
-
-      /// <summary>
-      /// Its called when TcpServerSesion receive FILE_REQUEST message and invoke this event 
-      /// </summary>
-      /// <param name="session"></param>
-      /// <param name="filePath"></param>
-      /// <param name="fileSize"></param>
-      private void OnClientFileRequest(SslSession session, string filePath, long fileSize)
-      {
-         Log.WriteLog(LogLevel.DEBUG, $"Request was received for file: {filePath} with size: {fileSize}");
-
-         string? uploadingDirectory;
-
-         if (!Guid.TryParse(Path.GetFileName(filePath), out _))
-         {
-            uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
-         }
-         else
-         {
-            uploadingDirectory = ConfigurationManager.AppSettings["BlockchainFileDirectoryUpload"];
-         }
-
-         if (uploadingDirectory != null)
-         {
-            if (!Directory.Exists(uploadingDirectory))
+            if (socketState == ClientSocketState.CONNECTED && !_clients.ContainsKey(sessionId) && client != null)
             {
-               Directory.CreateDirectory(uploadingDirectory);
+                _clients.Add(sessionId, new ServerClientsModel() { SessionGuid = sessionId, RemoteEndpoint = client, ServerSessionState = serverSessionState });
+                Log.WriteLog(LogLevel.DEBUG, $"Client: {client}, connected to server");
             }
-
-            filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
-
-            if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslDownloadingSession serverSession)
+            else if (socketState == ClientSocketState.DISCONNECTED && _clients.ContainsKey(sessionId))
             {
-               //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
-               MessageBoxResult result = MessageBoxResult.Yes;
-               if (result == MessageBoxResult.Yes)
-               {
-                  FlagMessagesGenerator.GenerateAccept(session);
-                  serverSession.RequestAccepted = true;
-                  serverSession.FileNameOfAcceptedfileRequest = filePath;
-                  return;
-               }
+                Log.WriteLog(LogLevel.DEBUG, $"Client: {_clients[sessionId]}, disconnected from server");
+                _clients.Remove(sessionId);
             }
-         }
+            else if (socketState == ClientSocketState.INNER_STATE_CHANGE && _clients.ContainsKey(sessionId))
+            {
+                _clients[sessionId].ServerSessionState = serverSessionState;
+            }
+        }
 
-         FlagMessagesGenerator.GenerateReject(session);
-         session.Disconnect();
-         session.Dispose();
-      }
+        #endregion PrivateMethods
 
-      private void OnServerSessionStateChange(SslSession session, SessionState serverSessionState)
-      {
-         //Log.WriteLog(LogLevel.DEBUG, $"OnServerSessionStateChange: {serverSessionState}, on: {sesion.Socket.RemoteEndPoint}");
-         ClientStateChange(ClientSocketState.INNER_STATE_CHANGE, null, session.Id, serverSessionState);
-         if (_clients != null && _gui != null)
-            _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
-      }
+        #region ProtectedMethods
 
-      #endregion EventHandler
 
-      #region OverridedMethods
 
-      protected override void OnDispose()
-      {
-         _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, _typeOfSession, true, Address, Port));
+        #endregion ProtectedMethods
 
-         if (_timer != null)
-         {
-            _timer.Elapsed -= OneSecondHandler;
-            _timer.Stop();
-            _timer.Dispose();
+        #region EventHandler
+
+        private void OneSecondHandler(object? sender, ElapsedEventArgs e)
+        {
+            _timerCounter++;
+
+            TransferSendRate = BytesSent - _secondOldBytesSent;
+            TransferReceiveRate = BytesReceived - _secondOldBytesReceived;
+            _secondOldBytesSent = BytesSent;
+            _secondOldBytesReceived = BytesReceived;
+        }
+
+        private void OnReceivePbftMessage(PbftReplicaLogDto log)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Ssl server obtained a pbft replica log");
+            _gui?.BaseMsgEnque(log);
+        }
+
+        /// <summary>
+        /// Its called when TcpServerSesion receive FILE_REQUEST message and invoke this event 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="filePath"></param>
+        /// <param name="fileSize"></param>
+        private void OnClientFileRequest(SslSession session, string filePath, long fileSize)
+        {
+            Log.WriteLog(LogLevel.DEBUG, $"Request was received for file: {filePath} with size: {fileSize}");
+
+            string? uploadingDirectory;
+
+            if (!Guid.TryParse(Path.GetFileName(filePath), out Guid fileId))
+            {
+                uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+            }
+            else
+            {
+                if (!Blockchain.DoISharingThisFile(fileId))
+                {
+                    FlagMessagesGenerator.GenerateReject(session);
+                    session.Disconnect();
+                    session.Dispose();
+                    return;
+                }
+                uploadingDirectory = ConfigurationManager.AppSettings["BlockchainFileDirectoryUpload"];
+            }
+
+            if (uploadingDirectory != null)
+            {
+                if (!Directory.Exists(uploadingDirectory))
+                {
+                    Directory.CreateDirectory(uploadingDirectory);
+                }
+
+                filePath = $@"{uploadingDirectory}\{Path.GetFileName(filePath)}";
+
+                if (File.Exists(filePath) && fileSize == new System.IO.FileInfo(filePath).Length && session is SslDownloadingSession serverSession)
+                {
+                    //MessageBoxResult result = MessageBox.Show($"Client: {session.Socket.RemoteEndPoint} is requesting your file: {filePath}, with size of: {fileSize} bytes. \nAllow?", "Request", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    MessageBoxResult result = MessageBoxResult.Yes;
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        FlagMessagesGenerator.GenerateAccept(session);
+                        serverSession.RequestAccepted = true;
+                        serverSession.FileNameOfAcceptedfileRequest = filePath;
+                        return;
+                    }
+                }
+            }
+
+            FlagMessagesGenerator.GenerateReject(session);
+            session.Disconnect();
+            session.Dispose();
+        }
+
+        private void OnServerSessionStateChange(SslSession session, SessionState serverSessionState)
+        {
+            //Log.WriteLog(LogLevel.DEBUG, $"OnServerSessionStateChange: {serverSessionState}, on: {sesion.Socket.RemoteEndPoint}");
+            ClientStateChange(ClientSocketState.INNER_STATE_CHANGE, null, session.Id, serverSessionState);
+            if (_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
+        }
+
+        #endregion EventHandler
+
+        #region OverridedMethods
+
+        protected override void OnDispose()
+        {
+            _gui?.BaseMsgEnque(new DisposeMessage(Id, TypeOfSocket.SERVER, _typeOfSession, true, Address, Port));
+
+            if (_timer != null)
+            {
+                _timer.Elapsed -= OneSecondHandler;
+                _timer.Stop();
+                _timer.Dispose();
+                _timer = null;
+            }
+            _clients?.Clear();
+            _clients = null;
             _timer = null;
-         }
-         _clients?.Clear();
-         _clients = null;
-         _timer = null;
-         _gui = null;
-      }
+            _gui = null;
+        }
 
-      protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslDownloadingSession(this, _gui); }
+        protected override SslSession CreateSession() { return _typeOfSession == TypeOfSession.SESSION_WITH_CENTRAL_SERVER ? new SslCentralServerSession(this) : new SslDownloadingSession(this, _gui); }
 
-      protected override void OnError(SocketError error)
-      {
-         Log.WriteLog(LogLevel.ERROR, $"Ssl server caught an error with code {error}");
-      }
+        protected override void OnError(SocketError error)
+        {
+            Log.WriteLog(LogLevel.ERROR, $"Ssl server caught an error with code {error}");
+        }
 
-      private void OnPrePrepareBlockForReplica(Block requestedBlock)
-      {
-         if (_clients != null && _gui != null)
-         {
-            _gui.BaseMsgEnque(new PbftPrePrepareMessageReceivedMessage(requestedBlock));
-         }
-      }
+        private void OnPrePrepareBlockForReplica(Block requestedBlock)
+        {
+            if (_clients != null && _gui != null)
+            {
+                _gui.BaseMsgEnque(new PbftPrePrepareMessageReceivedMessage(requestedBlock));
+            }
+        }
 
-      private void OnClientDisconnected(SslSession session)
-      {
-         if (session is SslDownloadingSession serverSession)
-         {
-            serverSession.PrePrepareBlockForReplica -= OnPrePrepareBlockForReplica;
-            serverSession.ClientDisconnected -= OnClientDisconnected;
-            serverSession.ClientFileRequest -= OnClientFileRequest;
-            serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
-         }
-         else if (session is SslCentralServerSession centralServerSession)
-         {
-            centralServerSession.ClientDisconnected -= OnClientDisconnected;
-            centralServerSession.ServerSessionStateChange -= OnServerSessionStateChange;
-            centralServerSession.NewOfferingFiles -= OnNewOfferingFiles;
-            centralServerSession.RequestForOfferingFiles -= OnRequestForOfferingFiles;
-         }
+        private void OnClientDisconnected(SslSession session)
+        {
+            if (session is SslDownloadingSession serverSession)
+            {
+                serverSession.PrePrepareBlockForReplica -= OnPrePrepareBlockForReplica;
+                serverSession.ClientDisconnected -= OnClientDisconnected;
+                serverSession.ClientFileRequest -= OnClientFileRequest;
+                serverSession.ServerSessionStateChange -= OnServerSessionStateChange;
+            }
+            else if (session is SslCentralServerSession centralServerSession)
+            {
+                centralServerSession.ClientDisconnected -= OnClientDisconnected;
+                centralServerSession.ServerSessionStateChange -= OnServerSessionStateChange;
+                centralServerSession.NewOfferingFiles -= OnNewOfferingFiles;
+                centralServerSession.RequestForOfferingFiles -= OnRequestForOfferingFiles;
+            }
 
-         ClientStateChange(ClientSocketState.DISCONNECTED, null, session.Id);
-         if (_clients != null && _gui != null)
-            _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
-      }
+            ClientStateChange(ClientSocketState.DISCONNECTED, null, session.Id);
+            if (_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
+        }
 
-      protected override void OnConnected(SslSession session)
-      {
-         if (session is SslDownloadingSession serverSession)
-         {
-            serverSession.PrePrepareBlockForReplica += OnPrePrepareBlockForReplica;
-            serverSession.ClientDisconnected += OnClientDisconnected;
-            serverSession.ClientFileRequest += OnClientFileRequest;
-            serverSession.ServerSessionStateChange += OnServerSessionStateChange;
-         }
-         else if (session is SslCentralServerSession centralServerSession)
-         {
-            centralServerSession.ClientDisconnected += OnClientDisconnected;
-            centralServerSession.ServerSessionStateChange += OnServerSessionStateChange;
-            centralServerSession.NewOfferingFiles += OnNewOfferingFiles;
-            centralServerSession.RequestForOfferingFiles += OnRequestForOfferingFiles;
-         }
+        protected override void OnConnected(SslSession session)
+        {
+            if (session is SslDownloadingSession serverSession)
+            {
+                serverSession.PrePrepareBlockForReplica += OnPrePrepareBlockForReplica;
+                serverSession.ClientDisconnected += OnClientDisconnected;
+                serverSession.ClientFileRequest += OnClientFileRequest;
+                serverSession.ServerSessionStateChange += OnServerSessionStateChange;
+            }
+            else if (session is SslCentralServerSession centralServerSession)
+            {
+                centralServerSession.ClientDisconnected += OnClientDisconnected;
+                centralServerSession.ServerSessionStateChange += OnServerSessionStateChange;
+                centralServerSession.NewOfferingFiles += OnNewOfferingFiles;
+                centralServerSession.RequestForOfferingFiles += OnRequestForOfferingFiles;
+            }
 
-         ClientStateChange(ClientSocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);
-         if (_clients != null && _gui != null)
-            _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
-      }
+            ClientStateChange(ClientSocketState.CONNECTED, session.Socket?.RemoteEndPoint?.ToString(), session.Id);
+            if (_clients != null && _gui != null)
+                _gui.BaseMsgEnque(new ClientsStateChangeMessage() { Clients = _clients });
+        }
 
-      private void OnRequestForOfferingFiles(Guid sessionId)
-      {
-         _gui?.BaseMsgEnque(new RequestForOfferingFilesMessage() { SessionId = sessionId });
-      }
+        private void OnRequestForOfferingFiles(Guid sessionId)
+        {
+            _gui?.BaseMsgEnque(new RequestForOfferingFilesMessage() { SessionId = sessionId });
+        }
 
-      private void OnNewOfferingFiles(List<OfferingFileDto> offeringFilesDto)
-      {
-         _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFilesDto));
-      }
+        private void OnNewOfferingFiles(List<OfferingFileDto> offeringFilesDto)
+        {
+            _gui?.BaseMsgEnque(new OfferingFilesReceivedMessage(offeringFilesDto));
+        }
 
-      protected override void OnStarted()
-      {
-         _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STARTED, TypeOfSession = _typeOfSession });
-      }
+        protected override void OnStarted()
+        {
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STARTED, TypeOfSession = _typeOfSession });
+        }
 
-      protected override void OnStopped()
-      {
-         _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STOPPED, TypeOfSession = _typeOfSession });
-      }
+        protected override void OnStopped()
+        {
+            _gui?.BaseMsgEnque(new ServerSocketStateChangeMessage() { ServerSocketState = ServerSocketState.STOPPED, TypeOfSession = _typeOfSession });
+        }
 
-      #endregion OverridedMethods
+        #endregion OverridedMethods
 
-   }
+    }
 }
