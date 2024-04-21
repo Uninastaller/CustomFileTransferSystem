@@ -145,7 +145,6 @@ namespace SslTcpSession.BlockChain
                 PreviousHash = "0"
             };
 
-            genesis.ComputeHash();
             return genesis;
         }
 
