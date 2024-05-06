@@ -232,5 +232,6 @@ if (output != null)
    }
 }
 
+Console.ReadKey();
 
 MyConfigManager.EndApplication();
