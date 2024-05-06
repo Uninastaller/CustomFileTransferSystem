@@ -1,5 +1,4 @@
-﻿using Client.Windows;
-using Common.Enum;
+﻿using Common.Enum;
 using Common.Model;
 using ConfigManager;
 using ConsoleTests;
@@ -206,7 +205,7 @@ if (updateOfferingFiles)
       ofd.EndpointsAndProperties.TryAdd($"{ipAddres}:{_basePort + i}", new EndpointProperties() { TypeOfServerSocket = typeOfServerSocet });
    }
    // SAVE
-   string fileName = ofd.OfferingFileIdentificator + MainWindow.cftsFileExtensions;
+   string fileName = ofd.OfferingFileIdentificator + ".cfts";
 
    if (!Directory.Exists(offeringFilesDirectoryName))
    {

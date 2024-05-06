@@ -141,9 +141,15 @@ namespace ConsoleTests
 
             string exeToLaunch = exeFiles[0];
 
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = exeToLaunch;
+            startInfo.WorkingDirectory = directoryPath;
+
             try
             {
-                Process.Start(exeToLaunch);
+                Process process = new Process();
+                process.StartInfo = startInfo;
+                process.Start();
                 Console.WriteLine($"Starting: {exeToLaunch}");
             }
             catch (Exception ex)
