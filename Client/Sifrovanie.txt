@@ -1,37 +1,42 @@
 ﻿
-V predchádzajúcom príklade som demonštroval, ako zašifrovať a dešifrovať súbor v C# s využitím dvoch hlavných technológií šifrovania: asymetrického šifrovania (RSA) a symetrického šifrovania (AES). Toto kombinované použitie šifrovania poskytuje silnú úroveň bezpečnosti a je štandardnou praxou v kryptografii. Pozrime sa bližšie na každú z týchto technológií:
-
 Asymetrické šifrovanie (RSA):
-Asymetrické šifrovanie, známe aj ako verejno-súkromné kľúčové šifrovanie, používa pár kľúčov: verejný a súkromný. Verejný kľúč možno bezpečne zdieľať s ostatnými a používať na zašifrovanie správ alebo dát, ktoré môže dešifrovať len príslušný súkromný kľúč. RSA (Rivest-Shamir-Adleman) je jednou z najrozšírenejších metód asymetrického šifrovania a je považovaná za bezpečnú pri použití dostatočne dlhých kľúčov (napríklad 2048 bitov a viac).
+Asymetrické šifrovanie, známe aj ako verejno-súkromné kľúčové šifrovanie, používa pár kľúčov: verejný a súkromný.
+Verejný kľúč možno bezpečne zdieľať s ostatnými a používať na zašifrovanie správ alebo dát, ktoré môže dešifrovať len príslušný súkromný kľúč.
+RSA (Rivest-Shamir-Adleman) je jednou z najrozšírenejších metód asymetrického šifrovania a je považovaná za bezpečnú pri použití dostatočne dlhých kľúčov
+(napríklad 2048 bitov a viac).
 
-V našom prípade sa RSA používa na zašifrovanie symetrického kľúča a inicializačného vektora (IV), ktoré sú následne použité na zašifrovanie samotného súboru. To umožňuje bezpečnú výmenu symetrického kľúča medzi odosielateľom a príjemcom.
+V našom prípade sa RSA používa na zašifrovanie symetrického kľúča a inicializačného vektora (IV),
+ktoré sú následne použité na zašifrovanie samotného súboru. To umožňuje bezpečnú výmenu symetrického kľúča medzi odosielateľom a príjemcom.
 
 Symetrické šifrovanie (AES):
-Symetrické šifrovanie používa rovnaký kľúč na zašifrovanie a dešifrovanie dát. Advanced Encryption Standard (AES) je široko používaný štandard symetrického šifrovania, ktorý poskytuje vysokú úroveň bezpečnosti. AES je dostupný v niekoľkých dĺžkach kľúča, ako sú 128, 192 a 256 bitov, pričom 256-bitový AES kľúč ponúka najvyššiu úroveň bezpečnosti.
-
-V príklade sa AES používa na zašifrovanie obsahu súboru, pretože je efektívne pre veľké objemy dát a poskytuje silnú bezpečnosť. Použitie AES v kombinácii s RSA umožňuje využiť výhody oboch typov šifrovania: bezpečnú výmenu kľúčov cez asymetrické šifrovanie a rýchle, efektívne šifrovanie veľkého množstva dát cez symetrické šifrovanie.
+Symetrické šifrovanie používa rovnaký kľúč na zašifrovanie a dešifrovanie dát. 
+Advanced Encryption Standard (AES) je široko používaný štandard symetrického šifrovania, 
+ktorý poskytuje vysokú úroveň bezpečnosti. AES je dostupný v niekoľkých dĺžkach kľúča, ako sú 128, 192 a 256 bitov,
+pričom 256-bitový AES kľúč ponúka najvyššiu úroveň bezpečnosti.
 
 Kombinované použitie RSA a AES:
 Táto kombinácia poskytuje komplexné riešenie pre šifrovanie, kde:
 
-RSA sa používa na bezpečnú výmenu symetrických kľúčov (AES kľúča a IV), čo umožňuje, aby len držiteľ príslušného súkromného kľúča mohol získať symetrický kľúč a IV potrebný na dešifrovanie dát.
+RSA sa používa na bezpečnú výmenu symetrických kľúčov (AES kľúča a IV), čo umožňuje, aby len držiteľ príslušného súkromného kľúča mohol
+získať symetrický kľúč a IV potrebný na dešifrovanie dát.
 AES potom efektívne zašifruje samotné dáta s použitím získaného symetrického kľúča, poskytujúc rýchle a bezpečné šifrovanie pre veľké množstvo dát.
-Tento prístup je bežne používaný v mnohých bezpečnostných protokoloch a aplikáciách, vrátane HTTPS, VPN a bezpečných emailových služieb, kvôli jeho vyváženej kombinácii bezpečnosti, efektívnosti a praktickosti.
+Tento prístup je bežne používaný v mnohých bezpečnostných protokoloch a aplikáciách, vrátane HTTPS, VPN a bezpečných emailových služieb,
+kvôli jeho vyváženej kombinácii bezpečnosti, efektívnosti a praktickosti.
 
-
-Inicializačný vektor (IV) je koncepcia používaná v symetrickom šifrovaní, najmä pri režimoch operácie, ktoré vyžadujú blokovú šifru, ako je AES, aby pracovali v režime inom ako jednoduché šifrovanie blok po bloku. IV je podstatne náhodne generovaná hodnota, ktorá sa používa spolu so symetrickým kľúčom na zašifrovanie dát, čím sa zabezpečí, že rovnaké dáta zašifrované rovnakým kľúčom budú mať iný výstup pri každom šifrovaní.
+Inicializačný vektor (IV) je koncepcia používaná v symetrickom šifrovaní, najmä pri režimoch operácie, ktoré vyžadujú blokovú šifru,
+ako je AES, aby pracovali v režime inom ako jednoduché šifrovanie blok po bloku. IV je podstatne náhodne generovaná hodnota, 
+ktorá sa používa spolu so symetrickým kľúčom na zašifrovanie dát, čím sa zabezpečí, že rovnaké dáta zašifrované rovnakým kľúčom budú mať iný výstup pri každom šifrovaní.
 
 Prečo je IV dôležitý:
-Zabezpečenie jedinečnosti: IV zabezpečuje, že zašifrovanie rovnakých dát rovnakým kľúčom vyprodukuje odlišné zašifrované dáta pri každej iterácii. To je obzvlášť dôležité v režimoch ako CBC (Cipher Block Chaining), kde je výstup jedného bloku zašifrovaných dát použitý ako "IV" pre šifrovanie nasledujúceho bloku.
+Zabezpečenie jedinečnosti: IV zabezpečuje, že zašifrovanie rovnakých dát rovnakým kľúčom vyprodukuje odlišné zašifrované dáta pri každej iterácii. 
+To je obzvlášť dôležité v režimoch ako CBC (Cipher Block Chaining), kde je výstup jedného bloku zašifrovaných dát použitý ako "IV" pre šifrovanie nasledujúceho bloku.
 
-Predchádzanie útokom: Bez použitia IV by útočník mohol identifikovať vzorce v zašifrovaných dátach, čo by mu mohlo pomôcť odhaliť pôvodnú správu alebo kľúč. Použitím IV sa znemožní útočníkom odvodiť akékoľvek užitočné informácie o dátach alebo kľúči.
+Predchádzanie útokom: Bez použitia IV by útočník mohol identifikovať vzorce v zašifrovaných dátach, čo by mu mohlo pomôcť odhaliť pôvodnú správu alebo kľúč. 
+Použitím IV sa znemožní útočníkom odvodiť akékoľvek užitočné informácie o dátach alebo kľúči.
 
-Bezpečnostné protokoly: Mnohé bezpečnostné protokoly a štandardy vyžadujú použitie IV pri šifrovaní dát na zabezpečenie vysokej úrovne bezpečnosti. Napríklad, IV sa musí použiť pri šifrovaní dát v režime CBC a je štandardnou súčasťou SSL/TLS a iných bezpečnostných protokolov.
-
-Praktické použitie:
-Pri šifrovaní súborov alebo správ pomocou AES je bežné zahrnúť IV spolu so zašifrovanými dátami, aby príjemca mohol dešifrovať dáta použitím rovnakého symetrického kľúča a IV. IV sa obvykle nepovažuje za tajnú hodnotu a môže byť zdieľaná otvorene, ale je kriticky dôležité, aby bola jedinečná pre každú šifrovanú správu.
+Bezpečnostné protokoly: Mnohé bezpečnostné protokoly a štandardy vyžadujú použitie IV pri šifrovaní dát na zabezpečenie vysokej úrovne bezpečnosti. 
+Napríklad, IV sa musí použiť pri šifrovaní dát v režime CBC a je štandardnou súčasťou SSL/TLS a iných bezpečnostných protokolov.
 
 Generovanie a používanie IV:
 Generovanie: IV by mal byť generovaný náhodným alebo pseudonáhodným spôsobom a mal by mať vhodnú dĺžku pre daný režim šifrovania (napríklad 16 bajtov pre AES).
 Bezpečné používanie: Aj keď IV môže byť zdieľaný otvorene, musí byť každýkrát, keď sa dáta šifrujú, unikátny a nesmie byť použitý viackrát s rovnakým kľúčom.
-Použitím IV v spojení so šifrovaním zabezpečíte, že vaše šifrované dáta sú bezpečné a chránené pred mnohými typmi kryptografických útokov.

@@ -96,6 +96,10 @@ namespace SslTcpSession.BlockChain
                await outFileStream.WriteAsync(encryptedAesIV, 0, encryptedAesIV.Length);
             }
          }
+
+         // Make the file read-only
+         File.SetAttributes(newFilePath, File.GetAttributes(newFilePath) | FileAttributes.ReadOnly);
+
          return newFilePath;
       }
 

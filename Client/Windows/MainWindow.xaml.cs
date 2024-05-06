@@ -551,7 +551,7 @@ namespace Client.Windows
                            if (_pbftCorrespondingBlockForAwaiter.Transaction == TransactionType.ADD_FILE &&
                               _pbftCorrespondingBlockForAwaiter.NodeId == NodeDiscovery.GetMyNode().Id)
                            {
-                              // ITS ME! I SHOULD CONNECT TO SOME REPLICA TO DOWNLOAD FILE FROM HIM (IF I DONT HAVE HIM)
+                              // ITS ME! I SHOULD CONNECT TO SOME REPLICA TO DOWNLOAD FILE FROM HIM (IF I DONT HAVE)
 
                               bool haveFile = DataEncryptor.FindEncryptedFileByIdAndCheckHisSizeAndHash(_pbftCorrespondingBlockForAwaiter.FileID,
                               MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryDownload"),
