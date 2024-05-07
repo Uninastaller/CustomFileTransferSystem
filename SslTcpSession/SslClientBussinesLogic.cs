@@ -4,6 +4,7 @@ using Common.Model;
 using Common.ThreadMessages;
 using ConfigManager;
 using Logger;
+using SslTcpSession.BlockChain;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -404,9 +405,24 @@ namespace SslTcpSession
          }
       }
 
+        private void btnDecryptFile_Click()
+        {
+            var fileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "All files (*.*)|*.*"
+            };
+            bool? result = fileDialog.ShowDialog();
+
+            if (result == true)
+            {
+                string fileName = fileDialog.FileName;
+
+            }
+        }
+
       #endregion EventHandler
 
-      #region OverridedMethods
+        #region OverridedMethods
 
       protected override void Dispose(bool disposingManagedResources)
       {

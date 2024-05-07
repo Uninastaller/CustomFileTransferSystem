@@ -2,6 +2,7 @@
 using Common.Interface;
 using Common.Model;
 using Common.ThreadMessages;
+using ConfigManager;
 using Logger;
 using SslTcpSession.BlockChain;
 using SslTcpSession.BlockChain.ThreadMessages;
@@ -171,18 +172,25 @@ namespace SslTcpSession
 
             if (!Guid.TryParse(Path.GetFileName(filePath), out Guid fileId))
             {
-                uploadingDirectory = ConfigurationManager.AppSettings["UploadingDirectory"];
+                uploadingDirectory = MyConfigManager.GetConfigStringValue("UploadingDirectory");
             }
             else
             {
-                if (!Blockchain.DoISharingThisFile(fileId))
+                if (Blockchain.DoISharingThisFile(fileId))
+                {
+                    uploadingDirectory = MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryUpload");
+                }
+                else if (File.Exists(Path.Combine(MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryDownload"), fileId.ToString())))
+                {
+                    uploadingDirectory = MyConfigManager.GetConfigStringValue("BlockchainFileDirectoryDownload");
+                }
+                else
                 {
                     FlagMessagesGenerator.GenerateReject(session);
                     session.Disconnect();
                     session.Dispose();
                     return;
                 }
-                uploadingDirectory = ConfigurationManager.AppSettings["BlockchainFileDirectoryUpload"];
             }
 
             if (uploadingDirectory != null)

@@ -78,7 +78,7 @@ namespace SslTcpSession.BlockChain
                         else continue;
                         break;
                     case 2:
-                        // Action 3 - also check hi hash
+                        // Action 3 - also check hash
                         // Action 1 - also check size of file
                         if (!DataEncryptor.FindEncryptedFileByIdAndCheckHisSizeAndHash(block.FileID, folder, block.FileSize, block.FileHash))
                         {

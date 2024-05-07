@@ -639,7 +639,10 @@
                                         <Button Style="{StaticResource AddButtonStyle}" x:Name="btnCreateBlockRequest" Content="" Grid.Row="1" Margin="0,2,0,0" Height="30" Width="30"
                             ToolTip="Create new request" Click="btnCreateBlockRequest_Click">
                         </Button>
-                        <!--<Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
+                                        <Button Style="{StaticResource SaveButtonStyle}" x:Name="btnDcryptFile" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
+                            ToolTip="Decrypt file" Click="btnDecryptFile_Click">
+                                        </Button>
+                                        <!--<Button Style="{StaticResource MyNodeButtonStyle}" x:Name="btnMyNode" Content="" Grid.Row="5" Margin="0,2,0,0" Height="30" Width="30"
 ToolTip="My Node" Click="btnMyNode_Click">
                         </Button>
                         <Button Style="{StaticResource AddButtonStyle}" x:Name="btnAddNode" Content="" Grid.Row="7" Margin="0,2,0,0" Height="30" Width="30"
